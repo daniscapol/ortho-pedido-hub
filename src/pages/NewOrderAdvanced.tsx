@@ -11,17 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
-
-interface Patient {
-  id: string;
-  name: string;
-  cpf: string;
-  phone: string;
-  email: string;
-  lastVisit: string;
-  ordersCount: number;
-}
+import { useCreateOrder } from "@/hooks/useOrders";
+import { useToast } from "@/hooks/use-toast";
+import { Patient } from "@/hooks/usePatients";
 
 interface AnnotatedImage {
   file: File;
@@ -35,6 +27,8 @@ interface AnnotatedImage {
 
 const NewOrderAdvanced = () => {
   const navigate = useNavigate();
+  const createOrder = useCreateOrder();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedTeeth, setSelectedTeeth] = useState<string[]>([]);
@@ -73,7 +67,7 @@ const NewOrderAdvanced = () => {
     if (!selectedPatient) return;
     
     try {
-      const orderToCreate = {
+      await createOrder.mutateAsync({
         patient_id: selectedPatient.id,
         dentist: orderData.dentist,
         prosthesis_type: orderData.prosthesisType,
@@ -84,45 +78,9 @@ const NewOrderAdvanced = () => {
         observations: orderData.observations,
         delivery_address: orderData.deliveryAddress,
         selected_teeth: selectedTeeth,
-        status: "pendente"
-      };
-      
-      // Criar pedido no banco
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert([orderToCreate])
-        .select()
-        .single();
+        status: "pending"
+      });
 
-      if (error) throw error;
-
-      // Salvar imagens se houver
-      if (images.length > 0) {
-        for (const image of images) {
-          // Upload da imagem para o storage do Supabase
-          const fileExt = image.file.name.split('.').pop();
-          const fileName = `${order.id}/${Date.now()}.${fileExt}`;
-          
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('order-images')
-            .upload(fileName, image.file);
-
-          if (uploadError) throw uploadError;
-
-          // Salvar referência da imagem na tabela
-          const { error: imageError } = await supabase
-            .from('order_images')
-            .insert([{
-              order_id: order.id,
-              image_url: uploadData.path,
-              annotations: image.annotations
-            }]);
-
-          if (imageError) throw imageError;
-        }
-      }
-      
-      console.log("Pedido criado:", order);
       navigate("/");
     } catch (error) {
       console.error("Erro ao criar pedido:", error);
@@ -195,7 +153,7 @@ const NewOrderAdvanced = () => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Tel: {selectedPatient.phone}</p>
-                        <Badge variant="outline">{selectedPatient.ordersCount} pedidos anteriores</Badge>
+                        <Badge variant="outline">Paciente selecionado</Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -366,10 +324,10 @@ const NewOrderAdvanced = () => {
           ) : (
             <Button
               onClick={handleSubmit}
-              disabled={!canProceed(currentStep)}
+              disabled={!canProceed(currentStep) || createOrder.isPending}
               className="bg-success text-success-foreground hover:bg-success/90"
             >
-              Finalizar Pedido
+              {createOrder.isPending ? "Criando Pedido..." : "Finalizar Pedido"}
             </Button>
           )}
         </div>

@@ -4,16 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-
-interface Patient {
-  id: string;
-  name: string;
-  cpf: string;
-  phone: string;
-  email: string;
-  lastVisit: string;
-  ordersCount: number;
-}
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePatients, useCreatePatient, Patient } from "@/hooks/usePatients";
 
 const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient | null) => void }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,47 +17,26 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
     email: ""
   });
 
-  // Dados simulados - em produção viria do banco
-  const patients: Patient[] = [
-    {
-      id: "1",
-      name: "Maria Silva Santos",
-      cpf: "123.456.789-00",
-      phone: "(11) 99999-9999",
-      email: "maria@email.com",
-      lastVisit: "2024-01-10",
-      ordersCount: 3
-    },
-    {
-      id: "2", 
-      name: "João Carlos Oliveira",
-      cpf: "987.654.321-00",
-      phone: "(11) 88888-8888",
-      email: "joao@email.com",
-      lastVisit: "2024-01-08",
-      ordersCount: 1
+  const { data: patients, isLoading } = usePatients(searchTerm);
+  const createPatient = useCreatePatient();
+
+  const filteredPatients = patients || [];
+
+  const handleCreatePatient = async () => {
+    try {
+      const result = await createPatient.mutateAsync({
+        name: newPatient.name,
+        cpf: newPatient.cpf,
+        phone: newPatient.phone,
+        email: newPatient.email
+      });
+      
+      onPatientSelect(result);
+      setShowNewForm(false);
+      setNewPatient({ name: "", cpf: "", phone: "", email: "" });
+    } catch (error) {
+      console.error('Erro ao criar paciente:', error);
     }
-  ];
-
-  const filteredPatients = patients.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.cpf.includes(searchTerm)
-  );
-
-  const handleCreatePatient = () => {
-    const patient: Patient = {
-      id: Date.now().toString(),
-      name: newPatient.name,
-      cpf: newPatient.cpf,
-      phone: newPatient.phone,
-      email: newPatient.email,
-      lastVisit: new Date().toISOString().split('T')[0],
-      ordersCount: 0
-    };
-    
-    onPatientSelect(patient);
-    setShowNewForm(false);
-    setNewPatient({ name: "", cpf: "", phone: "", email: "" });
   };
 
   if (showNewForm) {
@@ -119,8 +90,11 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
           </div>
           
           <div className="flex gap-2">
-            <Button onClick={handleCreatePatient} disabled={!newPatient.name || !newPatient.cpf}>
-              Criar Paciente
+            <Button 
+              onClick={handleCreatePatient} 
+              disabled={!newPatient.name || !newPatient.cpf || createPatient.isPending}
+            >
+              {createPatient.isPending ? "Criando..." : "Criar Paciente"}
             </Button>
             <Button variant="outline" onClick={() => setShowNewForm(false)}>
               Cancelar
@@ -151,37 +125,57 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
         
         {searchTerm && (
           <div className="space-y-2 max-h-60 overflow-y-auto">
-            {filteredPatients.map((patient) => (
-              <div
-                key={patient.id}
-                className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50"
-                onClick={() => onPatientSelect(patient)}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-medium text-foreground">{patient.name}</h4>
-                    <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
-                    <p className="text-sm text-muted-foreground">Tel: {patient.phone}</p>
+            {isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="p-3 border border-border rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-3 w-32" />
+                        <Skeleton className="h-3 w-28" />
+                      </div>
+                      <div className="text-right space-y-1">
+                        <Skeleton className="h-5 w-16" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <Badge variant="outline">
-                      {patient.ordersCount} pedidos
-                    </Badge>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Último: {patient.lastVisit}
-                    </p>
+                ))}
+              </div>
+            ) : (
+              <>
+                {filteredPatients.map((patient) => (
+                  <div
+                    key={patient.id}
+                    className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => onPatientSelect(patient)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-foreground">{patient.name}</h4>
+                        <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
+                        <p className="text-sm text-muted-foreground">Tel: {patient.phone}</p>
+                        <p className="text-sm text-muted-foreground">Email: {patient.email}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline">
+                          Cadastrado
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-            
-            {filteredPatients.length === 0 && (
-              <div className="text-center py-4 text-muted-foreground">
-                <p>Nenhum paciente encontrado</p>
-                <Button variant="link" onClick={() => setShowNewForm(true)}>
-                  Criar novo paciente
-                </Button>
-              </div>
+                ))}
+                
+                {filteredPatients.length === 0 && !isLoading && (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p>Nenhum paciente encontrado</p>
+                    <Button variant="link" onClick={() => setShowNewForm(true)}>
+                      Criar novo paciente
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

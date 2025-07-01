@@ -5,18 +5,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCreateOrder } from "@/hooks/useOrders";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import PatientSearch from "./PatientSearch";
+import Odontogram from "./Odontogram";
+import { Patient } from "@/hooks/usePatients";
 
 const NewOrderForm = () => {
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedTeeth, setSelectedTeeth] = useState<string[]>([]);
   const [formData, setFormData] = useState({
-    patientName: "",
     dentistName: "",
-    clinic: "",
     prosthesisType: "",
+    material: "",
+    color: "",
     priority: "",
     deadline: "",
     observations: "",
+    deliveryAddress: "",
     images: [] as File[]
   });
+
+  const createOrder = useCreateOrder();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -33,107 +46,182 @@ const NewOrderForm = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Novo pedido:", formData);
-    // Aqui seria implementada a lógica de envio
+    
+    if (!selectedPatient) {
+      toast({
+        title: "Erro",
+        description: "Selecione um paciente primeiro",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedTeeth.length === 0) {
+      toast({
+        title: "Erro", 
+        description: "Selecione pelo menos um dente no odontograma",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await createOrder.mutateAsync({
+        patient_id: selectedPatient.id,
+        dentist: formData.dentistName,
+        prosthesis_type: formData.prosthesisType,
+        material: formData.material,
+        color: formData.color,
+        priority: formData.priority,
+        deadline: formData.deadline,
+        observations: formData.observations,
+        delivery_address: formData.deliveryAddress,
+        selected_teeth: selectedTeeth,
+        status: "pending"
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.error("Erro ao criar pedido:", error);
+    }
   };
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>Novo Pedido de Prótese</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="patientName">Nome do Paciente</Label>
-              <Input
-                id="patientName"
-                value={formData.patientName}
-                onChange={(e) => setFormData(prev => ({ ...prev, patientName: e.target.value }))}
-                placeholder="Digite o nome completo"
-                required
-              />
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Seleção de Paciente */}
+      {!selectedPatient ? (
+        <PatientSearch onPatientSelect={setSelectedPatient} />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Paciente Selecionado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-medium">{selectedPatient.name}</h3>
+                <p className="text-sm text-muted-foreground">CPF: {selectedPatient.cpf}</p>
+                <p className="text-sm text-muted-foreground">Tel: {selectedPatient.phone}</p>
+              </div>
+              <Button variant="outline" onClick={() => setSelectedPatient(null)}>
+                Trocar Paciente
+              </Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
 
-            <div className="space-y-2">
-              <Label htmlFor="dentistName">Dentista Responsável</Label>
-              <Input
-                id="dentistName"
-                value={formData.dentistName}
-                onChange={(e) => setFormData(prev => ({ ...prev, dentistName: e.target.value }))}
-                placeholder="Nome do dentista"
-                required
-              />
-            </div>
+      {selectedPatient && (
+        <>
+          {/* Odontograma */}
+          <Odontogram onToothSelect={setSelectedTeeth} />
 
-            <div className="space-y-2">
-              <Label htmlFor="clinic">Clínica/Consultório</Label>
-              <Input
-                id="clinic"
-                value={formData.clinic}
-                onChange={(e) => setFormData(prev => ({ ...prev, clinic: e.target.value }))}
-                placeholder="Nome da clínica"
-                required
-              />
-            </div>
+          {/* Formulário do Pedido */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Dados do Pedido</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <div className="space-y-2">
-              <Label htmlFor="prosthesisType">Tipo de Prótese</Label>
-              <Select onValueChange={(value) => setFormData(prev => ({ ...prev, prosthesisType: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="coroa-ceramica">Coroa Cerâmica</SelectItem>
-                  <SelectItem value="protese-total">Prótese Total</SelectItem>
-                  <SelectItem value="protese-parcial">Prótese Parcial</SelectItem>
-                  <SelectItem value="implante">Implante</SelectItem>
-                  <SelectItem value="ponte-fixa">Ponte Fixa</SelectItem>
-                  <SelectItem value="protese-flexivel">Prótese Flexível</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dentistName">Dentista Responsável</Label>
+                    <Input
+                      id="dentistName"
+                      value={formData.dentistName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, dentistName: e.target.value }))}
+                      placeholder="Nome do dentista"
+                      required
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="priority">Prioridade</Label>
-              <Select onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a prioridade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="baixa">Baixa</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="urgente">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="prosthesisType">Tipo de Prótese</Label>
+                    <Select onValueChange={(value) => setFormData(prev => ({ ...prev, prosthesisType: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="coroa-ceramica">Coroa Cerâmica</SelectItem>
+                        <SelectItem value="protese-total">Prótese Total</SelectItem>
+                        <SelectItem value="protese-parcial">Prótese Parcial</SelectItem>
+                        <SelectItem value="implante">Implante</SelectItem>
+                        <SelectItem value="ponte-fixa">Ponte Fixa</SelectItem>
+                        <SelectItem value="protese-flexivel">Prótese Flexível</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="deadline">Prazo de Entrega</Label>
-              <Input
-                id="deadline"
-                type="date"
-                value={formData.deadline}
-                onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
-                required
-              />
-            </div>
-          </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="material">Material</Label>
+                    <Input
+                      id="material"
+                      value={formData.material}
+                      onChange={(e) => setFormData(prev => ({ ...prev, material: e.target.value }))}
+                      placeholder="Ex: Zircônia, Metal-cerâmica"
+                    />
+                  </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="observations">Observações e Especificações</Label>
-            <Textarea
-              id="observations"
-              value={formData.observations}
-              onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
-              placeholder="Descreva detalhes específicos, cor, material, anatomia, etc."
-              rows={4}
-            />
-          </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="color">Cor</Label>
+                    <Input
+                      id="color"
+                      value={formData.color}
+                      onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                      placeholder="Ex: A2, B1, C3"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="priority">Prioridade</Label>
+                    <Select onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a prioridade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="baixa">Baixa</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="alta">Alta</SelectItem>
+                        <SelectItem value="urgente">Urgente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="deadline">Prazo de Entrega</Label>
+                    <Input
+                      id="deadline"
+                      type="date"
+                      value={formData.deadline}
+                      onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="deliveryAddress">Endereço de Entrega (Opcional)</Label>
+                    <Input
+                      id="deliveryAddress"
+                      value={formData.deliveryAddress}
+                      onChange={(e) => setFormData(prev => ({ ...prev, deliveryAddress: e.target.value }))}
+                      placeholder="Endereço completo para entrega"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="observations">Observações e Especificações</Label>
+                  <Textarea
+                    id="observations"
+                    value={formData.observations}
+                    onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
+                    placeholder="Descreva detalhes específicos, cor, material, anatomia, etc."
+                    rows={4}
+                  />
+                </div>
 
           <div className="space-y-4">
             <Label>Imagens e Documentação</Label>
@@ -182,17 +270,29 @@ const NewOrderForm = () => {
             )}
           </div>
 
-          <div className="flex gap-4 pt-6">
-            <Button type="submit" className="flex-1">
-              Criar Pedido
-            </Button>
-            <Button type="button" variant="outline" className="flex-1">
-              Salvar Rascunho
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+                <div className="flex gap-4 pt-6">
+                  <Button 
+                    type="submit" 
+                    className="flex-1"
+                    disabled={createOrder.isPending}
+                  >
+                    {createOrder.isPending ? "Criando Pedido..." : "Criar Pedido"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => navigate("/")}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
   );
 };
 
