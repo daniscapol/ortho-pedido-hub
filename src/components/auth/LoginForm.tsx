@@ -12,28 +12,47 @@ const LoginForm = () => {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
+  const [isSignUp, setIsSignUp] = useState(false)
+  const { signIn, signUp } = useAuth()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    const { error } = await signIn(email, password)
-
-    if (error) {
-      toast({
-        title: "Erro no login",
-        description: error.message === "Invalid login credentials" 
-          ? "Email ou senha incorretos"
-          : "Erro ao fazer login. Tente novamente.",
-        variant: "destructive",
-      })
+    if (isSignUp) {
+      const { error } = await signUp(email, password)
+      if (error) {
+        toast({
+          title: "Erro no cadastro",
+          description: error.message === "User already registered" 
+            ? "Este email já está cadastrado"
+            : "Erro ao criar conta. Tente novamente.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Conta criada!",
+          description: "Sua conta foi criada com sucesso. Faça login para continuar.",
+        })
+        setIsSignUp(false)
+      }
     } else {
-      toast({
-        title: "Login realizado",
-        description: "Bem-vindo ao Sistema SB Prótese!",
-      })
+      const { error } = await signIn(email, password)
+      if (error) {
+        toast({
+          title: "Erro no login",
+          description: error.message === "Invalid login credentials" 
+            ? "Email ou senha incorretos"
+            : "Erro ao fazer login. Tente novamente.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Login realizado",
+          description: "Bem-vindo ao Sistema SB Prótese!",
+        })
+      }
     }
 
     setIsLoading(false)
@@ -47,7 +66,7 @@ const LoginForm = () => {
             Sistema SB Prótese
           </CardTitle>
           <CardDescription>
-            Entre com sua conta para acessar o sistema
+            {isSignUp ? "Crie sua conta para acessar o sistema" : "Entre com sua conta para acessar o sistema"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,9 +117,19 @@ const LoginForm = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Entrando..." : "Entrar"}
+              {isLoading ? (isSignUp ? "Criando conta..." : "Entrando...") : (isSignUp ? "Criar Conta" : "Entrar")}
             </Button>
           </form>
+          
+          <div className="mt-4 text-center">
+            <Button 
+              variant="link" 
+              onClick={() => setIsSignUp(!isSignUp)}
+              disabled={isLoading}
+            >
+              {isSignUp ? "Já tem uma conta? Faça login" : "Não tem conta? Cadastre-se"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
