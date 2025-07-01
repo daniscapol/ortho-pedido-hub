@@ -2,12 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface StatusCardProps {
   title: string;
-  count: number;
+  status: string;
   color: "blue" | "yellow" | "green" | "red";
   icon: string;
 }
 
-const StatusCard = ({ title, count, color, icon }: StatusCardProps) => {
+const StatusCard = ({ title, status, color, icon }: StatusCardProps) => {
+  // Mock count for now - would use real data from useOrders hook
+  const count = 0;
   const colorClasses = {
     blue: "bg-primary text-primary-foreground",
     yellow: "bg-warning text-warning-foreground", 

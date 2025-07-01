@@ -27,25 +27,25 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatusCard
             title="Pedidos Pendentes"
-            count={12}
+            status="pendente"
             color="yellow"
             icon="⏳"
           />
           <StatusCard
             title="Em Produção"
-            count={8}
+            status="producao"
             color="blue"
             icon="⚙️"
           />
           <StatusCard
             title="Prontos"
-            count={5}
+            status="pronto"
             color="green"
             icon="✅"
           />
           <StatusCard
-            title="Entregues Hoje"
-            count={3}
+            title="Entregues"
+            status="entregue"
             color="red"
             icon="📦"
           />

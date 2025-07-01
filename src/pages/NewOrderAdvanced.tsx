@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 
 interface Patient {
   id: string;
@@ -68,20 +69,64 @@ const NewOrderAdvanced = () => {
     }
   };
 
-  const handleSubmit = () => {
-    const finalOrder = {
-      patient: selectedPatient,
-      teeth: selectedTeeth,
-      images: images,
-      ...orderData,
-      id: `P${Date.now()}`,
-      status: "pendente",
-      createdAt: new Date().toISOString()
-    };
+  const handleSubmit = async () => {
+    if (!selectedPatient) return;
     
-    console.log("Pedido criado:", finalOrder);
-    // Aqui seria enviado para o backend
-    navigate("/");
+    try {
+      const orderToCreate = {
+        patient_id: selectedPatient.id,
+        dentist: orderData.dentist,
+        prosthesis_type: orderData.prosthesisType,
+        material: orderData.material,
+        color: orderData.color,
+        priority: orderData.priority,
+        deadline: orderData.deadline,
+        observations: orderData.observations,
+        delivery_address: orderData.deliveryAddress,
+        selected_teeth: selectedTeeth,
+        status: "pendente"
+      };
+      
+      // Criar pedido no banco
+      const { data: order, error } = await supabase
+        .from('orders')
+        .insert([orderToCreate])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Salvar imagens se houver
+      if (images.length > 0) {
+        for (const image of images) {
+          // Upload da imagem para o storage do Supabase
+          const fileExt = image.file.name.split('.').pop();
+          const fileName = `${order.id}/${Date.now()}.${fileExt}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('order-images')
+            .upload(fileName, image.file);
+
+          if (uploadError) throw uploadError;
+
+          // Salvar referência da imagem na tabela
+          const { error: imageError } = await supabase
+            .from('order_images')
+            .insert([{
+              order_id: order.id,
+              image_url: uploadData.path,
+              annotations: image.annotations
+            }]);
+
+          if (imageError) throw imageError;
+        }
+      }
+      
+      console.log("Pedido criado:", order);
+      navigate("/");
+    } catch (error) {
+      console.error("Erro ao criar pedido:", error);
+    }
   };
 
   return (
