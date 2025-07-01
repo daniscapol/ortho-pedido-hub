@@ -114,7 +114,7 @@ const OrdersTable = () => {
                         </Button>
                       )}
                       <Button variant="outline" size="sm">
-                        Ver
+                        <a href={`/pedido/${order.id}`}>Ver</a>
                       </Button>
                     </div>
                   </td>
