@@ -16,7 +16,8 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter } from "lucide-react";
+import { Search, Eye, Filter, BarChart3 } from "lucide-react";
+import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 
 interface User {
   id: string;
@@ -35,6 +36,7 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("overview");
   const updateOrderStatus = useUpdateOrderStatus();
 
   // Buscar todos os usuários
@@ -195,9 +197,32 @@ const Admin = () => {
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Estatísticas dos Pedidos */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {/* Navegação por Abas */}
+        <div className="flex gap-2 mb-6">
+          <Button 
+            variant={activeTab === "overview" ? "default" : "outline"}
+            onClick={() => setActiveTab("overview")}
+            className="flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Visão Geral
+          </Button>
+          <Button 
+            variant={activeTab === "analytics" ? "default" : "outline"}
+            onClick={() => setActiveTab("analytics")}
+            className="flex items-center gap-2"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </Button>
+        </div>
+
+        {activeTab === "analytics" ? (
+          <AnalyticsSection />
+        ) : (
+          <div className="space-y-6">
+            {/* Estatísticas dos Pedidos */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -505,7 +530,8 @@ const Admin = () => {
               )}
             </CardContent>
           </Card>
-        </div>
+          </div>
+        )}
       </main>
     </div>
   );
