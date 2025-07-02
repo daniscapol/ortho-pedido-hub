@@ -11,6 +11,7 @@ import NewOrderAdvanced from "./pages/NewOrderAdvanced";
 import OrderDetails from "./pages/OrderDetails";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,18 +23,25 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <ProtectedRoute>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/novo-pedido" element={<NewOrder />} />
-              <Route path="/novo-pedido-avancado" element={<NewOrderAdvanced />} />
-              <Route path="/pedido/:id" element={<OrderDetails />} />
-              <Route path="/perfil" element={<Profile />} />
-              <Route path="/admin" element={<Admin />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ProtectedRoute>
+          <Routes>
+            {/* Rota pública para reset de senha */}
+            <Route path="/reset-password" element={<ResetPassword />} />
+            
+            {/* Rotas protegidas */}
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/novo-pedido" element={<NewOrder />} />
+                  <Route path="/novo-pedido-avancado" element={<NewOrderAdvanced />} />
+                  <Route path="/pedido/:id" element={<OrderDetails />} />
+                  <Route path="/perfil" element={<Profile />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
