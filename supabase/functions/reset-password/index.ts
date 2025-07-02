@@ -61,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: `${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovableproject.com')}/reset-password`
+        redirectTo: 'https://ortho-pedido-hub.lovable.app/reset-password'
       }
     });
 
