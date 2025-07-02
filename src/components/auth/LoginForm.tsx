@@ -10,6 +10,7 @@ import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 const LoginForm = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
@@ -21,7 +22,7 @@ const LoginForm = () => {
     setIsLoading(true)
 
     if (isSignUp) {
-      const { error } = await signUp(email, password)
+      const { error } = await signUp(email, password, { name })
       if (error) {
         toast({
           title: "Erro no cadastro",
@@ -32,10 +33,11 @@ const LoginForm = () => {
         })
       } else {
         toast({
-          title: "Conta criada!",
-          description: "Sua conta foi criada com sucesso. Faça login para continuar.",
+          title: "Conta criada com sucesso! 🎉",
+          description: "Sua conta foi criada como Dentista. Faça login para continuar.",
         })
         setIsSignUp(false)
+        setName('')
       }
     } else {
       const { error } = await signIn(email, password)
@@ -68,9 +70,31 @@ const LoginForm = () => {
           <CardDescription>
             {isSignUp ? "Crie sua conta para acessar o sistema" : "Entre com sua conta para acessar o sistema"}
           </CardDescription>
+          {isSignUp && (
+            <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+              <p>📝 Novas contas são criadas como <strong>Dentista</strong></p>
+              <p>🔐 Entre em contato com admin para virar administrador</p>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome Completo</Label>
+                <div className="relative">
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Seu nome completo"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required={isSignUp}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -124,7 +148,12 @@ const LoginForm = () => {
           <div className="mt-4 text-center">
             <Button 
               variant="link" 
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => {
+                setIsSignUp(!isSignUp)
+                setName('')
+                setEmail('')
+                setPassword('')
+              }}
               disabled={isLoading}
             >
               {isSignUp ? "Já tem uma conta? Faça login" : "Não tem conta? Cadastre-se"}
