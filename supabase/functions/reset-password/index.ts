@@ -64,6 +64,8 @@ const handler = async (req: Request): Promise<Response> => {
         redirectTo: 'https://ortho-pedido-hub.lovable.app/reset-password'
       }
     });
+    
+    console.log('Generated reset link data:', resetData);
 
     if (resetError) {
       console.error("Error generating reset link:", resetError);
