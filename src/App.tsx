@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import NewOrder from "./pages/NewOrder";
 import NewOrderAdvanced from "./pages/NewOrderAdvanced";
 import OrderDetails from "./pages/OrderDetails";
+import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
               <Route path="/novo-pedido" element={<NewOrder />} />
               <Route path="/novo-pedido-avancado" element={<NewOrderAdvanced />} />
               <Route path="/pedido/:id" element={<OrderDetails />} />
+              <Route path="/perfil" element={<Profile />} />
+              <Route path="/admin" element={<Admin />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
