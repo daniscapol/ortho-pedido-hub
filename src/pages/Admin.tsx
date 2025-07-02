@@ -18,9 +18,9 @@ interface User {
   id: string;
   role: 'admin' | 'dentist';
   name: string | null;
+  email: string | null;
   created_at: string;
   updated_at: string;
-  email?: string;
 }
 
 const Admin = () => {
@@ -245,6 +245,7 @@ const Admin = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Criado em</TableHead>
                       <TableHead>Ações</TableHead>
@@ -255,6 +256,9 @@ const Admin = () => {
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">
                           {user.name || 'Nome não informado'}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {user.email || 'Email não informado'}
                         </TableCell>
                         <TableCell>
                           <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>

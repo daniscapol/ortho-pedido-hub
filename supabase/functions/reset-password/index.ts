@@ -35,10 +35,14 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verificar se o usuário existe
-    const { data: user, error: userError } = await supabase.auth.admin.getUserByEmail(email);
+    // Verificar se o usuário existe na tabela profiles
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, name, email')
+      .eq('email', email)
+      .single();
     
-    if (userError || !user) {
+    if (profileError || !profile) {
       console.log(`Reset password attempted for non-existent email: ${email}`);
       // Por segurança, sempre retornamos sucesso mesmo se o email não existir
       return new Response(
@@ -52,7 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Gerar link de reset de senha
+    // Gerar link de reset de senha usando o email
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: email,
@@ -69,14 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Inicializar Resend
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-    // Buscar nome do usuário no perfil
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('name')
-      .eq('id', user.user.id)
-      .single();
-
-    const userName = profile?.name || email.split('@')[0];
+    const userName = profile.name || email.split('@')[0];
 
     // Enviar email de recuperação
     const emailResponse = await resend.emails.send({

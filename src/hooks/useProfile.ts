@@ -6,6 +6,7 @@ export interface Profile {
   id: string
   role: 'admin' | 'dentist'
   name: string | null
+  email: string | null
   created_at: string
   updated_at: string
 }
