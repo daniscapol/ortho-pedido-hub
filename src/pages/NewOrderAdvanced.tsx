@@ -14,21 +14,13 @@ import { useNavigate } from "react-router-dom";
 import { useCreateOrder } from "@/hooks/useOrders";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/hooks/usePatients";
-
-interface AnnotatedImage {
-  file: File;
-  annotations: Array<{
-    id: string;
-    x: number;
-    y: number;
-    text: string;
-  }>;
-}
+import { useImageUpload, type AnnotatedImage } from "@/hooks/useImageUpload";
 
 const NewOrderAdvanced = () => {
   const navigate = useNavigate();
   const createOrder = useCreateOrder();
   const { toast } = useToast();
+  const { uploadImages, isUploading } = useImageUpload();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedTeeth, setSelectedTeeth] = useState<string[]>([]);
@@ -67,7 +59,8 @@ const NewOrderAdvanced = () => {
     if (!selectedPatient) return;
     
     try {
-      await createOrder.mutateAsync({
+      // Primeiro criar o pedido
+      const order = await createOrder.mutateAsync({
         patient_id: selectedPatient.id,
         dentist: orderData.dentist,
         prosthesis_type: orderData.prosthesisType,
@@ -79,6 +72,16 @@ const NewOrderAdvanced = () => {
         delivery_address: orderData.deliveryAddress,
         selected_teeth: selectedTeeth,
         status: "pending"
+      });
+
+      // Depois fazer upload das imagens se houver
+      if (images.length > 0) {
+        await uploadImages(images, order.id);
+      }
+
+      toast({
+        title: "Pedido criado",
+        description: "Pedido criado com sucesso" + (images.length > 0 ? " e imagens enviadas!" : "!"),
       });
 
       navigate("/");
@@ -324,10 +327,12 @@ const NewOrderAdvanced = () => {
           ) : (
             <Button
               onClick={handleSubmit}
-              disabled={!canProceed(currentStep) || createOrder.isPending}
+              disabled={!canProceed(currentStep) || createOrder.isPending || isUploading}
               className="bg-success text-success-foreground hover:bg-success/90"
             >
-              {createOrder.isPending ? "Criando Pedido..." : "Finalizar Pedido"}
+              {createOrder.isPending ? "Criando Pedido..." : 
+               isUploading ? "Enviando Imagens..." : 
+               "Finalizar Pedido"}
             </Button>
           )}
         </div>

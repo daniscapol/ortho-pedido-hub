@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-interface AnnotatedImage {
+export interface AnnotatedImage {
   file: File;
   annotations: Array<{
     id: string;

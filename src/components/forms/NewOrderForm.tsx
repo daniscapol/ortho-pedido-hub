@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import PatientSearch from "./PatientSearch";
 import Odontogram from "./Odontogram";
 import { Patient } from "@/hooks/usePatients";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 const NewOrderForm = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -30,6 +31,7 @@ const NewOrderForm = () => {
   const createOrder = useCreateOrder();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { uploadImages, isUploading } = useImageUpload();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -68,7 +70,8 @@ const NewOrderForm = () => {
     }
 
     try {
-      await createOrder.mutateAsync({
+      // Primeiro criar o pedido
+      const order = await createOrder.mutateAsync({
         patient_id: selectedPatient.id,
         dentist: formData.dentistName,
         prosthesis_type: formData.prosthesisType,
@@ -81,6 +84,15 @@ const NewOrderForm = () => {
         selected_teeth: selectedTeeth,
         status: "pending"
       });
+
+      // Depois fazer upload das imagens se houver
+      if (formData.images.length > 0) {
+        const annotatedImages = formData.images.map(file => ({
+          file,
+          annotations: []
+        }));
+        await uploadImages(annotatedImages, order.id);
+      }
 
       navigate("/");
     } catch (error) {
@@ -274,9 +286,11 @@ const NewOrderForm = () => {
                   <Button 
                     type="submit" 
                     className="flex-1"
-                    disabled={createOrder.isPending}
+                    disabled={createOrder.isPending || isUploading}
                   >
-                    {createOrder.isPending ? "Criando Pedido..." : "Criar Pedido"}
+                    {createOrder.isPending ? "Criando Pedido..." : 
+                     isUploading ? "Enviando Imagens..." : 
+                     "Criar Pedido"}
                   </Button>
                   <Button 
                     type="button" 
