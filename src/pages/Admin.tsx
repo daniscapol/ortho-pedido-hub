@@ -407,7 +407,7 @@ const Admin = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => navigate(`/order/${order.id}`)}
+                              onClick={() => navigate(`/pedido/${order.id}`)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
