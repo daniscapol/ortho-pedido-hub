@@ -23,17 +23,33 @@ const ResetPassword = () => {
     const accessToken = searchParams.get('access_token');
     const refreshToken = searchParams.get('refresh_token');
     const type = searchParams.get('type');
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
     
     console.log('URL params:', {
       accessToken: !!accessToken,
       refreshToken: !!refreshToken,
       type,
+      error,
+      errorDescription,
       allParams: Object.fromEntries(searchParams.entries())
     });
+
+    // Se há um erro nos parâmetros da URL
+    if (error) {
+      console.log('Error in URL params:', error, errorDescription);
+      toast({
+        title: "Link inválido",
+        description: errorDescription || "Este link de recuperação é inválido ou expirou.",
+        variant: "destructive",
+      });
+      navigate("/");
+      return;
+    }
     
     // Para recuperação de senha, verificamos se temos os tokens e se o tipo é 'recovery'
-    if (!accessToken || !refreshToken || type !== 'recovery') {
-      console.log('Missing tokens or wrong type for password recovery');
+    if (!accessToken || !refreshToken) {
+      console.log('Missing tokens for password recovery');
       toast({
         title: "Link inválido",
         description: "Este link de recuperação é inválido ou expirou.",
@@ -47,7 +63,8 @@ const ResetPassword = () => {
     supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken
-    }).then(({ error }) => {
+    }).then(({ data, error }) => {
+      console.log('Set session result:', { data, error });
       if (error) {
         console.error('Error setting session:', error);
         toast({
@@ -56,6 +73,8 @@ const ResetPassword = () => {
           variant: "destructive",
         });
         navigate("/");
+      } else {
+        console.log('Session set successfully for password recovery');
       }
     });
   }, [searchParams, navigate, toast]);
