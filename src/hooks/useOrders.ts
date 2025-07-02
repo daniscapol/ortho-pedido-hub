@@ -24,6 +24,11 @@ export interface Order {
     phone: string
     email: string
   }
+  order_images?: Array<{
+    id: string
+    image_url: string
+    annotations?: any
+  }>
 }
 
 export const useOrders = () => {
@@ -39,6 +44,11 @@ export const useOrders = () => {
             cpf,
             phone,
             email
+          ),
+          order_images (
+            id,
+            image_url,
+            annotations
           )
         `)
         .order('created_at', { ascending: false })
@@ -116,6 +126,34 @@ export const useUpdateOrderStatus = () => {
         description: "Erro ao atualizar status: " + error.message,
         variant: "destructive",
       })
+    },
+  })
+}
+
+export const useOrdersForAdmin = () => {
+  return useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          patients (
+            name,
+            cpf,
+            phone,
+            email
+          ),
+          order_images (
+            id,
+            image_url,
+            annotations
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return data as Order[]
     },
   })
 }

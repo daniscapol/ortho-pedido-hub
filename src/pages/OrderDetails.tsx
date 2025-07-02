@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Header from "@/components/layout/Header";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/lib/supabase";
 
 const OrderDetails = () => {
   const { id } = useParams();
@@ -234,6 +236,55 @@ const OrderDetails = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Imagens do Pedido */}
+          {order.order_images && order.order_images.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Documentação Visual</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {order.order_images.map((image) => (
+                    <Dialog key={image.id}>
+                      <DialogTrigger asChild>
+                        <div className="relative cursor-pointer group">
+                          <img
+                            src={`${supabase.storage.from('order-images').getPublicUrl(image.image_url).data.publicUrl}`}
+                            alt="Imagem do pedido"
+                            className="w-full h-32 object-cover rounded-lg border"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">Ver detalhes</span>
+                          </div>
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                        <DialogHeader>
+                          <DialogTitle>Imagem do Pedido</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <img
+                            src={`${supabase.storage.from('order-images').getPublicUrl(image.image_url).data.publicUrl}`}
+                            alt="Imagem do pedido"
+                            className="w-full max-h-96 object-contain rounded-lg"
+                          />
+                          {image.annotations && (
+                            <div className="space-y-2">
+                              <h4 className="font-medium">Anotações:</h4>
+                              <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
+                                {JSON.stringify(image.annotations, null, 2)}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
     </div>

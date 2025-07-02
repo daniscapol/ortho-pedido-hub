@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
@@ -13,6 +15,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
+import { Search, Eye, Filter } from "lucide-react";
 
 interface User {
   id: string;
@@ -28,6 +32,10 @@ const Admin = () => {
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const updateOrderStatus = useUpdateOrderStatus();
 
   // Buscar todos os usuários
   const { data: users, isLoading: usersLoading } = useQuery({
@@ -43,6 +51,9 @@ const Admin = () => {
     },
     enabled: profile?.role === 'admin',
   });
+
+  // Buscar todos os pedidos para admin
+  const { data: orders, isLoading: ordersLoading } = useOrdersForAdmin();
 
   // Buscar estatísticas dos pedidos
   const { data: orderStats, isLoading: statsLoading } = useQuery({
@@ -128,6 +139,46 @@ const Admin = () => {
   const handleRoleChange = (userId: string, newRole: 'admin' | 'dentist') => {
     updateUserRole.mutate({ userId, newRole });
   };
+
+  const handleOrderStatusChange = (orderId: string, newStatus: string) => {
+    updateOrderStatus.mutate({ id: orderId, status: newStatus });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const colors = {
+      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      producao: "bg-blue-100 text-blue-800 border-blue-200",
+      pronto: "bg-green-100 text-green-800 border-green-200", 
+      entregue: "bg-gray-100 text-gray-800 border-gray-200"
+    };
+
+    const labels = {
+      pending: "Pendente",
+      producao: "Produção",
+      pronto: "Pronto",
+      entregue: "Entregue"
+    };
+
+    return (
+      <Badge className={colors[status as keyof typeof colors] || colors.pending}>
+        {labels[status as keyof typeof labels] || status}
+      </Badge>
+    );
+  };
+
+  // Filtrar pedidos
+  const filteredOrders = orders?.filter((order) => {
+    const matchesSearch = 
+      order.patients?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.dentist.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.prosthesis_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.id.includes(searchTerm);
+    
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+    const matchesPriority = priorityFilter === "all" || order.priority === priorityFilter;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -222,6 +273,168 @@ const Admin = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Gerenciamento de Pedidos */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <CardTitle>Gerenciamento de Pedidos</CardTitle>
+                <div className="flex flex-col md:flex-row gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Buscar por paciente, dentista ou ID..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 w-64"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-40">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Status</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                      <SelectItem value="producao">Produção</SelectItem>
+                      <SelectItem value="pronto">Pronto</SelectItem>
+                      <SelectItem value="entregue">Entregue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Prioridade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="baixa">Baixa</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                      <SelectItem value="urgente">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {ordersLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center space-x-4">
+                      <Skeleton className="h-12 w-12 rounded" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-8 w-24" />
+                      <Skeleton className="h-8 w-32" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Imagem</TableHead>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Paciente</TableHead>
+                      <TableHead>Dentista</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Prioridade</TableHead>
+                      <TableHead>Prazo</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredOrders?.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell>
+                          {order.order_images && order.order_images.length > 0 ? (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <div className="w-12 h-12 cursor-pointer relative group">
+                                  <img
+                                    src={`${supabase.storage.from('order-images').getPublicUrl(order.order_images[0].image_url).data.publicUrl}`}
+                                    alt="Thumbnail"
+                                    className="w-full h-full object-cover rounded border"
+                                  />
+                                  {order.order_images.length > 1 && (
+                                    <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                                      +{order.order_images.length - 1}
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl">
+                                <DialogHeader>
+                                  <DialogTitle>Imagens do Pedido #{order.id.slice(-8)}</DialogTitle>
+                                </DialogHeader>
+                                <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                                  {order.order_images.map((image) => (
+                                    <img
+                                      key={image.id}
+                                      src={`${supabase.storage.from('order-images').getPublicUrl(image.image_url).data.publicUrl}`}
+                                      alt="Imagem do pedido"
+                                      className="w-full h-40 object-cover rounded border"
+                                    />
+                                  ))}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          ) : (
+                            <div className="w-12 h-12 bg-muted rounded border flex items-center justify-center text-muted-foreground text-xs">
+                              Sem foto
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          #{order.id.slice(-8)}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {order.patients?.name}
+                        </TableCell>
+                        <TableCell>{order.dentist}</TableCell>
+                        <TableCell>{order.prosthesis_type}</TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{order.priority}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(order.deadline), 'dd/MM/yyyy', { locale: ptBR })}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/order/${order.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Select
+                              value={order.status}
+                              onValueChange={(newStatus) => handleOrderStatusChange(order.id, newStatus)}
+                              disabled={updateOrderStatus.isPending}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pendente</SelectItem>
+                                <SelectItem value="producao">Produção</SelectItem>
+                                <SelectItem value="pronto">Pronto</SelectItem>
+                                <SelectItem value="entregue">Entregue</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Gerenciamento de Usuários */}
           <Card>
