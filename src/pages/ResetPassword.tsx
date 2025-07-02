@@ -19,20 +19,30 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Verificar se temos os tokens necessários na URL para recuperação de senha
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    const type = searchParams.get('type');
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
+    // Capturar todos os parâmetros da URL incluindo fragmentos
+    const params = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
     
-    console.log('URL params:', {
+    // Combinar parâmetros de query e hash
+    const allParams: Record<string, string> = {};
+    params.forEach((value, key) => allParams[key] = value);
+    hashParams.forEach((value, key) => allParams[key] = value);
+    
+    console.log('All URL parameters:', allParams);
+    console.log('Current URL:', window.location.href);
+    
+    const accessToken = allParams.access_token || searchParams.get('access_token');
+    const refreshToken = allParams.refresh_token || searchParams.get('refresh_token');
+    const type = allParams.type || searchParams.get('type');
+    const error = allParams.error || searchParams.get('error');
+    const errorDescription = allParams.error_description || searchParams.get('error_description');
+    
+    console.log('Extracted tokens:', {
       accessToken: !!accessToken,
       refreshToken: !!refreshToken,
       type,
       error,
-      errorDescription,
-      allParams: Object.fromEntries(searchParams.entries())
+      errorDescription
     });
 
     // Se há um erro nos parâmetros da URL
@@ -47,11 +57,11 @@ const ResetPassword = () => {
       return;
     }
     
-    // Para recuperação de senha, verificamos se temos os tokens e se o tipo é 'recovery'
+    // Para recuperação de senha, verificamos se temos os tokens
     if (!accessToken || !refreshToken) {
       console.log('Missing tokens for password recovery');
       toast({
-        title: "Link inválido",
+        title: "Link inválido", 
         description: "Este link de recuperação é inválido ou expirou.",
         variant: "destructive",
       });
@@ -60,6 +70,7 @@ const ResetPassword = () => {
     }
 
     // Configurar a sessão com os tokens recebidos
+    console.log('Setting session with tokens...');
     supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken
@@ -75,6 +86,11 @@ const ResetPassword = () => {
         navigate("/");
       } else {
         console.log('Session set successfully for password recovery');
+        toast({
+          title: "Link válido",
+          description: "Agora você pode definir uma nova senha.",
+          variant: "default",
+        });
       }
     });
   }, [searchParams, navigate, toast]);
