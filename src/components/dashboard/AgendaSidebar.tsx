@@ -53,8 +53,8 @@ const AgendaSidebar = () => {
   };
 
   return (
-    <Card className="w-80 h-fit">
-      <CardHeader className="pb-3">
+    <Card className="w-full h-fit">
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <CalendarDays className="w-5 h-5" />
@@ -82,52 +82,52 @@ const AgendaSidebar = () => {
         </p>
       </CardHeader>
       
-      <CardContent className="space-y-3">
-        {days.map((day) => {
-          const dayOrders = getOrdersForDate(day);
-          const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-          
-          return (
-            <div key={day.toISOString()} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
-                    {format(day, "EEE", { locale: ptBR })}
-                  </span>
-                  <span className={`text-lg font-bold ${isToday ? 'text-primary bg-primary/10 px-2 py-1 rounded-full' : 'text-foreground'}`}>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-7 gap-1 mb-4">
+          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dayName) => (
+            <div key={dayName} className="text-center text-xs font-medium text-muted-foreground py-2">
+              {dayName}
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((day) => {
+            const dayOrders = getOrdersForDate(day);
+            const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+            
+            return (
+              <div key={day.toISOString()} className="min-h-[80px] border border-border rounded-lg p-2 space-y-1">
+                <div className="text-center">
+                  <span className={`text-sm font-bold ${isToday ? 'text-primary bg-primary/10 px-2 py-1 rounded-full' : 'text-foreground'}`}>
                     {format(day, "d")}
                   </span>
                 </div>
-                {dayOrders.length > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    {dayOrders.length} caso{dayOrders.length > 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
-              
-              <div className="space-y-1 ml-2">
-                {dayOrders.slice(0, 3).map((order) => (
-                  <div key={order.id} className="text-xs">
-                    <div className="font-medium text-foreground truncate">
-                      {order.prosthesis_type} | Dr. {order.dentist} | Paciente {order.patients?.name}
+                
+                <div className="space-y-1">
+                  {dayOrders.slice(0, 2).map((order) => (
+                    <div key={order.id} className="text-xs">
+                      <div className="truncate text-foreground font-medium">
+                        {order.patients?.name}
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs ${getStatusColor(order.status)}`}
+                      >
+                        {getStatusLabel(order.status)}
+                      </Badge>
                     </div>
-                    <Badge 
-                      variant="outline" 
-                      className={`text-xs mt-1 ${getStatusColor(order.status)}`}
-                    >
-                      {getStatusLabel(order.status)}
-                    </Badge>
-                  </div>
-                ))}
-                {dayOrders.length > 3 && (
-                  <p className="text-xs text-muted-foreground">
-                    +{dayOrders.length - 3} mais...
-                  </p>
-                )}
+                  ))}
+                  {dayOrders.length > 2 && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      +{dayOrders.length - 2}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

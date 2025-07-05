@@ -9,7 +9,7 @@ const Sidebar = () => {
   const menuItems = [
     {
       icon: LayoutGrid,
-      label: "Gerenciar pedidos",
+      label: "Pedidos",
       path: "/",
       active: location.pathname === "/"
     },
@@ -40,33 +40,33 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 bg-sidebar-background border-r border-sidebar-border h-screen">
-      <div className="p-6">
-        <div className="flex items-center space-x-3 mb-8">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">SB</span>
+    <aside className="w-48 bg-sidebar-background border-r border-sidebar-border h-screen">
+      <div className="p-4">
+        <div className="flex items-center space-x-2 mb-6">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">SB</span>
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-sidebar-foreground">SB</h1>
-            <p className="text-sm text-sidebar-foreground/60">PRÓTESE ODONTOLÓGICA</p>
+            <h1 className="text-sm font-semibold text-sidebar-foreground">SB</h1>
+            <p className="text-xs text-sidebar-foreground/60">PRÓTESE</p>
           </div>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <Button
                 key={item.path}
                 variant={item.active ? "secondary" : "ghost"}
-                className={`w-full justify-start h-12 ${
+                className={`w-full justify-start h-10 text-sm ${
                   item.active 
                     ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
                 onClick={() => navigate(item.path)}
               >
-                <Icon className="w-5 h-5 mr-3" />
+                <Icon className="w-4 h-4 mr-2" />
                 {item.label}
               </Button>
             );

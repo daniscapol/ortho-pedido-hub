@@ -49,11 +49,11 @@ const Dashboard = () => {
 
   // Separar pedidos por status
   const ordersInProgress = filteredOrders.filter(order => 
-    order.status === "pending" || order.status === "producao"
+    order.status === "pending" || order.status === "producao" || order.status === "pronto"
   );
   
   const ordersCompleted = filteredOrders.filter(order => 
-    order.status === "pronto" || order.status === "entregue"
+    order.status === "entregue"
   );
 
   return (
@@ -200,7 +200,7 @@ const Dashboard = () => {
           </main>
 
           {/* Agenda Sidebar */}
-          <div className="w-80 p-6 border-l border-border">
+          <div className="w-96 p-6 border-l border-border">
             <AgendaSidebar />
           </div>
         </div>
