@@ -61,18 +61,8 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-48 bg-sidebar-background border-r border-sidebar-border h-screen">
-      <div className="p-4">
-        <div className="flex items-center space-x-2 mb-6">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">SB</span>
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold text-sidebar-foreground">SB</h1>
-            <p className="text-xs text-sidebar-foreground/60">PRÓTESE</p>
-          </div>
-        </div>
-
+    <aside className="w-48 bg-slate-800 border-r border-slate-700 h-screen">
+      <div className="p-4 pt-6">
         <nav className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -82,8 +72,8 @@ const Sidebar = () => {
                 variant={item.active ? "secondary" : "ghost"}
                 className={`w-full justify-start h-10 text-sm ${
                   item.active 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "bg-slate-700 text-white font-medium" 
+                    : "text-slate-300 hover:bg-slate-700 hover:text-white"
                 }`}
                 onClick={() => navigate(item.path)}
               >

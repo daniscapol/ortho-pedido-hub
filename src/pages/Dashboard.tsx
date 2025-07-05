@@ -62,19 +62,23 @@ const Dashboard = () => {
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6 flex-1">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-slate-800 font-bold text-lg">SB</span>
-                </div>
-                <div>
-                  <h1 className="text-white font-semibold text-lg">SB</h1>
-                  <p className="text-slate-300 text-sm">PRÓTESE ODONTOLÓGICA</p>
-                </div>
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">
+          {/* Header section that aligns with sidebar */}
+          <div className="w-48 flex items-center px-4 border-r border-slate-700">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <span className="text-slate-800 font-bold text-lg">SB</span>
               </div>
-              
+              <div>
+                <h1 className="text-white font-semibold text-lg">SB</h1>
+                <p className="text-slate-300 text-xs">PRÓTESE ODONTOLÓGICA</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Main header content */}
+          <div className="flex-1 flex items-center justify-between px-6">
+            <div className="flex items-center gap-4 flex-1">
               <div className="flex-1 max-w-md">
                 <div className="relative">
                   <Input
