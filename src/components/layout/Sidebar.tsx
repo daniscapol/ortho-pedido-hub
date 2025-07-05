@@ -1,6 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutGrid, Users, UserCheck, Building2, Calendar } from "lucide-react";
+import { LayoutGrid, Users, Building2, Calendar } from "lucide-react";
+
+// Ícone customizado de dente
+const ToothIcon = ({ className, ...props }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    <path d="M12 2C8.5 2 6 4.5 6 8v4c0 2 1 4 2 5s2 2 4 2 3-1 4-2 2-3 2-5V8c0-3.5-2.5-6-6-6z"/>
+    <path d="M10 18c0 1.1-.9 2-2 2s-2-.9-2-2"/>
+    <path d="M16 18c0 1.1-.9 2-2 2s-2-.9-2-2"/>
+  </svg>
+);
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -20,7 +41,7 @@ const Sidebar = () => {
       active: location.pathname === "/dentistas"
     },
     {
-      icon: UserCheck,
+      icon: ToothIcon,
       label: "Pacientes",
       path: "/pacientes",
       active: location.pathname === "/pacientes"
