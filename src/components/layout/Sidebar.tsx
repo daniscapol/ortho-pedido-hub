@@ -63,6 +63,20 @@ const Sidebar = () => {
   return (
     <aside className="w-48 bg-slate-800 border-r border-slate-700 h-screen">
       <div className="p-4 pt-6">
+        {/* Logo clicável no topo do sidebar */}
+        <div 
+          className="flex items-center space-x-2 mb-6 cursor-pointer hover:bg-slate-700 p-2 rounded-lg transition-colors"
+          onClick={() => navigate("/")}
+        >
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+            <span className="text-slate-800 font-bold text-sm">SB</span>
+          </div>
+          <div>
+            <h1 className="text-sm font-semibold text-white">SB</h1>
+            <p className="text-xs text-slate-300">PRÓTESE</p>
+          </div>
+        </div>
+
         <nav className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
