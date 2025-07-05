@@ -62,12 +62,16 @@ const Dashboard = () => {
   }, [orders, profile, searchQuery]);
 
   // Separar pedidos por status
-  const ordersInProgress = filteredOrders.filter(order => 
-    order.status === "pending" || order.status === "producao" || order.status === "pronto"
+  const ordersPending = filteredOrders.filter(order => 
+    order.status === "pending"
+  );
+  
+  const ordersInProduction = filteredOrders.filter(order => 
+    order.status === "producao"
   );
   
   const ordersCompleted = filteredOrders.filter(order => 
-    order.status === "entregue"
+    order.status === "pronto" || order.status === "entregue"
   );
 
   return (
@@ -158,16 +162,16 @@ const Dashboard = () => {
             </div>
 
             {/* Orders columns */}
-            <div className="grid grid-cols-2 gap-6">
-              {/* Em andamento */}
+            <div className="grid grid-cols-3 gap-6">
+              {/* Pendente */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="h-1 w-8 bg-warning rounded-full"></div>
+                  <div className="h-1 w-8 bg-yellow-500 rounded-full"></div>
                   <h2 className="text-lg font-semibold text-foreground">
-                    Em andamento
+                    Pendente
                   </h2>
                   <Badge variant="secondary" className="ml-2">
-                    {ordersInProgress.length}
+                    {ordersPending.length}
                   </Badge>
                 </div>
                 
@@ -176,8 +180,8 @@ const Dashboard = () => {
                     <div className="text-center py-8 text-muted-foreground">
                       Carregando...
                     </div>
-                  ) : ordersInProgress.length > 0 ? (
-                    ordersInProgress.map((order) => (
+                  ) : ordersPending.length > 0 ? (
+                    ordersPending.map((order) => (
                       <OrderCard 
                         key={order.id} 
                         order={order} 
@@ -186,7 +190,40 @@ const Dashboard = () => {
                     ))
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
-                      Nenhum caso em andamento
+                      Nenhum pedido pendente
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Em Produção */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-1 w-8 bg-blue-500 rounded-full"></div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Em Produção
+                  </h2>
+                  <Badge variant="secondary" className="ml-2">
+                    {ordersInProduction.length}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {isLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Carregando...
+                    </div>
+                  ) : ordersInProduction.length > 0 ? (
+                    ordersInProduction.map((order) => (
+                      <OrderCard 
+                        key={order.id} 
+                        order={order} 
+                        onClick={() => handleOrderClick(order)}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Nenhum pedido em produção
                     </div>
                   )}
                 </div>
@@ -195,7 +232,7 @@ const Dashboard = () => {
               {/* Concluído */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="h-1 w-8 bg-success rounded-full"></div>
+                  <div className="h-1 w-8 bg-green-500 rounded-full"></div>
                   <h2 className="text-lg font-semibold text-foreground">
                     Concluído
                   </h2>
@@ -219,7 +256,7 @@ const Dashboard = () => {
                     ))
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
-                      Nenhum caso concluído
+                      Nenhum pedido concluído
                     </div>
                   )}
                 </div>
@@ -228,8 +265,10 @@ const Dashboard = () => {
           </main>
 
           {/* Agenda Sidebar */}
-          <div className="w-96 p-6 border-l border-border">
-            <AgendaSidebar />
+          <div className="w-96 border-l border-border flex flex-col h-full">
+            <div className="p-6 flex-1 overflow-y-auto">
+              <AgendaSidebar />
+            </div>
           </div>
         </div>
 
