@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           created_at: string
@@ -38,6 +77,82 @@ export type Database = {
           {
             foreignKeyName: "chat_messages_order_id_fkey"
             columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      image_annotations: {
+        Row: {
+          annotation_data: Json
+          created_at: string | null
+          created_by: string | null
+          id: string
+          image_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          annotation_data: Json
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          image_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          annotation_data?: Json
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          image_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "image_annotations_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "order_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          related_order_id: string | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          related_order_id?: string | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          related_order_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_order_id_fkey"
+            columns: ["related_order_id"]
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
@@ -75,6 +190,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      order_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          prosthesis_type: string
+          specifications: Json
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          prosthesis_type: string
+          specifications: Json
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          prosthesis_type?: string
+          specifications?: Json
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
       }
       orders: {
         Row: {
@@ -168,6 +319,94 @@ export type Database = {
         }
         Relationships: []
       }
+      production_queue: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          estimated_completion: string | null
+          id: string
+          order_id: string | null
+          position: number
+          priority: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          estimated_completion?: string | null
+          id?: string
+          order_id?: string | null
+          position: number
+          priority?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          estimated_completion?: string | null
+          id?: string
+          order_id?: string | null
+          position?: number
+          priority?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_queue_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_stages: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          order_id: string | null
+          stage_name: string
+          stage_order: number
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          stage_name: string
+          stage_order: number
+          started_at?: string | null
+          status: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          stage_name?: string
+          stage_order?: number
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_stages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -195,11 +434,64 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          dashboard_layout: Json | null
+          email_notifications: boolean | null
+          language: string | null
+          theme: string | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          dashboard_layout?: Json | null
+          email_notifications?: boolean | null
+          language?: string | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          dashboard_layout?: Json | null
+          email_notifications?: boolean | null
+          language?: string | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      order_analytics: {
+        Row: {
+          avg_completion_hours: number | null
+          completed_orders: number | null
+          date: string | null
+          in_production: number | null
+          pending_orders: number | null
+          total_orders: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_title: string
+          p_message: string
+          p_type: string
+          p_related_order_id?: string
+        }
+        Returns: string
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -207,6 +499,20 @@ export type Database = {
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_entity_type: string
+          p_entity_id: string
+          p_old_values?: Json
+          p_new_values?: Json
+        }
+        Returns: undefined
+      }
+      update_queue_positions: {
+        Args: { p_positions: Json }
+        Returns: undefined
       }
     }
     Enums: {
