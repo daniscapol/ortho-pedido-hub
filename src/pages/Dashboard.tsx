@@ -62,32 +62,47 @@ const Dashboard = () => {
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
+        <header className="bg-slate-800 border-b border-slate-700 px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 flex-1">
-              <Input
-                placeholder="Pesquise um clínica, dentista ou paciente"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-md"
-              />
-              <Button variant="ghost" size="icon">
-                <Search className="w-4 h-4" />
-              </Button>
+            <div className="flex items-center gap-6 flex-1">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                  <span className="text-slate-800 font-bold text-lg">SB</span>
+                </div>
+                <div>
+                  <h1 className="text-white font-semibold text-lg">SB</h1>
+                  <p className="text-slate-300 text-sm">PRÓTESE ODONTOLÓGICA</p>
+                </div>
+              </div>
+              
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Input
+                    placeholder="Pesquise um clínica, dentista ou paciente"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                </div>
+              </div>
             </div>
             
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon">
-                <Bell className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700">
+                <Bell className="w-5 h-5" />
               </Button>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <span>Olá, {profile?.name || 'Usuário'}!</span>
-                    <span className="text-sm text-muted-foreground">
-                      {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
-                    </span>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
+                        {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
+                      </div>
+                    </div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
