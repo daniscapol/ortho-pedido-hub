@@ -1,5 +1,6 @@
 import Sidebar from "@/components/layout/Sidebar";
 import OrderCard from "@/components/dashboard/OrderCard";
+import OrderDetailsModal from "@/components/dashboard/OrderDetailsModal";
 import AgendaSidebar from "@/components/dashboard/AgendaSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
+import { Order } from "@/hooks/useOrders";
 
 const Dashboard = () => {
   const { data: orders, isLoading } = useOrders();
@@ -18,9 +20,21 @@ const Dashboard = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
+  };
+
+  const handleOrderClick = (order: Order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOrder(null);
   };
 
   // Filtrar pedidos baseado no role do usuário
@@ -62,23 +76,10 @@ const Dashboard = () => {
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">
-          {/* Header section that aligns with sidebar */}
-          <div className="w-48 flex items-center px-4 border-r border-slate-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-slate-800 font-bold text-lg">SB</span>
-              </div>
-              <div>
-                <h1 className="text-white font-semibold text-lg">SB</h1>
-                <p className="text-slate-300 text-xs">PRÓTESE ODONTOLÓGICA</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Main header content */}
-          <div className="flex-1 flex items-center justify-between px-6">
-            <div className="flex items-center gap-4 flex-1">
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+          {/* Main header content - now full width and centered */}
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="flex items-center gap-4 flex-1 max-w-4xl">
               <div className="flex-1 max-w-md">
                 <div className="relative">
                   <Input
@@ -104,7 +105,7 @@ const Dashboard = () => {
                     <div className="text-left">
                       <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
                       <div className="text-xs text-slate-300">
-                        {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
+                        SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
                       </div>
                     </div>
                   </Button>
@@ -177,7 +178,11 @@ const Dashboard = () => {
                     </div>
                   ) : ordersInProgress.length > 0 ? (
                     ordersInProgress.map((order) => (
-                      <OrderCard key={order.id} order={order} />
+                      <OrderCard 
+                        key={order.id} 
+                        order={order} 
+                        onClick={() => handleOrderClick(order)}
+                      />
                     ))
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
@@ -206,7 +211,11 @@ const Dashboard = () => {
                     </div>
                   ) : ordersCompleted.length > 0 ? (
                     ordersCompleted.map((order) => (
-                      <OrderCard key={order.id} order={order} />
+                      <OrderCard 
+                        key={order.id} 
+                        order={order} 
+                        onClick={() => handleOrderClick(order)}
+                      />
                     ))
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
@@ -223,6 +232,13 @@ const Dashboard = () => {
             <AgendaSidebar />
           </div>
         </div>
+
+        {/* Order Details Modal */}
+        <OrderDetailsModal
+          order={selectedOrder}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </div>
     </div>
   );

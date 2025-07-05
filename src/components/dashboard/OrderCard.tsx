@@ -7,9 +7,10 @@ import { ptBR } from "date-fns/locale";
 
 interface OrderCardProps {
   order: Order;
+  onClick?: () => void;
 }
 
-const OrderCard = ({ order }: OrderCardProps) => {
+const OrderCard = ({ order, onClick }: OrderCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -41,7 +42,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
   };
 
   return (
-    <Card className="mb-4 hover:shadow-md transition-shadow">
+    <Card className="mb-4 hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div>
