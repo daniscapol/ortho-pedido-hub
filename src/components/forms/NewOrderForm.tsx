@@ -70,12 +70,6 @@ const NewOrderForm = () => {
     }
 
     try {
-      // Processar dados do odontograma - extrair apenas os números dos dentes
-      const toothNumbers = selectedTeeth.map(tooth => {
-        // Se o formato for "dente:procedimento", extrair apenas o dente
-        return tooth.includes(':') ? tooth.split(':')[0] : tooth;
-      });
-
       // Primeiro criar o pedido
       const order = await createOrder.mutateAsync({
         patient_id: selectedPatient.id,
@@ -87,7 +81,7 @@ const NewOrderForm = () => {
         deadline: formData.deadline,
         observations: formData.observations,
         delivery_address: formData.deliveryAddress,
-        selected_teeth: toothNumbers, // Usar apenas os números dos dentes
+        selected_teeth: selectedTeeth,
         status: "pending"
       });
 

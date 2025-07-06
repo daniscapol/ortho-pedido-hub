@@ -59,12 +59,6 @@ const NewOrderAdvanced = () => {
     if (!selectedPatient) return;
     
     try {
-      // Processar dados do odontograma - extrair apenas os números dos dentes
-      const toothNumbers = selectedTeeth.map(tooth => {
-        // Se o formato for "dente:procedimento", extrair apenas o dente
-        return tooth.includes(':') ? tooth.split(':')[0] : tooth;
-      });
-
       // Primeiro criar o pedido
       const order = await createOrder.mutateAsync({
         patient_id: selectedPatient.id,
@@ -76,7 +70,7 @@ const NewOrderAdvanced = () => {
         deadline: orderData.deadline,
         observations: orderData.observations,
         delivery_address: orderData.deliveryAddress,
-        selected_teeth: toothNumbers, // Usar apenas os números dos dentes
+        selected_teeth: selectedTeeth,
         status: "pending"
       });
 
@@ -303,11 +297,7 @@ const NewOrderAdvanced = () => {
                   <div className="space-y-1 text-sm text-muted-foreground">
                     <p><strong>Paciente:</strong> {selectedPatient?.name}</p>
                     <p><strong>Tipo:</strong> {orderData.prosthesisType}</p>
-                    <p><strong>Dentes:</strong> {
-                      selectedTeeth
-                        .map(tooth => tooth.includes(':') ? tooth.split(':')[0] : tooth)
-                        .join(", ")
-                    }</p>
+                    <p><strong>Dentes:</strong> {selectedTeeth.join(", ")}</p>
                     <p><strong>Imagens:</strong> {images.length} arquivo(s)</p>
                     <p><strong>Prazo:</strong> {orderData.deadline}</p>
                   </div>
