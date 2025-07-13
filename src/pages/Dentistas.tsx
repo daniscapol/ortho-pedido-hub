@@ -147,13 +147,16 @@ const Dentistas = () => {
                 <UserCheck className="w-4 h-4 text-primary-foreground" />
               </div>
               <h1 className="text-xl font-semibold text-foreground">
-                Gerenciamento de Dentistas
+                {profile?.role === 'admin' ? 'Gerenciamento de Dentistas' : 'Meu Perfil'}
               </h1>
             </div>
             
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-sm">
-                {filteredDentists.length} dentista{filteredDentists.length !== 1 ? 's' : ''}
+                {filteredDentists.length} {profile?.role === 'admin' 
+                  ? `dentista${filteredDentists.length !== 1 ? 's' : ''}` 
+                  : 'perfil'
+                }
               </Badge>
             </div>
           </div>
@@ -161,7 +164,7 @@ const Dentistas = () => {
           {/* Search and filters section */}
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" className="text-foreground">
-              Lista de Dentistas
+              {profile?.role === 'admin' ? 'Lista de Dentistas' : 'Informações do Perfil'}
             </Button>
           </div>
 
