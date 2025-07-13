@@ -99,7 +99,7 @@ const AgendaSidebar = () => {
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
             
             return (
-              <div key={day.toISOString()} className="min-h-[120px] border border-border rounded-xl p-3 space-y-2 bg-background hover:shadow-sm transition-shadow">
+              <div key={day.toISOString()} className="min-h-[150px] border border-border rounded-xl p-4 space-y-3 bg-background hover:shadow-md transition-all duration-200">
                 <div className="text-center">
                   <span className={`text-base font-bold ${isToday ? 'text-white bg-primary px-3 py-1.5 rounded-full shadow-sm' : 'text-foreground'}`}>
                     {format(day, "d")}
