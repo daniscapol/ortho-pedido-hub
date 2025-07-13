@@ -15,6 +15,7 @@ import Dentistas from "./pages/Dentistas";
 import DentistDetails from "./pages/DentistDetails";
 import Patients from "./pages/Patients";
 import Agenda from "./pages/Agenda";
+import Filiais from "./pages/Filiais";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
@@ -45,6 +46,7 @@ const App = () => (
                   <Route path="/dentistas/:id" element={<DentistDetails />} />
                   <Route path="/pacientes" element={<Patients />} />
                   <Route path="/agenda" element={<Agenda />} />
+                  <Route path="/filiais" element={<Filiais />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </ProtectedRoute>

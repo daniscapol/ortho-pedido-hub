@@ -88,6 +88,33 @@ export type Database = {
           },
         ]
       }
+      filiais: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          endereco_entrega: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          endereco_entrega: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          endereco_entrega?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       image_annotations: {
         Row: {
           annotation_data: Json
