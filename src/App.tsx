@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Dentistas from "./pages/Dentistas";
 import DentistDetails from "./pages/DentistDetails";
+import Patients from "./pages/Patients";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +42,7 @@ const App = () => (
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/dentistas" element={<Dentistas />} />
                   <Route path="/dentistas/:id" element={<DentistDetails />} />
+                  <Route path="/pacientes" element={<Patients />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </ProtectedRoute>
