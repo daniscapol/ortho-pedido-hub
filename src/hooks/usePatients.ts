@@ -64,3 +64,36 @@ export const useCreatePatient = () => {
     },
   })
 }
+
+export const useUpdatePatient = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({ id, ...patientData }: { id: string } & Omit<Patient, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data, error } = await supabase
+        .from('patients')
+        .update(patientData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['patients'] })
+      toast({
+        title: "Paciente atualizado",
+        description: "Paciente atualizado com sucesso!",
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar paciente: " + error.message,
+        variant: "destructive",
+      })
+    },
+  })
+}

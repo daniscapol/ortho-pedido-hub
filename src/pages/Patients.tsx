@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Plus, Search, Edit, User } from "lucide-react"
-import { usePatients, useCreatePatient, Patient } from "@/hooks/usePatients"
+import { usePatients, useCreatePatient, useUpdatePatient, Patient } from "@/hooks/usePatients"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
 import Header from "@/components/layout/Header"
@@ -32,6 +32,7 @@ const Patients = () => {
   
   const { data: patients, isLoading } = usePatients(searchTerm)
   const createPatient = useCreatePatient()
+  const updatePatient = useUpdatePatient()
   const { toast } = useToast()
 
   const form = useForm<PatientFormData>({
@@ -46,12 +47,22 @@ const Patients = () => {
 
   const onSubmit = async (data: PatientFormData) => {
     try {
-      await createPatient.mutateAsync({
-        name: data.name,
-        cpf: data.cpf,
-        phone: data.phone,
-        email: data.email,
-      })
+      if (editingPatient) {
+        await updatePatient.mutateAsync({
+          id: editingPatient.id,
+          name: data.name,
+          cpf: data.cpf,
+          phone: data.phone,
+          email: data.email,
+        })
+      } else {
+        await createPatient.mutateAsync({
+          name: data.name,
+          cpf: data.cpf,
+          phone: data.phone,
+          email: data.email,
+        })
+      }
       form.reset()
       setIsNewPatientOpen(false)
       setEditingPatient(null)
@@ -169,8 +180,8 @@ const Patients = () => {
                         <Button type="button" variant="outline" onClick={handleCloseDialog}>
                           Cancelar
                         </Button>
-                        <Button type="submit" disabled={createPatient.isPending}>
-                          {createPatient.isPending 
+                        <Button type="submit" disabled={createPatient.isPending || updatePatient.isPending}>
+                          {(createPatient.isPending || updatePatient.isPending)
                             ? "Salvando..." 
                             : editingPatient ? "Atualizar" : "Criar"
                           }
