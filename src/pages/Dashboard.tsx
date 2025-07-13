@@ -132,7 +132,7 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="flex-1 flex">
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 overflow-hidden">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
