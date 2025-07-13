@@ -51,16 +51,8 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-0 top-0"
-            onClick={onClose}
-          >
-            <X className="w-4 h-4" />
-          </Button>
-          <DialogTitle className="text-xl font-semibold text-left pr-8">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-left">
             {order.patients?.name}
           </DialogTitle>
           <div className="flex items-center gap-2 mt-2">
