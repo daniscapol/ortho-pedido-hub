@@ -93,40 +93,40 @@ const AgendaSidebar = () => {
           ))}
         </div>
         
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {days.map((day) => {
             const dayOrders = getOrdersForDate(day);
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
             
             return (
-              <div key={day.toISOString()} className="min-h-[150px] border border-border rounded-xl p-4 space-y-3 bg-background hover:shadow-md transition-all duration-200">
-                <div className="text-center">
-                  <span className={`text-base font-bold ${isToday ? 'text-white bg-primary px-3 py-1.5 rounded-full shadow-sm' : 'text-foreground'}`}>
+              <div key={day.toISOString()} className="min-h-[180px] border border-border rounded-xl p-5 space-y-4 bg-background hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <div className="text-center mb-4">
+                  <span className={`text-lg font-bold ${isToday ? 'text-white bg-primary px-4 py-2 rounded-full shadow-lg' : 'text-foreground bg-muted/50 px-3 py-1.5 rounded-full'}`}>
                     {format(day, "d")}
                   </span>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {dayOrders.slice(0, 2).map((order) => (
-                    <div key={order.id} className="text-xs bg-muted/50 rounded-lg p-2 hover:bg-muted/70 transition-colors">
-                      <div className="truncate text-foreground font-medium mb-1">
+                    <div key={order.id} className="text-xs bg-muted/60 rounded-lg p-3 hover:bg-muted/80 transition-colors shadow-sm">
+                      <div className="truncate text-foreground font-semibold mb-2 text-center">
                         {order.patients?.name}
                       </div>
                       <Badge 
                         variant="outline" 
-                        className={`text-xs ${getStatusColor(order.status)} w-full justify-center`}
+                        className={`text-xs ${getStatusColor(order.status)} w-full justify-center py-1`}
                       >
                         {getStatusLabel(order.status)}
                       </Badge>
                     </div>
                   ))}
                   {dayOrders.length > 2 && (
-                    <div className="text-xs text-muted-foreground text-center bg-muted/30 rounded-lg py-2 font-medium">
-                      +{dayOrders.length - 2} mais
+                    <div className="text-xs text-muted-foreground text-center bg-muted/40 rounded-lg py-3 font-semibold">
+                      +{dayOrders.length - 2} mais pedidos
                     </div>
                   )}
                   {dayOrders.length === 0 && (
-                    <div className="text-xs text-muted-foreground text-center py-4">
+                    <div className="text-xs text-muted-foreground text-center py-6 font-medium">
                       Sem agendamentos
                     </div>
                   )}
