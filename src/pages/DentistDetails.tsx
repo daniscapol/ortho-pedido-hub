@@ -37,7 +37,13 @@ const DentistDetails = () => {
 
   useEffect(() => {
     const fetchDentistInfo = async () => {
-      if (id) {
+      if (id && profile) {
+        // Se não for admin, só pode ver seu próprio perfil
+        if (profile.role !== 'admin' && profile.id !== id) {
+          navigate('/dentistas');
+          return;
+        }
+
         const { data, error } = await supabase
           .from('profiles')
           .select('id, name, email, created_at')
@@ -55,7 +61,7 @@ const DentistDetails = () => {
     };
 
     fetchDentistInfo();
-  }, [id, navigate]);
+  }, [id, navigate, profile]);
 
   const handleLogout = async () => {
     await signOut();
