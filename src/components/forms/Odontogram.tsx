@@ -1,19 +1,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import odontogramaSvg from "@/assets/odontograma.svg";
 
-// Representação simplificada do odontograma
 const Odontogram = ({ onToothSelect }: { onToothSelect: (teeth: string[]) => void }) => {
   const [selectedTeeth, setSelectedTeeth] = useState<string[]>([]);
-
-  // Numeração padrão dos dentes (sistema FDI)
-  const upperTeeth = [
-    "18", "17", "16", "15", "14", "13", "12", "11", "21", "22", "23", "24", "25", "26", "27", "28"
-  ];
-  
-  const lowerTeeth = [
-    "48", "47", "46", "45", "44", "43", "42", "41", "31", "32", "33", "34", "35", "36", "37", "38"
-  ];
 
   const toggleTooth = (tooth: string) => {
     const newSelection = selectedTeeth.includes(tooth)
@@ -24,20 +15,16 @@ const Odontogram = ({ onToothSelect }: { onToothSelect: (teeth: string[]) => voi
     onToothSelect(newSelection);
   };
 
-  const ToothButton = ({ number }: { number: string }) => {
-    const isSelected = selectedTeeth.includes(number);
-    return (
-      <button
-        onClick={() => toggleTooth(number)}
-        className={`w-8 h-8 text-xs border border-border rounded transition-colors ${
-          isSelected 
-            ? "bg-primary text-primary-foreground" 
-            : "bg-card hover:bg-muted text-foreground"
-        }`}
-      >
-        {number}
-      </button>
-    );
+  const handleSvgClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target as Element;
+    const toothGroup = target.closest('.tooth') as SVGGElement;
+    
+    if (toothGroup) {
+      const toothNumber = toothGroup.getAttribute('data-number');
+      if (toothNumber) {
+        toggleTooth(toothNumber);
+      }
+    }
   };
 
   return (
@@ -47,43 +34,40 @@ const Odontogram = ({ onToothSelect }: { onToothSelect: (teeth: string[]) => voi
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {/* Dentes superiores */}
-          <div>
-            <p className="text-sm text-muted-foreground mb-2">Arcada Superior</p>
-            <div className="flex justify-center">
-              <div className="grid grid-cols-8 gap-1">
-                {upperTeeth.slice(0, 8).reverse().map(tooth => (
-                  <ToothButton key={tooth} number={tooth} />
-                ))}
-              </div>
-              <div className="w-4"></div>
-              <div className="grid grid-cols-8 gap-1">
-                {upperTeeth.slice(8).map(tooth => (
-                  <ToothButton key={tooth} number={tooth} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Linha divisória */}
-          <div className="border-t border-border"></div>
-
-          {/* Dentes inferiores */}
-          <div>
-            <p className="text-sm text-muted-foreground mb-2">Arcada Inferior</p>
-            <div className="flex justify-center">
-              <div className="grid grid-cols-8 gap-1">
-                {lowerTeeth.slice(0, 8).reverse().map(tooth => (
-                  <ToothButton key={tooth} number={tooth} />
-                ))}
-              </div>
-              <div className="w-4"></div>
-              <div className="grid grid-cols-8 gap-1">
-                {lowerTeeth.slice(8).map(tooth => (
-                  <ToothButton key={tooth} number={tooth} />
-                ))}
-              </div>
-            </div>
+          <div className="flex justify-center">
+            <div 
+              className="odontogram-container"
+              dangerouslySetInnerHTML={{ 
+                __html: `
+                  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="583px" height="400px" viewBox="0 0 583 800" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd; cursor: pointer;" onclick="handleSvgClick(event)">
+                    ${Array.from([18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28]).map((tooth, index) => {
+                      const isSelected = selectedTeeth.includes(tooth.toString());
+                      const x = 50 + (index * 60);
+                      const y = 50;
+                      return `
+                        <g id="tooth-${tooth}" class="tooth" data-number="${tooth}" style="cursor: pointer;">
+                          <ellipse cx="${x}" cy="${y}" rx="25" ry="40" style="opacity:1" fill="${isSelected ? 'hsl(var(--primary))' : '#fafafa'}" stroke="#333" stroke-width="2"/>
+                          <text x="${x}" y="${y + 5}" text-anchor="middle" font-size="12" fill="#333">${tooth}</text>
+                        </g>
+                      `;
+                    }).join('')}
+                    
+                    ${Array.from([48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38]).map((tooth, index) => {
+                      const isSelected = selectedTeeth.includes(tooth.toString());
+                      const x = 50 + (index * 60);
+                      const y = 200;
+                      return `
+                        <g id="tooth-${tooth}" class="tooth" data-number="${tooth}" style="cursor: pointer;">
+                          <ellipse cx="${x}" cy="${y}" rx="25" ry="40" style="opacity:1" fill="${isSelected ? 'hsl(var(--primary))' : '#fafafa'}" stroke="#333" stroke-width="2"/>
+                          <text x="${x}" y="${y + 5}" text-anchor="middle" font-size="12" fill="#333">${tooth}</text>
+                        </g>
+                      `;
+                    }).join('')}
+                  </svg>
+                `
+              }}
+              onClick={handleSvgClick}
+            />
           </div>
 
           {selectedTeeth.length > 0 && (
