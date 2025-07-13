@@ -325,6 +325,7 @@ export type Database = {
         Row: {
           cpf: string
           created_at: string
+          dentist_id: string | null
           email: string
           id: string
           name: string
@@ -334,6 +335,7 @@ export type Database = {
         Insert: {
           cpf: string
           created_at?: string
+          dentist_id?: string | null
           email: string
           id?: string
           name: string
@@ -343,13 +345,22 @@ export type Database = {
         Update: {
           cpf?: string
           created_at?: string
+          dentist_id?: string | null
           email?: string
           id?: string
           name?: string
           phone?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "patients_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       production_queue: {
         Row: {

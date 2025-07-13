@@ -9,20 +9,23 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Plus, Search, Edit, User, FileText, Clock, CheckCircle } from "lucide-react"
-import { usePatients, useCreatePatient, useUpdatePatient, Patient } from "@/hooks/usePatients"
+import { Plus, Search, Edit, User, FileText, Clock, CheckCircle, UserCheck } from "lucide-react"
+import { usePatients, useCreatePatient, useUpdatePatient, useDentistsForPatients, Patient } from "@/hooks/usePatients"
 import { useOrders, usePatientOrders } from "@/hooks/useOrders"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
 import Header from "@/components/layout/Header"
 import Sidebar from "@/components/layout/Sidebar"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useProfile } from "@/hooks/useProfile"
 
 const patientSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   cpf: z.string().min(11, "CPF deve ter 11 dígitos"),
   phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
   email: z.string().email("Email inválido"),
+  dentist_id: z.string().min(1, "Dentista é obrigatório"),
 })
 
 type PatientFormData = z.infer<typeof patientSchema>
@@ -35,6 +38,8 @@ const Patients = () => {
   
   const { data: patients, isLoading } = usePatients(searchTerm)
   const { data: patientOrders } = usePatientOrders(selectedPatientHistory?.id)
+  const { data: dentists } = useDentistsForPatients()
+  const { data: profile } = useProfile()
   const createPatient = useCreatePatient()
   const updatePatient = useUpdatePatient()
   const { toast } = useToast()
@@ -46,6 +51,7 @@ const Patients = () => {
       cpf: "",
       phone: "",
       email: "",
+      dentist_id: "",
     },
   })
 
@@ -58,6 +64,7 @@ const Patients = () => {
           cpf: data.cpf,
           phone: data.phone,
           email: data.email,
+          dentist_id: data.dentist_id,
         })
       } else {
         await createPatient.mutateAsync({
@@ -65,6 +72,7 @@ const Patients = () => {
           cpf: data.cpf,
           phone: data.phone,
           email: data.email,
+          dentist_id: data.dentist_id,
         })
       }
       form.reset()
@@ -85,6 +93,7 @@ const Patients = () => {
     form.setValue("cpf", patient.cpf)
     form.setValue("phone", patient.phone)
     form.setValue("email", patient.email)
+    form.setValue("dentist_id", patient.dentist_id || "")
     setIsNewPatientOpen(true)
   }
 
@@ -190,6 +199,33 @@ const Patients = () => {
                           </FormItem>
                         )}
                       />
+                      <FormField
+                        control={form.control}
+                        name="dentist_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dentista Responsável</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione um dentista" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {dentists?.map((dentist) => (
+                                  <SelectItem key={dentist.id} value={dentist.id}>
+                                    <div className="flex items-center gap-2">
+                                      <UserCheck className="h-4 w-4" />
+                                      {dentist.name || dentist.email}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <DialogFooter>
                         <Button type="button" variant="outline" onClick={handleCloseDialog}>
                           Cancelar
@@ -232,16 +268,17 @@ const Patients = () => {
                   </div>
                 ) : patients && patients.length > 0 ? (
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>CPF</TableHead>
-                        <TableHead>Telefone</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Data de Cadastro</TableHead>
-                        <TableHead className="w-[100px]">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                     <TableHeader>
+                       <TableRow>
+                         <TableHead>Nome</TableHead>
+                         <TableHead>CPF</TableHead>
+                         <TableHead>Telefone</TableHead>
+                         <TableHead>Email</TableHead>
+                         <TableHead>Dentista</TableHead>
+                         <TableHead>Data de Cadastro</TableHead>
+                         <TableHead className="w-[100px]">Ações</TableHead>
+                       </TableRow>
+                     </TableHeader>
                     <TableBody>
                       {patients.map((patient) => (
                         <TableRow key={patient.id}>
@@ -258,12 +295,22 @@ const Patients = () => {
                                </button>
                              </div>
                            </TableCell>
-                          <TableCell>{patient.cpf}</TableCell>
-                          <TableCell>{patient.phone}</TableCell>
-                          <TableCell>{patient.email}</TableCell>
-                          <TableCell>
-                            {format(new Date(patient.created_at), "dd/MM/yyyy")}
-                          </TableCell>
+                           <TableCell>{patient.cpf}</TableCell>
+                           <TableCell>{patient.phone}</TableCell>
+                           <TableCell>{patient.email}</TableCell>
+                           <TableCell>
+                             {patient.dentist ? (
+                               <div className="flex items-center gap-2">
+                                 <UserCheck className="h-4 w-4 text-blue-600" />
+                                 <span>{patient.dentist.name || patient.dentist.email}</span>
+                               </div>
+                             ) : (
+                               <span className="text-muted-foreground">Não atribuído</span>
+                             )}
+                           </TableCell>
+                           <TableCell>
+                             {format(new Date(patient.created_at), "dd/MM/yyyy")}
+                           </TableCell>
                            <TableCell>
                              <div className="flex items-center space-x-1">
                                <Button

@@ -8,6 +8,12 @@ export interface Patient {
   cpf: string
   phone: string
   email: string
+  dentist_id?: string
+  dentist?: {
+    id: string
+    name: string | null
+    email: string | null
+  }
   created_at: string
   updated_at: string
 }
@@ -18,7 +24,14 @@ export const usePatients = (searchTerm?: string) => {
     queryFn: async () => {
       let query = supabase
         .from('patients')
-        .select('*')
+        .select(`
+          *,
+          dentist:dentist_id (
+            id,
+            name,
+            email
+          )
+        `)
         .order('name')
 
       if (searchTerm) {
@@ -38,11 +51,18 @@ export const useCreatePatient = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async (patientData: Omit<Patient, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (patientData: Omit<Patient, 'id' | 'created_at' | 'updated_at' | 'dentist'>) => {
       const { data, error } = await supabase
         .from('patients')
         .insert([patientData])
-        .select()
+        .select(`
+          *,
+          dentist:dentist_id (
+            id,
+            name,
+            email
+          )
+        `)
         .single()
 
       if (error) throw error
@@ -70,12 +90,19 @@ export const useUpdatePatient = () => {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ id, ...patientData }: { id: string } & Omit<Patient, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async ({ id, ...patientData }: { id: string } & Omit<Patient, 'id' | 'created_at' | 'updated_at' | 'dentist'>) => {
       const { data, error } = await supabase
         .from('patients')
         .update(patientData)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          dentist:dentist_id (
+            id,
+            name,
+            email
+          )
+        `)
         .single()
 
       if (error) throw error
@@ -94,6 +121,23 @@ export const useUpdatePatient = () => {
         description: "Erro ao atualizar paciente: " + error.message,
         variant: "destructive",
       })
+    },
+  })
+}
+
+// Hook para buscar dentistas para o dropdown
+export const useDentistsForPatients = () => {
+  return useQuery({
+    queryKey: ['dentists-for-patients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .eq('role', 'dentist')
+        .order('name')
+
+      if (error) throw error
+      return data
     },
   })
 }

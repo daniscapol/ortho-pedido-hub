@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePatients, useCreatePatient, Patient } from "@/hooks/usePatients";
+import { usePatients, useCreatePatient, useDentistsForPatients, Patient } from "@/hooks/usePatients";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UserCheck } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient | null) => void }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,10 +17,13 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
     name: "",
     cpf: "",
     phone: "",
-    email: ""
+    email: "",
+    dentist_id: ""
   });
 
   const { data: patients, isLoading } = usePatients(searchTerm);
+  const { data: dentists } = useDentistsForPatients();
+  const { data: profile } = useProfile();
   const createPatient = useCreatePatient();
 
   const filteredPatients = patients || [];
@@ -28,12 +34,13 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
         name: newPatient.name,
         cpf: newPatient.cpf,
         phone: newPatient.phone,
-        email: newPatient.email
+        email: newPatient.email,
+        dentist_id: newPatient.dentist_id || (profile?.role === 'dentist' ? profile.id : '')
       });
       
       onPatientSelect(result);
       setShowNewForm(false);
-      setNewPatient({ name: "", cpf: "", phone: "", email: "" });
+      setNewPatient({ name: "", cpf: "", phone: "", email: "", dentist_id: "" });
     } catch (error) {
       console.error('Erro ao criar paciente:', error);
     }
@@ -87,6 +94,27 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
                 placeholder="email@exemplo.com"
               />
             </div>
+            
+            {profile?.role === 'admin' && (
+              <div className="space-y-2">
+                <Label htmlFor="dentist">Dentista Responsável</Label>
+                <Select onValueChange={(value) => setNewPatient(prev => ({ ...prev, dentist_id: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um dentista" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dentists?.map((dentist) => (
+                      <SelectItem key={dentist.id} value={dentist.id}>
+                        <div className="flex items-center gap-2">
+                          <UserCheck className="h-4 w-4" />
+                          {dentist.name || dentist.email}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           
           <div className="flex gap-2">
