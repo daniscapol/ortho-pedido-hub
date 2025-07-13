@@ -75,7 +75,7 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex">
       <Sidebar />
       
       <div className="flex-1 flex flex-col">
