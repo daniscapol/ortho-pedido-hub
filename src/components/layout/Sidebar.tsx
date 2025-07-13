@@ -61,7 +61,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-48 bg-slate-800 border-r border-slate-700 h-screen">
+    <aside className="w-56 bg-slate-800 border-r border-slate-700 h-screen flex-shrink-0">
       <div className="p-4 pt-6">
         {/* Logo clicável no topo do sidebar */}
         <div 
