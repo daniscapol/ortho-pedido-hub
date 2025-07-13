@@ -103,9 +103,9 @@ const Patients = () => {
                 <p className="text-gray-600 mt-1">Gerencie os pacientes do consultório</p>
               </div>
               
-              <Dialog open={isNewPatientOpen} onOpenChange={handleCloseDialog}>
+              <Dialog open={isNewPatientOpen} onOpenChange={setIsNewPatientOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button onClick={() => setIsNewPatientOpen(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Novo Paciente
                   </Button>
