@@ -157,3 +157,35 @@ export const useOrdersForAdmin = () => {
     },
   })
 }
+
+export const usePatientOrders = (patientId?: string) => {
+  return useQuery({
+    queryKey: ['patient-orders', patientId],
+    queryFn: async () => {
+      if (!patientId) return []
+      
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          patients (
+            name,
+            cpf,
+            phone,
+            email
+          ),
+          order_images (
+            id,
+            image_url,
+            annotations
+          )
+        `)
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return data as Order[]
+    },
+    enabled: !!patientId,
+  })
+}
