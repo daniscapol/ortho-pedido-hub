@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { useFiliais, useCreateFilial, useUpdateFilial, type Filial } from "@/hooks/useFiliais";
 import { useForm } from "react-hook-form";
+import Sidebar from "@/components/layout/Sidebar";
+import Header from "@/components/layout/Header";
 
 interface FilialForm {
   nome: string;
@@ -57,134 +59,148 @@ const Filiais = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center">Carregando...</div>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <Header />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">Carregando...</div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Building2 className="h-6 w-6" />
-              <CardTitle className="text-2xl">Filiais</CardTitle>
-            </div>
-            <Dialog open={isNewFilialOpen} onOpenChange={setIsNewFilialOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-slate-700 hover:bg-slate-800">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Filial
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Nova Filial</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                  <div>
-                    <Label htmlFor="nome">Nome</Label>
-                    <Input
-                      id="nome"
-                      {...register("nome", { required: "Nome é obrigatório" })}
-                      placeholder="Nome da filial"
-                    />
-                    {errors.nome && (
-                      <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor="endereco_entrega">Endereço de entrega</Label>
-                    <Input
-                      id="endereco_entrega"
-                      {...register("endereco_entrega", { required: "Endereço é obrigatório" })}
-                      placeholder="Endereço completo"
-                    />
-                    {errors.endereco_entrega && (
-                      <p className="text-sm text-red-500 mt-1">{errors.endereco_entrega.message}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="ativo" {...register("ativo")} defaultChecked />
-                    <Label htmlFor="ativo">Ativo</Label>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setIsNewFilialOpen(false)}>
-                      Cancelar
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col">
+        <Header />
+        
+        <main className="flex-1 p-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-6 w-6" />
+                  <CardTitle className="text-2xl">Filiais</CardTitle>
+                </div>
+                <Dialog open={isNewFilialOpen} onOpenChange={setIsNewFilialOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-slate-700 hover:bg-slate-800">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Filial
                     </Button>
-                    <Button type="submit" disabled={createFilial.isPending}>
-                      {createFilial.isPending ? "Criando..." : "Criar Filial"}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6">
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">Filtros</span>
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Pesquise por uma filial"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Nova Filial</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                      <div>
+                        <Label htmlFor="nome">Nome</Label>
+                        <Input
+                          id="nome"
+                          {...register("nome", { required: "Nome é obrigatório" })}
+                          placeholder="Nome da filial"
+                        />
+                        {errors.nome && (
+                          <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label htmlFor="endereco_entrega">Endereço de entrega</Label>
+                        <Input
+                          id="endereco_entrega"
+                          {...register("endereco_entrega", { required: "Endereço é obrigatório" })}
+                          placeholder="Endereço completo"
+                        />
+                        {errors.endereco_entrega && (
+                          <p className="text-sm text-red-500 mt-1">{errors.endereco_entrega.message}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch id="ativo" {...register("ativo")} defaultChecked />
+                        <Label htmlFor="ativo">Ativo</Label>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setIsNewFilialOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button type="submit" disabled={createFilial.isPending}>
+                          {createFilial.isPending ? "Criando..." : "Criar Filial"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
-            </div>
-          </div>
-
-          <div className="border rounded-lg">
-            <div className="grid grid-cols-5 gap-4 p-4 bg-muted/50 border-b font-medium text-sm">
-              <div>Nome</div>
-              <div>Endereço de entrega</div>
-              <div>Qntd. de Pacientes</div>
-              <div>Ativo</div>
-              <div></div>
-            </div>
-            
-            {filteredFiliais.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                {searchTerm ? "Nenhuma filial encontrada." : "Nenhuma filial cadastrada."}
-              </div>
-            ) : (
-              filteredFiliais.map((filial) => (
-                <div key={filial.id} className="grid grid-cols-5 gap-4 p-4 border-b last:border-b-0 items-center">
-                  <div className="font-medium">{filial.nome}</div>
-                  <div>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                      <Building2 className="h-3 w-3 mr-1" />
-                      {filial.endereco_entrega}
-                    </Badge>
-                  </div>
-                  <div className="text-center">{filial.qntd_pacientes}</div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={filial.ativo}
-                      onCheckedChange={() => handleToggleAtivo(filial)}
-                      disabled={updateFilial.isPending}
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium">Filtros</span>
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Pesquise por uma filial"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
                     />
-                    <span className={filial.ativo ? "text-green-600" : "text-red-600"}>
-                      {filial.ativo ? "Sim" : "Não"}
-                    </span>
-                  </div>
-                  <div>
-                    <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver detalhes
-                    </Button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+
+              <div className="border rounded-lg">
+                <div className="grid grid-cols-5 gap-4 p-4 bg-muted/50 border-b font-medium text-sm">
+                  <div>Nome</div>
+                  <div>Endereço de entrega</div>
+                  <div>Qntd. de Pacientes</div>
+                  <div>Ativo</div>
+                  <div></div>
+                </div>
+                
+                {filteredFiliais.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    {searchTerm ? "Nenhuma filial encontrada." : "Nenhuma filial cadastrada."}
+                  </div>
+                ) : (
+                  filteredFiliais.map((filial) => (
+                    <div key={filial.id} className="grid grid-cols-5 gap-4 p-4 border-b last:border-b-0 items-center">
+                      <div className="font-medium">{filial.nome}</div>
+                      <div>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                          <Building2 className="h-3 w-3 mr-1" />
+                          {filial.endereco_entrega}
+                        </Badge>
+                      </div>
+                      <div className="text-center">{filial.qntd_pacientes}</div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={filial.ativo}
+                          onCheckedChange={() => handleToggleAtivo(filial)}
+                          disabled={updateFilial.isPending}
+                        />
+                        <span className={filial.ativo ? "text-green-600" : "text-red-600"}>
+                          {filial.ativo ? "Sim" : "Não"}
+                        </span>
+                      </div>
+                      <div>
+                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver detalhes
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
     </div>
   );
 };
