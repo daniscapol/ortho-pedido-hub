@@ -53,75 +53,82 @@ const AgendaSidebar = () => {
   };
 
   return (
-    <Card className="w-full h-fit">
-      <CardHeader className="pb-4">
+    <Card className="w-full h-fit shadow-lg">
+      <CardHeader className="pb-6">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <CalendarDays className="w-5 h-5" />
-            Agenda
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <CalendarDays className="w-6 h-6 text-primary" />
+            Agenda Semanal
           </CardTitle>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
+              className="hover:bg-primary/10"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
+              className="hover:bg-primary/10"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground font-medium">
           {format(weekStart, "MMMM 'de' yyyy", { locale: ptBR })}
         </p>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-7 gap-1 mb-4">
+      <CardContent className="space-y-6 pb-8">
+        <div className="grid grid-cols-7 gap-2 mb-6">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dayName) => (
-            <div key={dayName} className="text-center text-xs font-medium text-muted-foreground py-2">
+            <div key={dayName} className="text-center text-sm font-semibold text-muted-foreground py-3 bg-muted/30 rounded-lg">
               {dayName}
             </div>
           ))}
         </div>
         
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-2">
           {days.map((day) => {
             const dayOrders = getOrdersForDate(day);
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
             
             return (
-              <div key={day.toISOString()} className="min-h-[80px] border border-border rounded-lg p-2 space-y-1">
+              <div key={day.toISOString()} className="min-h-[120px] border border-border rounded-xl p-3 space-y-2 bg-background hover:shadow-sm transition-shadow">
                 <div className="text-center">
-                  <span className={`text-sm font-bold ${isToday ? 'text-primary bg-primary/10 px-2 py-1 rounded-full' : 'text-foreground'}`}>
+                  <span className={`text-base font-bold ${isToday ? 'text-white bg-primary px-3 py-1.5 rounded-full shadow-sm' : 'text-foreground'}`}>
                     {format(day, "d")}
                   </span>
                 </div>
                 
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {dayOrders.slice(0, 2).map((order) => (
-                    <div key={order.id} className="text-xs">
-                      <div className="truncate text-foreground font-medium">
+                    <div key={order.id} className="text-xs bg-muted/50 rounded-lg p-2 hover:bg-muted/70 transition-colors">
+                      <div className="truncate text-foreground font-medium mb-1">
                         {order.patients?.name}
                       </div>
                       <Badge 
                         variant="outline" 
-                        className={`text-xs ${getStatusColor(order.status)}`}
+                        className={`text-xs ${getStatusColor(order.status)} w-full justify-center`}
                       >
                         {getStatusLabel(order.status)}
                       </Badge>
                     </div>
                   ))}
                   {dayOrders.length > 2 && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      +{dayOrders.length - 2}
-                    </p>
+                    <div className="text-xs text-muted-foreground text-center bg-muted/30 rounded-lg py-2 font-medium">
+                      +{dayOrders.length - 2} mais
+                    </div>
+                  )}
+                  {dayOrders.length === 0 && (
+                    <div className="text-xs text-muted-foreground text-center py-4">
+                      Sem agendamentos
+                    </div>
                   )}
                 </div>
               </div>

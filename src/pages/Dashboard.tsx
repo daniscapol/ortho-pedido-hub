@@ -265,8 +265,8 @@ const Dashboard = () => {
           </main>
 
           {/* Agenda Sidebar */}
-          <div className="w-96 border-l border-border flex flex-col h-full">
-            <div className="p-6 flex-1 overflow-y-auto">
+          <div className="w-[420px] border-l border-border flex flex-col h-full bg-muted/20">
+            <div className="p-8 flex-1 overflow-y-auto">
               <AgendaSidebar />
             </div>
           </div>
