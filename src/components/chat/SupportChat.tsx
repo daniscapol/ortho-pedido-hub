@@ -8,7 +8,6 @@ import { Separator } from '@/components/ui/separator';
 import { Send, MessageCircle, X, Users, MessageSquare, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/hooks/useProfile';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
@@ -52,15 +51,36 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
   const [view, setView] = useState<'conversations' | 'chat'>('conversations');
   const [typingIndicators, setTypingIndicators] = useState<TypingIndicator[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [elevenLabsApiKey, setElevenLabsApiKey] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { data: profile } = useProfile();
   const { toast } = useToast();
-  const { speak, isPlaying } = useTextToSpeech({ 
-    apiKey: elevenLabsApiKey,
-    voiceId: 'EXAVITQu4vr4xnSDxMaL' // Sarah voice
-  });
+
+  // Sound effects for messages
+  const playSound = (type: 'send' | 'receive') => {
+    if (!soundEnabled) return;
+    
+    try {
+      const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+      
+      // Different frequencies for send/receive
+      oscillator.frequency.value = type === 'send' ? 800 : 600;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.1, context.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.1);
+      
+      oscillator.start(context.currentTime);
+      oscillator.stop(context.currentTime + 0.1);
+    } catch (error) {
+      console.log('Audio not supported');
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -189,6 +209,7 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
 
       if (error) throw error;
 
+      playSound('send');
       setNewMessage('');
       
       // Se for dentista, mudar para view de chat
@@ -276,16 +297,16 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
     scrollToBottom();
   }, [messages]);
 
-  // Effect for handling text-to-speech for new messages
+  // Effect for playing sound on new messages
   useEffect(() => {
-    if (messages.length > 0 && soundEnabled && elevenLabsApiKey) {
+    if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-      // Only speak messages from others
+      // Only play sound for messages from others
       if (lastMessage.user_id !== profile?.id) {
-        speak(lastMessage.message);
+        playSound('receive');
       }
     }
-  }, [messages, soundEnabled, elevenLabsApiKey, profile?.id, speak]);
+  }, [messages, profile?.id]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -412,21 +433,10 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
             size="icon"
             onClick={() => setSoundEnabled(!soundEnabled)}
             className="h-6 w-6"
-            title={soundEnabled ? 'Desativar som' : 'Ativar som'}
+            title={soundEnabled ? 'Desativar sons' : 'Ativar sons'}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
-          
-          {/* ElevenLabs API Key Input */}
-          {!elevenLabsApiKey && (
-            <Input
-              placeholder="ElevenLabs API Key"
-              value={elevenLabsApiKey}
-              onChange={(e) => setElevenLabsApiKey(e.target.value)}
-              className="w-32 h-6 text-xs"
-              type="password"
-            />
-          )}
           
           <Button
             variant="ghost"
