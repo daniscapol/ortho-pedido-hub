@@ -2,6 +2,8 @@ import Sidebar from "@/components/layout/Sidebar";
 import OrderCard from "@/components/dashboard/OrderCard";
 import OrderDetailsModal from "@/components/dashboard/OrderDetailsModal";
 import AgendaSidebar from "@/components/dashboard/AgendaSidebar";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +24,9 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Enable real-time notifications
+  useRealtimeNotifications();
 
   const handleLogout = async () => {
     await signOut();
@@ -98,9 +103,7 @@ const Dashboard = () => {
             </div>
             
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700">
-                <Bell className="w-5 h-5" />
-              </Button>
+              <NotificationDropdown />
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
