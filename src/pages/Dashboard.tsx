@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Bell, User, LogOut, Settings, Plus } from "lucide-react";
+import { Search, Bell, User, LogOut, Settings, Plus, Download } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
+import * as XLSX from 'xlsx';
 import { Order } from "@/hooks/useOrders";
 
 const Dashboard = () => {
@@ -65,6 +66,48 @@ const Dashboard = () => {
     
     return filtered;
   }, [orders, profile, searchQuery]);
+
+  const exportToExcel = () => {
+    if (!filteredOrders.length) {
+      return;
+    }
+
+    // Preparar dados para exportação
+    const excelData = filteredOrders.map(order => ({
+      'ID do Pedido': order.id,
+      'Data de Criação': new Date(order.created_at).toLocaleDateString('pt-BR'),
+      'Data de Atualização': new Date(order.updated_at).toLocaleDateString('pt-BR'),
+      'Paciente': order.patients?.name || 'N/A',
+      'CPF do Paciente': order.patients?.cpf || 'N/A',
+      'Email do Paciente': order.patients?.email || 'N/A',
+      'Telefone do Paciente': order.patients?.phone || 'N/A',
+      'Dentista': order.dentist,
+      'Tipo de Prótese': order.prosthesis_type,
+      'Material': order.material || 'N/A',
+      'Cor': order.color || 'N/A',
+      'Status': order.status,
+      'Prioridade': order.priority,
+      'Prazo': order.deadline,
+      'Dentes Selecionados': order.selected_teeth?.join(', ') || 'N/A',
+      'Endereço de Entrega': order.delivery_address || 'N/A',
+      'Observações': order.observations || 'N/A'
+    }));
+
+    // Criar planilha
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Pedidos');
+
+    // Ajustar largura das colunas
+    const colWidths = Object.keys(excelData[0]).map(key => ({
+      wch: Math.max(key.length, 15)
+    }));
+    worksheet['!cols'] = colWidths;
+
+    // Baixar arquivo
+    const fileName = `pedidos_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
 
   // Separar pedidos por status
   const ordersPending = filteredOrders.filter(order => 
@@ -135,10 +178,21 @@ const Dashboard = () => {
                 </h1>
               </div>
               
-              <Button onClick={() => navigate('/novo-pedido')} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Novo Caso
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={exportToExcel} 
+                  variant="outline" 
+                  className="gap-2"
+                  disabled={!filteredOrders.length}
+                >
+                  <Download className="w-4 h-4" />
+                  Exportar Excel
+                </Button>
+                <Button onClick={() => navigate('/novo-pedido')} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Novo Caso
+                </Button>
+              </div>
             </div>
 
             {/* Search Bar */}
