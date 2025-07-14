@@ -149,17 +149,6 @@ const Dashboard = () => {
               </Button>
             </div>
 
-            {/* Search and filters section */}
-            <div className="flex items-center gap-4 mb-6">
-              <Button variant="ghost" className="text-foreground">
-                Pesquisa
-              </Button>
-              <div className="h-6 w-px bg-border"></div>
-              <Button variant="ghost" size="sm">
-                <Search className="w-4 h-4 mr-2" />
-                Pesquise uma palavra-chave
-              </Button>
-            </div>
 
             {/* Orders columns */}
             <div className="grid grid-cols-3 gap-6">
