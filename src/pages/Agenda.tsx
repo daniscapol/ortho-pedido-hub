@@ -5,17 +5,18 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { CalendarIcon, ChevronLeft, ChevronRight, Search, User, Settings, LogOut } from "lucide-react"
+import { CalendarIcon, ChevronLeft, ChevronRight, Search, User, Settings, LogOut, Clock, Filter, BarChart3, Eye, MapPin, Phone, Calendar as CalendarLucide } from "lucide-react"
 import { useOrders, Order } from "@/hooks/useOrders"
 import { useProfile } from "@/hooks/useProfile"
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO } from "date-fns"
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO, isToday, isPast, isFuture } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import Sidebar from "@/components/layout/Sidebar"
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/components/auth/AuthProvider"
 import { useNavigate } from "react-router-dom"
+import { cn } from "@/lib/utils"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const Agenda = () => {
   const navigate = useNavigate()
@@ -25,6 +26,8 @@ const Agenda = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [viewMode, setViewMode] = useState("week")
+  const [selectedStatus, setSelectedStatus] = useState<string[]>([])
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
   const { data: orders, isLoading } = useOrders()
   const { data: profile } = useProfile()
@@ -40,6 +43,17 @@ const Agenda = () => {
     return types
   }, [orders])
 
+  // Status únicos dos pedidos
+  const statusOptions = useMemo(() => {
+    const statuses = [
+      { value: 'pending', label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
+      { value: 'producao', label: 'Em Produção', color: 'bg-blue-100 text-blue-800' },
+      { value: 'pronto', label: 'Pronto', color: 'bg-green-100 text-green-800' },
+      { value: 'entregue', label: 'Entregue', color: 'bg-gray-100 text-gray-800' }
+    ]
+    return statuses
+  }, [])
+
   // Filtrar pedidos com base nos filtros selecionados
   const filteredOrders = useMemo(() => {
     if (!orders) return []
@@ -47,6 +61,11 @@ const Agenda = () => {
     return orders.filter(order => {
       // Filtro por tipo de prótese
       if (selectedTypes.length > 0 && !selectedTypes.includes(order.prosthesis_type)) {
+        return false
+      }
+      
+      // Filtro por status
+      if (selectedStatus.length > 0 && !selectedStatus.includes(order.status)) {
         return false
       }
       
@@ -61,7 +80,7 @@ const Agenda = () => {
       
       return true
     })
-  }, [orders, selectedTypes, searchTerm])
+  }, [orders, selectedTypes, selectedStatus, searchTerm])
 
   // Obter dias da semana atual
   const weekStart = startOfWeek(currentDate, { locale: ptBR })
@@ -76,17 +95,43 @@ const Agenda = () => {
     })
   }
 
+  // Estatísticas dos pedidos
+  const orderStats = useMemo(() => {
+    if (!filteredOrders) return { total: 0, pending: 0, production: 0, ready: 0, delivered: 0 }
+    return {
+      total: filteredOrders.length,
+      pending: filteredOrders.filter(o => o.status === 'pending').length,
+      production: filteredOrders.filter(o => o.status === 'producao').length,
+      ready: filteredOrders.filter(o => o.status === 'pronto').length,
+      delivered: filteredOrders.filter(o => o.status === 'entregue').length
+    }
+  }, [filteredOrders])
+
   // Cores para diferentes tipos de próteses
   const getTypeColor = (type: string) => {
     const colors = {
-      "Coroa Emax": "bg-blue-200 text-blue-800 border-blue-300",
-      "Coroa Impressa": "bg-green-200 text-green-800 border-green-300",
-      "Coroa sobre Implante": "bg-purple-200 text-purple-800 border-purple-300",
-      "Inlay/Onlay Emax": "bg-orange-200 text-orange-800 border-orange-300",
-      "Inlay/Olay Implante": "bg-pink-200 text-pink-800 border-pink-300",
-      "Facetas": "bg-indigo-200 text-indigo-800 border-indigo-300",
+      "Coroa Emax": "border-l-4 border-l-blue-500 bg-blue-50",
+      "Coroa Impressa": "border-l-4 border-l-green-500 bg-green-50",
+      "Coroa sobre Implante": "border-l-4 border-l-purple-500 bg-purple-50",
+      "Inlay/Onlay Emax": "border-l-4 border-l-orange-500 bg-orange-50",
+      "Inlay/Olay Implante": "border-l-4 border-l-pink-500 bg-pink-50",
+      "Facetas": "border-l-4 border-l-indigo-500 bg-indigo-50",
     }
-    return colors[type as keyof typeof colors] || "bg-gray-200 text-gray-800 border-gray-300"
+    return colors[type as keyof typeof colors] || "border-l-4 border-l-gray-500 bg-gray-50"
+  }
+
+  const getStatusColor = (status: string) => {
+    const colors = statusOptions.find(s => s.value === status)
+    return colors?.color || "bg-gray-100 text-gray-800"
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'alta': return 'bg-red-100 text-red-800'
+      case 'media': return 'bg-yellow-100 text-yellow-800'
+      case 'baixa': return 'bg-green-100 text-green-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
   }
 
   const toggleTypeFilter = (type: string) => {
@@ -94,6 +139,14 @@ const Agenda = () => {
       prev.includes(type) 
         ? prev.filter(t => t !== type)
         : [...prev, type]
+    )
+  }
+
+  const toggleStatusFilter = (status: string) => {
+    setSelectedStatus(prev => 
+      prev.includes(status) 
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
     )
   }
 
@@ -174,176 +227,349 @@ const Agenda = () => {
           </div>
         </header>
         
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 bg-gradient-to-br from-slate-50 to-slate-100">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-2">
-                <CalendarIcon className="w-6 h-6 text-gray-600" />
-                <h1 className="text-3xl font-bold text-gray-900">Agenda</h1>
+            {/* Header com estatísticas */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-primary rounded-lg">
+                    <CalendarIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Hub da Agenda</h1>
+                    <p className="text-gray-600">Visualize e gerencie todos os seus pedidos</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <Button variant="outline" onClick={() => setCurrentDate(new Date())}>
+                    <Clock className="w-4 h-4 mr-2" />
+                    Hoje
+                  </Button>
+                  <Select value={viewMode} onValueChange={setViewMode}>
+                    <SelectTrigger className="w-36">
+                      <Eye className="w-4 h-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="week">Visualização Semanal</SelectItem>
+                      <SelectItem value="month">Visualização Mensal</SelectItem>
+                      <SelectItem value="list">Lista Completa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Filtrar por:</span>
-                <Select value={viewMode} onValueChange={setViewMode}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="week">Semana</SelectItem>
-                    <SelectItem value="month">Mês</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-12 gap-6">
-              {/* Sidebar esquerda com calendário e filtros */}
-              <div className="col-span-3 space-y-6">
-                {/* Mini calendário */}
-                <Card>
+              {/* Cards de estatísticas */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
                   <CardContent className="p-4">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="w-full"
-                      locale={ptBR}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Busca por dentista */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Buscar</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Buscar dentista"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Filtros por tipo de serviço */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Tipos de serviço</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {prosthesisTypes.map((type) => (
-                      <div key={type} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={type}
-                          checked={selectedTypes.includes(type)}
-                          onCheckedChange={() => toggleTypeFilter(type)}
-                        />
-                        <label 
-                          htmlFor={type} 
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {type}
-                        </label>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm">Total de Pedidos</p>
+                        <p className="text-2xl font-bold">{orderStats.total}</p>
                       </div>
-                    ))}
+                      <BarChart3 className="w-8 h-8 text-blue-200" />
+                    </div>
                   </CardContent>
                 </Card>
-              </div>
-
-              {/* Calendário principal */}
-              <div className="col-span-9">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigateWeek('prev')}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </Button>
-                      <h2 className="text-xl font-semibold">
-                        {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
-                      </h2>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigateWeek('next')}
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
+                
+                <Card className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-yellow-100 text-sm">Pendentes</p>
+                        <p className="text-2xl font-bold">{orderStats.pending}</p>
+                      </div>
+                      <Clock className="w-8 h-8 text-yellow-200" />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {/* Cabeçalho dos dias da semana */}
-                    <div className="grid grid-cols-7 gap-4 mb-4">
-                      {weekDays.map((day) => (
-                        <div key={day.toISOString()} className="text-center">
-                          <div className="text-sm text-gray-500 mb-1">
-                            {format(day, "EEE", { locale: ptBR })}
-                          </div>
-                          <div className={`text-lg font-semibold w-8 h-8 mx-auto rounded-full flex items-center justify-center ${
-                            isSameDay(day, new Date()) 
-                              ? "bg-blue-600 text-white" 
-                              : "text-gray-900"
-                          }`}>
-                            {format(day, "d")}
-                          </div>
-                        </div>
-                      ))}
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-sm">Em Produção</p>
+                        <p className="text-2xl font-bold">{orderStats.production}</p>
+                      </div>
+                      <Settings className="w-8 h-8 text-purple-200" />
                     </div>
-
-                    {/* Grid com os horários e eventos */}
-                    <div className="grid grid-cols-7 gap-4 min-h-[400px]">
-                      {weekDays.map((day) => {
-                        const dayOrders = getOrdersForDay(day)
-                        return (
-                          <div key={day.toISOString()} className="border-l border-gray-200 pl-2 space-y-2">
-                            {dayOrders.map((order) => (
-                              <div 
-                                key={order.id}
-                                className={`p-2 rounded-md border text-xs ${getTypeColor(order.prosthesis_type)}`}
-                              >
-                                <div className="font-semibold">{order.prosthesis_type}</div>
-                                <div className="text-xs opacity-80">
-                                  {order.dentist}
-                                </div>
-                                <div className="text-xs opacity-70">
-                                  #{order.id.slice(-6)}
-                                </div>
-                                {order.patients && (
-                                  <div className="text-xs opacity-70 mt-1">
-                                    {order.patients.name}
-                                  </div>
-                                )}
-                                <Badge variant="outline" className="mt-1 text-xs">
-                                  {order.priority}
-                                </Badge>
-                              </div>
-                            ))}
-                          </div>
-                        )
-                      })}
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm">Prontos</p>
+                        <p className="text-2xl font-bold">{orderStats.ready}</p>
+                      </div>
+                      <CalendarLucide className="w-8 h-8 text-green-200" />
                     </div>
-
-                    {/* Horários laterais */}
-                    <div className="mt-4 text-xs text-gray-500 space-y-8">
-                      {['9h', '10h', '11h', '12h', '13h', '14h', '15h'].map((time) => (
-                        <div key={time} className="flex items-center">
-                          <span className="w-8 text-right mr-2">{time}</span>
-                          <div className="flex-1 border-t border-gray-200"></div>
-                        </div>
-                      ))}
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-gradient-to-r from-gray-500 to-gray-600 text-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-100 text-sm">Entregues</p>
+                        <p className="text-2xl font-bold">{orderStats.delivered}</p>
+                      </div>
+                      <MapPin className="w-8 h-8 text-gray-200" />
                     </div>
                   </CardContent>
                 </Card>
               </div>
             </div>
+
+            <Tabs value={viewMode} onValueChange={setViewMode} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="week">Visualização Semanal</TabsTrigger>
+                <TabsTrigger value="month">Visualização Mensal</TabsTrigger>
+                <TabsTrigger value="list">Lista Completa</TabsTrigger>
+              </TabsList>
+
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Filtros laterais */}
+                <div className="space-y-4">
+                  {/* Busca */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Search className="w-4 h-4" />
+                        Buscar
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Dentista ou paciente..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Mini calendário */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4" />
+                        Navegar
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="w-full"
+                        locale={ptBR}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Filtros por status */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Filter className="w-4 h-4" />
+                        Status
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {statusOptions.map((status) => (
+                        <div key={status.value} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={status.value}
+                            checked={selectedStatus.includes(status.value)}
+                            onChange={() => toggleStatusFilter(status.value)}
+                            className="rounded border-gray-300"
+                          />
+                          <label 
+                            htmlFor={status.value} 
+                            className="flex items-center gap-2 text-sm font-medium cursor-pointer"
+                          >
+                            <Badge className={`${status.color} text-xs`}>
+                              {status.label}
+                            </Badge>
+                          </label>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Filtros por tipo de serviço */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Tipos de Serviço</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {prosthesisTypes.map((type) => (
+                        <div key={type} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={type}
+                            checked={selectedTypes.includes(type)}
+                            onChange={() => toggleTypeFilter(type)}
+                            className="rounded border-gray-300"
+                          />
+                          <label 
+                            htmlFor={type} 
+                            className="text-sm font-medium cursor-pointer"
+                          >
+                            {type}
+                          </label>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Conteúdo principal */}
+                <div className="lg:col-span-3">
+                  <TabsContent value="week" className="space-y-4">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigateWeek('prev')}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </Button>
+                          <h2 className="text-xl font-semibold">
+                            {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+                          </h2>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigateWeek('next')}
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {/* Cabeçalho dos dias da semana */}
+                        <div className="grid grid-cols-7 gap-4 mb-6">
+                          {weekDays.map((day) => (
+                            <div key={day.toISOString()} className="text-center">
+                              <div className="text-sm text-gray-500 mb-2">
+                                {format(day, "EEE", { locale: ptBR })}
+                              </div>
+                              <div className={cn(
+                                "text-lg font-semibold w-10 h-10 mx-auto rounded-full flex items-center justify-center transition-colors",
+                                isToday(day) 
+                                  ? "bg-primary text-white shadow-lg" 
+                                  : isPast(day) 
+                                    ? "text-gray-400" 
+                                    : "text-gray-900 hover:bg-gray-100"
+                              )}>
+                                {format(day, "d")}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Grid com os pedidos */}
+                        <div className="grid grid-cols-7 gap-4 min-h-[500px]">
+                          {weekDays.map((day) => {
+                            const dayOrders = getOrdersForDay(day)
+                            return (
+                              <div key={day.toISOString()} className="space-y-2">
+                                {dayOrders.map((order) => (
+                                  <Card 
+                                    key={order.id}
+                                    className={cn(
+                                      "p-3 cursor-pointer hover:shadow-md transition-shadow",
+                                      getTypeColor(order.prosthesis_type)
+                                    )}
+                                    onClick={() => setSelectedOrder(order)}
+                                  >
+                                    <div className="space-y-2">
+                                      <div className="font-medium text-sm truncate">
+                                        {order.prosthesis_type}
+                                      </div>
+                                      <div className="text-xs text-gray-600 truncate">
+                                        {order.dentist}
+                                      </div>
+                                      {order.patients && (
+                                        <div className="text-xs text-gray-500 truncate">
+                                          {order.patients.name}
+                                        </div>
+                                      )}
+                                      <div className="flex flex-col gap-1">
+                                        <Badge className={cn("text-xs", getStatusColor(order.status))}>
+                                          {statusOptions.find(s => s.value === order.status)?.label}
+                                        </Badge>
+                                        <Badge className={cn("text-xs", getPriorityColor(order.priority))}>
+                                          {order.priority}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="list" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Todos os Pedidos</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {filteredOrders.map((order) => (
+                            <Card 
+                              key={order.id}
+                              className={cn(
+                                "p-4 cursor-pointer hover:shadow-md transition-shadow",
+                                getTypeColor(order.prosthesis_type)
+                              )}
+                              onClick={() => setSelectedOrder(order)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                  <div className="font-medium">{order.prosthesis_type}</div>
+                                  <div className="text-sm text-gray-600">
+                                    {order.dentist} • {order.patients?.name}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Prazo: {format(parseISO(order.deadline), "dd/MM/yyyy")}
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  <Badge className={getStatusColor(order.status)}>
+                                    {statusOptions.find(s => s.value === order.status)?.label}
+                                  </Badge>
+                                  <Badge className={getPriorityColor(order.priority)}>
+                                    {order.priority}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </div>
+              </div>
+            </Tabs>
           </div>
         </main>
       </div>
