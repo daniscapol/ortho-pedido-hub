@@ -41,21 +41,126 @@ const NewOrderForm = () => {
     }));
   };
 
-  const handleCameraCapture = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment'; // Use rear camera
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        setFormData(prev => ({
-          ...prev,
-          images: [...prev.images, file]
-        }));
-      }
-    };
-    input.click();
+  const handleCameraCapture = async () => {
+    try {
+      // Tentar acessar a câmera do dispositivo
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment' // Câmera traseira em celulares
+        } 
+      });
+      
+      // Criar um elemento de vídeo para mostrar o preview
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.playsInline = true;
+      
+      // Criar modal para captura
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      `;
+      
+      video.style.cssText = `
+        max-width: 90%;
+        max-height: 70%;
+        border-radius: 8px;
+      `;
+      
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.cssText = `
+        margin-top: 20px;
+        display: flex;
+        gap: 15px;
+      `;
+      
+      const captureBtn = document.createElement('button');
+      captureBtn.textContent = 'Capturar';
+      captureBtn.style.cssText = `
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+      `;
+      
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancelar';
+      cancelBtn.style.cssText = `
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+      `;
+      
+      const cleanup = () => {
+        stream.getTracks().forEach(track => track.stop());
+        document.body.removeChild(modal);
+      };
+      
+      captureBtn.onclick = () => {
+        // Criar canvas para capturar a imagem
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(video, 0, 0);
+        
+        // Converter para blob e criar arquivo
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            setFormData(prev => ({
+              ...prev,
+              images: [...prev.images, file]
+            }));
+          }
+          cleanup();
+        }, 'image/jpeg', 0.8);
+      };
+      
+      cancelBtn.onclick = cleanup;
+      
+      buttonContainer.appendChild(captureBtn);
+      buttonContainer.appendChild(cancelBtn);
+      modal.appendChild(video);
+      modal.appendChild(buttonContainer);
+      document.body.appendChild(modal);
+      
+    } catch (error) {
+      console.error('Erro ao acessar câmera:', error);
+      // Fallback para seleção de arquivo se câmera não disponível
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, file]
+          }));
+        }
+      };
+      input.click();
+    }
   };
 
   const removeImage = (index: number) => {
