@@ -20,11 +20,13 @@ const Header = () => {
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">SB</span>
-            </div>
+            <img 
+              src="/lovable-uploads/956eb550-8153-4346-818f-2025375f1a50.png" 
+              alt="SB Odontologia Especializada" 
+              className="w-10 h-10 object-contain"
+            />
             <div>
-              <h1 className="text-xl font-semibold text-foreground">SB Prótese</h1>
+              <h1 className="text-xl font-semibold text-foreground">SB Odontologia</h1>
               <p className="text-sm text-muted-foreground">Sistema de Gestão</p>
             </div>
           </div>

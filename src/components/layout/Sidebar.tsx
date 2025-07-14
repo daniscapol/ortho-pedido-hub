@@ -74,12 +74,14 @@ const Sidebar = () => {
           className="flex items-center space-x-2 mb-6 cursor-pointer hover:bg-slate-700 p-2 rounded-lg transition-colors"
           onClick={() => navigate("/")}
         >
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <span className="text-slate-800 font-bold text-sm">SB</span>
-          </div>
+          <img 
+            src="/lovable-uploads/956eb550-8153-4346-818f-2025375f1a50.png" 
+            alt="SB Odontologia Especializada" 
+            className="w-8 h-8 object-contain bg-white rounded-lg p-1"
+          />
           <div>
-            <h1 className="text-sm font-semibold text-white">SB</h1>
-            <p className="text-xs text-slate-300">PRÓTESE</p>
+            <h1 className="text-sm font-semibold text-white">SB Odontologia</h1>
+            <p className="text-xs text-slate-300">ESPECIALIZADA</p>
           </div>
         </div>
 
