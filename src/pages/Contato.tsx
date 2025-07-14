@@ -1,9 +1,15 @@
 import Sidebar from "@/components/layout/Sidebar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Mail, Clock, MapPin, MessageCircle } from "lucide-react";
+import { Phone, Mail, Clock, MapPin, MessageCircle, Search, User, Settings, LogOut } from "lucide-react";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 const Contato = () => {
+  const navigate = useNavigate()
+  
   const handleWhatsAppClick = () => {
     window.open('https://api.whatsapp.com/send?phone=5511976434191&text=Ol%C3%A1,%20gostaria%20de%20maiores%20informa%C3%A7%C3%B5es%20sobre%20a%20SB%20Odontologia', '_blank');
   };
@@ -12,8 +18,55 @@ const Contato = () => {
     <div className="min-h-screen bg-background flex">
       <Sidebar />
       
-      <div className="flex-1">
-        <div className="container max-w-4xl mx-auto p-6 space-y-6">
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="flex items-center gap-4 flex-1 max-w-4xl">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Input
+                    placeholder="Como podemos ajudar?"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <NotificationDropdown />
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Olá, Usuário!</div>
+                      <div className="text-xs text-slate-300">
+                        SB Prótese Odontológica
+                      </div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => console.log('logout')}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
+        
+        <main className="flex-1 p-6">
+          <div className="container max-w-4xl mx-auto space-y-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Contato</h1>
         <p className="text-gray-600 mt-2">Entre em contato conosco através dos canais abaixo</p>
@@ -120,8 +173,9 @@ const Contato = () => {
             <p>Responsável Técnico: Ricardo Barbosa – CROSP 102412</p>
           </div>
         </CardContent>
-      </Card>
-        </div>
+        </Card>
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Plus, Search, Eye } from "lucide-react";
+import { Building2, Plus, Search, Eye, User, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,9 @@ import { Label } from "@/components/ui/label";
 import { useFiliais, useCreateFilial, useUpdateFilial, type Filial } from "@/hooks/useFiliais";
 import { useForm } from "react-hook-form";
 import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 interface FilialForm {
   nome: string;
@@ -19,8 +21,9 @@ interface FilialForm {
 }
 
 const Filiais = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isNewFilialOpen, setIsNewFilialOpen] = useState(false);
+  const navigate = useNavigate()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isNewFilialOpen, setIsNewFilialOpen] = useState(false)
   
   const { data: filiais, isLoading } = useFiliais();
   const createFilial = useCreateFilial();
@@ -62,7 +65,11 @@ const Filiais = () => {
       <div className="min-h-screen bg-background flex">
         <Sidebar />
         <div className="flex-1 flex flex-col">
-          <Header />
+          <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+            <div className="flex-1 flex items-center justify-center px-6">
+              <div className="text-white">Carregando...</div>
+            </div>
+          </header>
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">Carregando...</div>
           </div>
@@ -76,7 +83,53 @@ const Filiais = () => {
       <Sidebar />
       
       <div className="flex-1 flex flex-col">
-        <Header />
+        {/* Header */}
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="flex items-center gap-4 flex-1 max-w-4xl">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Input
+                    placeholder="Pesquise uma filial pelo nome"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <NotificationDropdown />
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Olá, Usuário!</div>
+                      <div className="text-xs text-slate-300">
+                        SB Prótese Odontológica - Admin
+                      </div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => console.log('logout')}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
         
         <main className="flex-1 p-6">
           <Card>

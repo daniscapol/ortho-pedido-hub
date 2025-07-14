@@ -9,16 +9,19 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Plus, Search, Edit, User, FileText, Clock, CheckCircle, UserCheck } from "lucide-react"
+import { Plus, Search, Edit, User, FileText, Clock, CheckCircle, UserCheck, Settings, LogOut } from "lucide-react"
 import { usePatients, useCreatePatient, useUpdatePatient, useDentistsForPatients, Patient } from "@/hooks/usePatients"
 import { useOrders, usePatientOrders } from "@/hooks/useOrders"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
-import Header from "@/components/layout/Header"
 import Sidebar from "@/components/layout/Sidebar"
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useProfile } from "@/hooks/useProfile"
+import { useAuth } from "@/components/auth/AuthProvider"
+import { useNavigate } from "react-router-dom"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 const patientSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -31,6 +34,8 @@ const patientSchema = z.object({
 type PatientFormData = z.infer<typeof patientSchema>
 
 const Patients = () => {
+  const navigate = useNavigate()
+  const { signOut } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [isNewPatientOpen, setIsNewPatientOpen] = useState(false)
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null)
@@ -43,6 +48,10 @@ const Patients = () => {
   const createPatient = useCreatePatient()
   const updatePatient = useUpdatePatient()
   const { toast } = useToast()
+
+  const handleLogout = async () => {
+    await signOut()
+  }
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
@@ -117,7 +126,54 @@ const Patients = () => {
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Header />
+        {/* Header */}
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="flex items-center gap-4 flex-1 max-w-4xl">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Input
+                    placeholder="Pesquise um paciente pelo nome ou CPF"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <NotificationDropdown />
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
+                        SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
+                      </div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
+        
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">

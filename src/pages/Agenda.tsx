@@ -6,15 +6,20 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { CalendarIcon, ChevronLeft, ChevronRight, Search } from "lucide-react"
+import { CalendarIcon, ChevronLeft, ChevronRight, Search, User, Settings, LogOut } from "lucide-react"
 import { useOrders, Order } from "@/hooks/useOrders"
 import { useProfile } from "@/hooks/useProfile"
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import Header from "@/components/layout/Header"
 import Sidebar from "@/components/layout/Sidebar"
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/components/auth/AuthProvider"
+import { useNavigate } from "react-router-dom"
 
 const Agenda = () => {
+  const navigate = useNavigate()
+  const { signOut } = useAuth()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [searchTerm, setSearchTerm] = useState("")
@@ -23,6 +28,10 @@ const Agenda = () => {
 
   const { data: orders, isLoading } = useOrders()
   const { data: profile } = useProfile()
+
+  const handleLogout = async () => {
+    await signOut()
+  }
 
   // Tipos de próteses únicos dos pedidos
   const prosthesisTypes = useMemo(() => {
@@ -99,7 +108,12 @@ const Agenda = () => {
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <div className="flex-1 flex flex-col">
-          <Header />
+          {/* Header */}
+          <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+            <div className="flex-1 flex items-center justify-center px-6">
+              <div className="text-white">Carregando agenda...</div>
+            </div>
+          </header>
           <main className="flex-1 flex items-center justify-center">
             <div className="text-muted-foreground">Carregando agenda...</div>
           </main>
@@ -112,7 +126,54 @@ const Agenda = () => {
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Header />
+        {/* Header */}
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="flex items-center gap-4 flex-1 max-w-4xl">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Input
+                    placeholder="Pesquise um dentista ou paciente"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <NotificationDropdown />
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
+                        SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
+                      </div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
+        
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
