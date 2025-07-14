@@ -479,6 +479,7 @@ export type Database = {
       }
       support_chat_messages: {
         Row: {
+          conversation_id: string | null
           created_at: string
           id: string
           message: string
@@ -488,6 +489,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          conversation_id?: string | null
           created_at?: string
           id?: string
           message: string
@@ -497,6 +499,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          conversation_id?: string | null
           created_at?: string
           id?: string
           message?: string
@@ -504,6 +507,47 @@ export type Database = {
           read_by_dentist?: boolean | null
           sender_type?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_conversation"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_conversations: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          dentist_name: string
+          id: string
+          last_message_at: string
+          status: string
+          unread_by_admin: number | null
+          unread_by_dentist: number | null
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          dentist_name: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          unread_by_admin?: number | null
+          unread_by_dentist?: number | null
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          dentist_name?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          unread_by_admin?: number | null
+          unread_by_dentist?: number | null
         }
         Relationships: []
       }
@@ -568,6 +612,10 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_or_create_conversation: {
+        Args: { p_dentist_id: string; p_dentist_name: string }
+        Returns: string
       }
       get_user_role: {
         Args: { user_id: string }
