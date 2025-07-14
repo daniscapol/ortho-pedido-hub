@@ -13,6 +13,7 @@ import NewOrderAdvanced from "./pages/NewOrderAdvanced";
 import OrderDetails from "./pages/OrderDetails";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import SupportAdmin from "./pages/SupportAdmin";
 import Dentistas from "./pages/Dentistas";
 import DentistDetails from "./pages/DentistDetails";
 import Patients from "./pages/Patients";
@@ -47,13 +48,14 @@ const App = () => {
                     <Route path="/novo-pedido-avancado" element={<NewOrderAdvanced />} />
                     <Route path="/pedido/:id" element={<OrderDetails />} />
                     <Route path="/perfil" element={<Profile />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/dentistas" element={<Dentistas />} />
-                    <Route path="/dentistas/:id" element={<DentistDetails />} />
-                    <Route path="/pacientes" element={<Patients />} />
-                    <Route path="/agenda" element={<Agenda />} />
-                    <Route path="/filiais" element={<Filiais />} />
-                    <Route path="/contato" element={<Contato />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/suporte" element={<SupportAdmin />} />
+            <Route path="/dentistas" element={<Dentistas />} />
+            <Route path="/dentistas/:id" element={<DentistDetails />} />
+            <Route path="/pacientes" element={<Patients />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/filiais" element={<Filiais />} />
+            <Route path="/contato" element={<Contato />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ProtectedRoute>

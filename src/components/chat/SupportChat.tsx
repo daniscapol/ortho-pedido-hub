@@ -12,12 +12,22 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SupportMessage {
   id: string;
+  conversation_id: string;
   user_id: string;
   message: string;
   sender_type: 'dentist' | 'admin';
   created_at: string;
-  read_by_admin: boolean;
-  read_by_dentist: boolean;
+}
+
+interface SupportConversation {
+  id: string;
+  user_id: string;
+  title: string;
+  status: string;
+  created_at: string;
+  last_message_at: string;
+  unread_count_admin: number;
+  unread_count_dentist: number;
 }
 
 interface SupportChatProps {
@@ -27,6 +37,7 @@ interface SupportChatProps {
 
 export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) => {
   const [messages, setMessages] = useState<SupportMessage[]>([]);
+  const [conversation, setConversation] = useState<SupportConversation | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,11 +48,52 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const createOrGetConversation = async () => {
+    if (!profile) return null;
+
+    try {
+      // First, check if user already has a conversation
+      const { data: existingConversation, error: fetchError } = await supabase
+        .from('support_conversations')
+        .select('*')
+        .eq('user_id', profile.id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
+      if (existingConversation) {
+        return existingConversation;
+      }
+
+      // Create new conversation
+      const { data: newConversation, error: createError } = await supabase
+        .from('support_conversations')
+        .insert({
+          user_id: profile.id,
+          title: 'Conversa de Suporte',
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+      return newConversation;
+    } catch (error) {
+      console.error('Error creating/getting conversation:', error);
+      return null;
+    }
+  };
+
   const fetchMessages = async () => {
+    if (!conversation) return;
+
     try {
       const { data, error } = await supabase
         .from('support_chat_messages')
         .select('*')
+        .eq('conversation_id', conversation.id)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -52,25 +104,22 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !profile) return;
+    if (!newMessage.trim() || !profile || !conversation) return;
 
     setIsLoading(true);
     try {
       const { error } = await supabase
         .from('support_chat_messages')
         .insert({
+          conversation_id: conversation.id,
           user_id: profile.id,
           message: newMessage.trim(),
-          sender_type: profile.role
+          sender_type: 'dentist'
         });
 
       if (error) throw error;
 
       setNewMessage('');
-      toast({
-        title: "Mensagem enviada",
-        description: "Sua mensagem foi enviada com sucesso!"
-      });
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -84,44 +133,50 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
   };
 
   const markAsRead = async () => {
-    if (!profile) return;
+    if (!conversation) return;
 
     try {
-      const updateField = profile.role === 'admin' ? 'read_by_admin' : 'read_by_dentist';
-      
-      const { error } = await supabase
-        .from('support_chat_messages')
-        .update({ [updateField]: true })
-        .neq(updateField, true);
-
-      if (error) throw error;
+      await supabase.rpc('mark_conversation_read_by_dentist', {
+        p_conversation_id: conversation.id
+      });
     } catch (error) {
-      console.error('Error marking messages as read:', error);
+      console.error('Error marking conversation as read:', error);
     }
   };
 
   useEffect(() => {
-    if (isOpen) {
+    const initializeChat = async () => {
+      if (isOpen && profile) {
+        const conv = await createOrGetConversation();
+        setConversation(conv);
+      }
+    };
+    initializeChat();
+  }, [isOpen, profile]);
+
+  useEffect(() => {
+    if (conversation) {
       fetchMessages();
       markAsRead();
     }
-  }, [isOpen, profile]);
+  }, [conversation]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!conversation) return;
 
     const channel = supabase
-      .channel('support-chat-changes')
+      .channel(`support-chat-${conversation.id}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'support_chat_messages'
+          table: 'support_chat_messages',
+          filter: `conversation_id=eq.${conversation.id}`
         },
         () => {
           fetchMessages();
@@ -132,7 +187,7 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isOpen]);
+  }, [conversation]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -141,12 +196,7 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
     }
   };
 
-  const unreadCount = messages.filter(msg => {
-    if (profile?.role === 'admin') {
-      return !msg.read_by_admin && msg.sender_type === 'dentist';
-    }
-    return !msg.read_by_dentist && msg.sender_type === 'admin';
-  }).length;
+  const unreadCount = conversation?.unread_count_dentist || 0;
 
   if (!isOpen) {
     return (
