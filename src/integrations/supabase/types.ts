@@ -477,6 +477,36 @@ export type Database = {
         }
         Relationships: []
       }
+      support_chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read_by_admin: boolean | null
+          read_by_dentist: boolean | null
+          sender_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read_by_admin?: boolean | null
+          read_by_dentist?: boolean | null
+          sender_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read_by_admin?: boolean | null
+          read_by_dentist?: boolean | null
+          sender_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string | null
