@@ -80,12 +80,14 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Sidebar />
+    <div className="h-screen bg-background flex overflow-hidden">
+      <div className="sticky top-0 h-screen">
+        <Sidebar />
+      </div>
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
           {/* Main header content - now full width and centered */}
           <div className="flex-1 flex items-center justify-center px-6">
             <div className="flex items-center gap-4 flex-1 max-w-4xl">
@@ -134,8 +136,8 @@ const Dashboard = () => {
         </header>
 
         {/* Main Content */}
-        <div className="flex-1 flex">
-          <main className="flex-1 p-6">
+        <div className="flex-1 flex overflow-hidden">
+          <main className="flex-1 p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
