@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import { supabase } from "@/lib/supabase";
 
@@ -51,41 +52,50 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-6 py-8">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <Skeleton className="h-8 w-48" />
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-24" />
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <Header />
+          
+          <main className="flex-1 p-6">
+            <div className="container mx-auto max-w-2xl space-y-6">
+              <Skeleton className="h-8 w-48" />
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-24" />
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
       
-      <main className="container mx-auto px-6 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="outline" onClick={() => navigate("/")}>
-            ← Voltar
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Meu Perfil</h1>
-            <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
-          </div>
-        </div>
+      <div className="flex-1 flex flex-col">
+        <Header />
+        
+        <main className="flex-1 p-6">
+          <div className="container mx-auto max-w-2xl">
+            <div className="flex items-center gap-4 mb-8">
+              <Button variant="outline" onClick={() => navigate("/")}>
+                ← Voltar
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Meu Perfil</h1>
+                <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
+              </div>
+            </div>
 
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Informações da Conta */}
@@ -187,9 +197,11 @@ const Profile = () => {
                 <p>Para alterar sua senha ou excluir sua conta, entre em contato com o administrador do sistema.</p>
               </div>
             </CardContent>
-          </Card>
+        </Card>
         </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

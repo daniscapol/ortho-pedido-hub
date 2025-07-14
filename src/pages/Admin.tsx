@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -110,30 +111,40 @@ const Admin = () => {
   // Verificar se o usuário é admin
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-6 py-8">
-          <Skeleton className="h-8 w-64" />
-        </main>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <Header />
+          
+          <main className="flex-1 p-6">
+            <Skeleton className="h-8 w-64" />
+          </main>
+        </div>
       </div>
     );
   }
 
   if (profile?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-6 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
-            <p className="text-muted-foreground mb-4">
-              Você não tem permissão para acessar esta página.
-            </p>
-            <Button onClick={() => navigate("/")}>
-              Voltar ao Dashboard
-            </Button>
-          </div>
-        </main>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <Header />
+          
+          <main className="flex-1 p-6">
+            <div className="container mx-auto text-center">
+              <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
+              <p className="text-muted-foreground mb-4">
+                Você não tem permissão para acessar esta página.
+              </p>
+              <Button onClick={() => navigate("/")}>
+                Voltar ao Dashboard
+              </Button>
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
@@ -183,19 +194,23 @@ const Admin = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
       
-      <main className="container mx-auto px-6 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="outline" onClick={() => navigate("/")}>
-            ← Voltar
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Painel Administrativo</h1>
-            <p className="text-muted-foreground">Gerencie usuários e visualize estatísticas do sistema</p>
-          </div>
-        </div>
+      <div className="flex-1 flex flex-col">
+        <Header />
+        
+        <main className="flex-1 p-6">
+          <div className="container mx-auto max-w-6xl">
+            <div className="flex items-center gap-4 mb-8">
+              <Button variant="outline" onClick={() => navigate("/")}>
+                ← Voltar
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Painel Administrativo</h1>
+                <p className="text-muted-foreground">Gerencie usuários e visualize estatísticas do sistema</p>
+              </div>
+            </div>
 
         {/* Navegação por Abas */}
         <div className="flex gap-2 mb-6">
@@ -532,7 +547,9 @@ const Admin = () => {
           </Card>
           </div>
         )}
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

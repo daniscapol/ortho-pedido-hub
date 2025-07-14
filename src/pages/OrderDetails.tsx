@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
@@ -51,61 +52,75 @@ const OrderDetails = () => {
 
   if (ordersLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-6 py-8">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <Skeleton className="h-8 w-64" />
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-6 w-48" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <Header />
+          
+          <main className="flex-1 p-6">
+            <div className="container mx-auto max-w-4xl space-y-6">
+              <Skeleton className="h-8 w-64" />
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-6 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Pedido não encontrado</h1>
-            <Button onClick={() => navigate("/")}>
-              Voltar ao Dashboard
-            </Button>
-          </div>
-        </main>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <Header />
+          
+          <main className="flex-1 p-6">
+            <div className="container mx-auto text-center">
+              <h1 className="text-2xl font-bold mb-4">Pedido não encontrado</h1>
+              <Button onClick={() => navigate("/")}>
+                Voltar ao Dashboard
+              </Button>
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
       
-      <main className="container mx-auto px-6 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="outline" onClick={() => navigate("/")}>
-            ← Voltar
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Pedido #{order.id.slice(-8)}
-            </h1>
-            <p className="text-muted-foreground">
-              Criado em {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-            </p>
-          </div>
-        </div>
+      <div className="flex-1 flex flex-col">
+        <Header />
+        
+        <main className="flex-1 p-6">
+          <div className="container mx-auto max-w-4xl">
+            <div className="flex items-center gap-4 mb-8">
+              <Button variant="outline" onClick={() => navigate("/")}>
+                ← Voltar
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">
+                  Pedido #{order.id.slice(-8)}
+                </h1>
+                <p className="text-muted-foreground">
+                  Criado em {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                </p>
+              </div>
+            </div>
 
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Status e Ações */}
@@ -286,7 +301,9 @@ const OrderDetails = () => {
             </Card>
           )}
         </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
