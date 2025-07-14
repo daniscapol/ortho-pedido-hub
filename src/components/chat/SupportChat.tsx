@@ -276,7 +276,7 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
   const selectedConversationData = conversations.find(c => c.id === selectedConversation);
 
   return (
-    <Card className="fixed bottom-4 right-4 w-96 h-[500px] shadow-xl border-2">
+    <Card className="fixed bottom-4 right-4 w-96 h-[400px] shadow-xl border-2">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           {view === 'chat' && selectedConversationData ? (
