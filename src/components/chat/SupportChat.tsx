@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Send, MessageCircle, X, Users, MessageSquare } from 'lucide-react';
+import { Send, MessageCircle, X, Users, MessageSquare, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/hooks/useProfile';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,6 +31,13 @@ interface Conversation {
   unread_by_dentist: number;
 }
 
+interface TypingIndicator {
+  id: string;
+  user_id: string;
+  user_name: string;
+  is_typing: boolean;
+}
+
 interface SupportChatProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -42,9 +50,17 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [view, setView] = useState<'conversations' | 'chat'>('conversations');
+  const [typingIndicators, setTypingIndicators] = useState<TypingIndicator[]>([]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [elevenLabsApiKey, setElevenLabsApiKey] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { data: profile } = useProfile();
   const { toast } = useToast();
+  const { speak, isPlaying } = useTextToSpeech({ 
+    apiKey: elevenLabsApiKey,
+    voiceId: 'EXAVITQu4vr4xnSDxMaL' // Sarah voice
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -98,8 +114,55 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
     }
   };
 
+  // Typing indicator functions
+  const updateTypingIndicator = useCallback(async (isTyping: boolean) => {
+    if (!selectedConversation || !profile) return;
+
+    try {
+      if (isTyping) {
+        await supabase
+          .from('support_typing_indicators')
+          .upsert({
+            conversation_id: selectedConversation,
+            user_id: profile.id,
+            user_name: profile.name || (profile.role === 'admin' ? 'Admin' : 'Dentista'),
+            is_typing: true,
+            last_activity: new Date().toISOString()
+          });
+      } else {
+        await supabase
+          .from('support_typing_indicators')
+          .delete()
+          .eq('conversation_id', selectedConversation)
+          .eq('user_id', profile.id);
+      }
+    } catch (error) {
+      console.error('Error updating typing indicator:', error);
+    }
+  }, [selectedConversation, profile]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    // Update typing indicator
+    updateTypingIndicator(true);
+    
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      updateTypingIndicator(false);
+    }, 2000);
+  };
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !profile) return;
+
+    // Stop typing indicator
+    updateTypingIndicator(false);
 
     setIsLoading(true);
     try {
@@ -180,6 +243,21 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
     }
   };
 
+  const fetchTypingIndicators = async (conversationId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('support_typing_indicators')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .eq('is_typing', true);
+
+      if (error) throw error;
+      setTypingIndicators(data || []);
+    } catch (error) {
+      console.error('Error fetching typing indicators:', error);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && profile) {
       fetchConversations();
@@ -197,6 +275,17 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Effect for handling text-to-speech for new messages
+  useEffect(() => {
+    if (messages.length > 0 && soundEnabled && elevenLabsApiKey) {
+      const lastMessage = messages[messages.length - 1];
+      // Only speak messages from others
+      if (lastMessage.user_id !== profile?.id) {
+        speak(lastMessage.message);
+      }
+    }
+  }, [messages, soundEnabled, elevenLabsApiKey, profile?.id, speak]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -233,9 +322,27 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
       )
       .subscribe();
 
+    const typingChannel = supabase
+      .channel('typing-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_typing_indicators'
+        },
+        () => {
+          if (selectedConversation) {
+            fetchTypingIndicators(selectedConversation);
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(conversationChannel);
       supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(typingChannel);
     };
   }, [isOpen, selectedConversation]);
 
@@ -298,14 +405,38 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
             </>
           )}
         </CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggle}
-          className="h-6 w-6"
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {/* Sound toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="h-6 w-6"
+            title={soundEnabled ? 'Desativar som' : 'Ativar som'}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
+          
+          {/* ElevenLabs API Key Input */}
+          {!elevenLabsApiKey && (
+            <Input
+              placeholder="ElevenLabs API Key"
+              value={elevenLabsApiKey}
+              onChange={(e) => setElevenLabsApiKey(e.target.value)}
+              className="w-32 h-6 text-xs"
+              type="password"
+            />
+          )}
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggle}
+            className="h-6 w-6"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       
       <CardContent className="p-0 flex flex-col h-[calc(100%-4rem)]">
@@ -411,6 +542,25 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
                     );
                   })
                 )}
+                
+                {/* Typing Indicators */}
+                {typingIndicators
+                  .filter(indicator => indicator.user_id !== profile?.id)
+                  .map((indicator) => (
+                    <div key={indicator.id} className="flex justify-start">
+                      <div className="bg-muted rounded-lg p-3 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span>{indicator.user_name} está digitando</span>
+                          <div className="flex gap-1">
+                            <div className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse"></div>
+                            <div className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse delay-75"></div>
+                            <div className="w-1 h-1 bg-muted-foreground rounded-full animate-pulse delay-150"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
@@ -421,7 +571,7 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
               <div className="flex gap-2">
                 <Input
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
                   placeholder="Digite sua mensagem..."
                   className="flex-1"
