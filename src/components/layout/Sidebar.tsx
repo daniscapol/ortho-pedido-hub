@@ -77,7 +77,7 @@ const Sidebar = () => {
           <img 
             src="/lovable-uploads/956eb550-8153-4346-818f-2025375f1a50.png" 
             alt="SB Odontologia Especializada" 
-            className="w-8 h-8 object-contain bg-white rounded-lg p-1"
+            className="w-8 h-8 object-contain rounded-lg"
           />
           <div>
             <h1 className="text-sm font-semibold text-white">SB Odontologia</h1>

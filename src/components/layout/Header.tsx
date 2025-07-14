@@ -23,7 +23,7 @@ const Header = () => {
             <img 
               src="/lovable-uploads/956eb550-8153-4346-818f-2025375f1a50.png" 
               alt="SB Odontologia Especializada" 
-              className="w-10 h-10 object-contain"
+              className="w-10 h-10 object-contain rounded-lg"
             />
             <div>
               <h1 className="text-xl font-semibold text-foreground">SB Odontologia</h1>
