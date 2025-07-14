@@ -1,3 +1,4 @@
+import Sidebar from "@/components/layout/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Phone, Mail, Clock, MapPin, MessageCircle } from "lucide-react";
@@ -8,7 +9,11 @@ const Contato = () => {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
+      
+      <div className="flex-1">
+        <div className="container max-w-4xl mx-auto p-6 space-y-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Contato</h1>
         <p className="text-gray-600 mt-2">Entre em contato conosco através dos canais abaixo</p>
@@ -116,6 +121,8 @@ const Contato = () => {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 };
