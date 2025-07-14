@@ -1,7 +1,7 @@
 import Sidebar from "@/components/layout/Sidebar";
 import OrderCard from "@/components/dashboard/OrderCard";
 import OrderDetailsModal from "@/components/dashboard/OrderDetailsModal";
-import AgendaSidebar from "@/components/dashboard/AgendaSidebar";
+
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Button } from "@/components/ui/button";
@@ -256,12 +256,6 @@ const Dashboard = () => {
             </div>
           </main>
 
-          {/* Agenda Sidebar */}
-          <div className="w-96 border-l border-border flex flex-col h-full">
-            <div className="p-6 flex-1 overflow-y-auto">
-              <AgendaSidebar />
-            </div>
-          </div>
         </div>
 
         {/* Order Details Modal */}
