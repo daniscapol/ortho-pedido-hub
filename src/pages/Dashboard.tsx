@@ -89,20 +89,7 @@ const Dashboard = () => {
         {/* Header */}
         <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
           {/* Main header content - now full width and centered */}
-          <div className="flex-1 flex items-center justify-center px-6">
-            <div className="flex items-center gap-4 flex-1 max-w-4xl">
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <Input
-                    placeholder="Pesquise um clínica, dentista ou paciente"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
-                  />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 flex items-center justify-end px-6">
             
             <div className="flex items-center gap-4">
               <NotificationDropdown />
@@ -152,6 +139,19 @@ const Dashboard = () => {
                 <Plus className="w-4 h-4" />
                 Novo Caso
               </Button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative max-w-md">
+                <Input
+                  placeholder="Pesquise um clínica, dentista ou paciente"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-background border-border focus:border-ring focus:ring-ring"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              </div>
             </div>
 
 
