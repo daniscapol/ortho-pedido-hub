@@ -404,7 +404,7 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
   const selectedConversationData = conversations.find(c => c.id === selectedConversation);
 
   return (
-    <Card className="fixed bottom-4 right-4 w-96 h-[450px] shadow-xl border-2">
+    <Card className="fixed bottom-4 right-4 w-96 h-[500px] shadow-xl border-2 flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           {view === 'chat' && selectedConversationData ? (
@@ -449,7 +449,7 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
         </div>
       </CardHeader>
       
-      <CardContent className="p-0 flex flex-col h-[calc(100%-4rem)]">
+      <CardContent className="p-0 flex-1 flex flex-col min-h-0">
         {view === 'conversations' ? (
           <div className="flex-1 flex flex-col">
             <div className="p-3 border-b">
@@ -519,8 +519,8 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
             </ScrollArea>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col">
-            <ScrollArea className="flex-1 p-3">
+          <div className="flex-1 flex flex-col min-h-0">
+            <ScrollArea className="flex-1 p-3 min-h-0">
               <div className="space-y-3">
                 {messages.length === 0 ? (
                   <div className="text-center text-muted-foreground text-sm py-8">
@@ -577,7 +577,7 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
 
             <Separator />
             
-            <div className="p-3">
+            <div className="p-3 border-t bg-background">
               <div className="flex gap-2">
                 <Input
                   value={newMessage}
