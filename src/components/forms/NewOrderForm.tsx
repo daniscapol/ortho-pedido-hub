@@ -12,17 +12,16 @@ import PatientSearch from "./PatientSearch";
 import Odontogram from "./Odontogram";
 import { Patient } from "@/hooks/usePatients";
 import { useImageUpload } from "@/hooks/useImageUpload";
+import { useProfile } from "@/hooks/useProfile";
+import { Camera, Upload } from "lucide-react";
 
 const NewOrderForm = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedTeeth, setSelectedTeeth] = useState<string[]>([]);
   const [formData, setFormData] = useState({
-    dentistName: "",
     prosthesisType: "",
     material: "",
     color: "",
-    priority: "",
-    deadline: "",
     observations: "",
     deliveryAddress: "",
     images: [] as File[]
@@ -32,6 +31,7 @@ const NewOrderForm = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { uploadImages, isUploading } = useImageUpload();
+  const { data: profile } = useProfile();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -39,6 +39,23 @@ const NewOrderForm = () => {
       ...prev,
       images: [...prev.images, ...files]
     }));
+  };
+
+  const handleCameraCapture = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment'; // Use rear camera
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, file]
+        }));
+      }
+    };
+    input.click();
   };
 
   const removeImage = (index: number) => {
@@ -73,12 +90,12 @@ const NewOrderForm = () => {
       // Primeiro criar o pedido
       const order = await createOrder.mutateAsync({
         patient_id: selectedPatient.id,
-        dentist: formData.dentistName,
+        dentist: profile?.name || "Dentista",
         prosthesis_type: formData.prosthesisType,
         material: formData.material,
         color: formData.color,
-        priority: formData.priority,
-        deadline: formData.deadline,
+        priority: "normal",
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
         observations: formData.observations,
         delivery_address: formData.deliveryAddress,
         selected_teeth: selectedTeeth,
@@ -143,10 +160,9 @@ const NewOrderForm = () => {
                     <Label htmlFor="dentistName">Dentista Responsável</Label>
                     <Input
                       id="dentistName"
-                      value={formData.dentistName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, dentistName: e.target.value }))}
-                      placeholder="Nome do dentista"
-                      required
+                      value={profile?.name || "Carregando..."}
+                      disabled
+                      className="bg-muted"
                     />
                   </div>
 
@@ -187,31 +203,6 @@ const NewOrderForm = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="priority">Prioridade</Label>
-                    <Select onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a prioridade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="baixa">Baixa</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="alta">Alta</SelectItem>
-                        <SelectItem value="urgente">Urgente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="deadline">Prazo de Entrega</Label>
-                    <Input
-                      id="deadline"
-                      type="date"
-                      value={formData.deadline}
-                      onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
-                      required
-                    />
-                  </div>
 
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="deliveryAddress">Endereço de Entrega (Opcional)</Label>
@@ -237,27 +228,41 @@ const NewOrderForm = () => {
 
           <div className="space-y-4">
             <Label>Imagens e Documentação</Label>
-            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="image-upload"
-              />
-              <label
-                htmlFor="image-upload"
-                className="cursor-pointer flex flex-col items-center space-y-2"
-              >
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <span className="text-primary text-xl">📁</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Clique para adicionar imagens</p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG até 10MB cada</p>
-                </div>
-              </label>
+            <div className="flex gap-4">
+              <div className="flex-1 border-2 border-dashed border-border rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="cursor-pointer flex flex-col items-center space-y-2"
+                >
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Upload className="text-primary w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Carregar Imagens</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG até 10MB cada</p>
+                  </div>
+                </label>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={handleCameraCapture}
+                  className="h-full min-h-[120px] w-32 flex flex-col items-center justify-center gap-2"
+                >
+                  <Camera className="w-8 h-8" />
+                  <span className="text-sm">Câmera</span>
+                </Button>
+              </div>
             </div>
 
             {formData.images.length > 0 && (
