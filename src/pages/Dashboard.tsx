@@ -130,20 +130,20 @@ const Dashboard = () => {
       
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
+        <header className="bg-slate-800 border-b border-slate-700 h-20 flex sticky top-0 z-10">
           {/* Main header content - now full width and centered */}
-          <div className="flex-1 flex items-center justify-end px-6">
+          <div className="flex-1 flex items-center justify-end px-8">
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <NotificationDropdown />
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
-                    <User className="w-5 h-5" />
+                  <Button variant="ghost" className="flex items-center gap-3 text-white hover:bg-slate-700 px-4 py-3 h-auto">
+                    <User className="w-6 h-6" />
                     <div className="text-left">
-                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
-                      <div className="text-xs text-slate-300">
+                      <div className="text-base font-semibold">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-sm text-slate-300">
                         SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
                       </div>
                     </div>
