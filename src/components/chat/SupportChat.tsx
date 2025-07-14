@@ -103,13 +103,19 @@ export const SupportChat: React.FC<SupportChatProps> = ({ isOpen, onToggle }) =>
   };
 
   const fetchMessages = async (conversationId: string) => {
+    if (!profile) return;
+    
     try {
+      console.log('Fetching messages for conversation:', conversationId, 'Profile:', profile);
+      
       const { data, error } = await supabase
         .from('support_chat_messages')
         .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
+      console.log('Messages query result:', { data, error });
+      
       if (error) throw error;
       setMessages(data || []);
     } catch (error) {
