@@ -63,14 +63,16 @@ const Filiais = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
-            <div className="flex-1 flex items-center justify-center px-6">
+        <div className="fixed inset-y-0 left-0 z-50">
+          <Sidebar />
+        </div>
+        <div className="flex-1 flex flex-col ml-64">
+          <header className="fixed top-0 right-0 left-64 z-40 bg-slate-800 border-b border-slate-700 h-20">
+            <div className="flex-1 flex items-center justify-center px-6 h-full">
               <div className="text-white">Carregando...</div>
             </div>
           </header>
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center pt-20">
             <div className="text-center">Carregando...</div>
           </div>
         </div>
@@ -81,23 +83,11 @@ const Filiais = () => {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
-          <div className="flex-1 flex items-center justify-center px-6">
-            <div className="flex items-center gap-4 flex-1 max-w-4xl">
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <Input
-                    placeholder="Pesquise uma filial pelo nome"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
-                  />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                </div>
-              </div>
+      <div className="flex-1 flex flex-col ml-64">
+        <header className="fixed top-0 right-0 left-64 z-40 bg-slate-800 border-b border-slate-700 h-20">
+          <div className="flex-1 flex items-center justify-between px-8 h-full">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl font-semibold text-white">Gerenciamento de Filiais</h1>
             </div>
             
             <div className="flex items-center gap-4">
@@ -131,7 +121,7 @@ const Filiais = () => {
           </div>
         </header>
         
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 pt-24">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
