@@ -734,12 +734,13 @@ const Agenda = () => {
                                   return (
                                     <div
                                       key={day.toISOString()}
-                                      className={cn(
-                                        "min-h-[80px] p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md",
-                                        isCurrentMonth ? "bg-white" : "bg-gray-50",
-                                        isToday(day) && "ring-2 ring-primary",
-                                        !isCurrentMonth && "opacity-50"
-                                      )}
+                                       className={cn(
+                                         "min-h-[80px] p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md",
+                                         isCurrentMonth ? "bg-white" : "bg-gray-50",
+                                         isToday(day) && "ring-2 ring-primary",
+                                         selectedDate && isSameDay(day, selectedDate) && "bg-blue-100 border-blue-300 ring-2 ring-blue-400",
+                                         !isCurrentMonth && "opacity-50"
+                                       )}
                                       onClick={() => setSelectedDate(day)}
                                     >
                                       {/* Número do dia */}
