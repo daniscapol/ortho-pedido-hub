@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import OrderTimeline from "@/components/order/OrderTimeline";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
@@ -132,6 +133,9 @@ const OrderDetails = () => {
               </CardTitle>
             </CardHeader>
           </Card>
+
+          {/* Linha do Tempo */}
+          <OrderTimeline orderId={order.id} />
 
           {/* Dados do Paciente */}
           <Card>
