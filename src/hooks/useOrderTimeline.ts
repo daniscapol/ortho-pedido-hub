@@ -7,6 +7,7 @@ export interface TimelineEvent {
   status: string;
   created_at: string;
   user_id: string;
+  user_name?: string;
 }
 
 export const useOrderTimeline = (orderId: string) => {
@@ -41,6 +42,24 @@ export const useOrderTimeline = (orderId: string) => {
             status: log.new_values?.status,
             created_at: log.created_at,
             user_id: log.user_id
+          });
+        }
+      }
+
+      // Get user names for all events
+      const userIds = [...new Set(events.map(e => e.user_id).filter(Boolean))];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", userIds);
+
+        if (profiles) {
+          events.forEach(event => {
+            const profile = profiles.find(p => p.id === event.user_id);
+            if (profile) {
+              event.user_name = profile.name;
+            }
           });
         }
       }

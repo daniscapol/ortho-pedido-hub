@@ -110,7 +110,7 @@ const OrderTimeline = ({ orderId }: OrderTimelineProps) => {
                     <Icon className="h-4 w-4" />
                   </div>
 
-                  {/* Conteúdo do evento */}
+                   {/* Conteúdo do evento */}
                   <div className="flex-1 min-w-0 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">
@@ -121,9 +121,16 @@ const OrderTimeline = ({ orderId }: OrderTimelineProps) => {
                       </Badge>
                     </div>
                     
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(event.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </p>
+                    <div className="flex flex-col gap-1">
+                      {event.user_name && (
+                        <p className="text-xs text-muted-foreground">
+                          Por: {event.user_name}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(event.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
                   </div>
                 </div>
               );
