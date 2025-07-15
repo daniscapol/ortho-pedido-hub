@@ -22,11 +22,18 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
   });
 
   const { data: patients, isLoading } = usePatients(searchTerm);
+  const { data: allPatients, isLoading: isLoadingAll } = usePatients('');
   const { data: dentists } = useDentistsForPatients();
   const { data: profile } = useProfile();
   const createPatient = useCreatePatient();
 
   const filteredPatients = patients || [];
+  
+  // Filtrar pacientes do dentista atual
+  const currentDentistPatients = (allPatients || []).filter(patient => {
+    if (profile?.role === 'admin') return true;
+    return patient.dentist_id === profile?.id;
+  });
 
   const handleCreatePatient = async () => {
     try {
@@ -151,60 +158,127 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
           </Button>
         </div>
         
+        {/* Lista de pacientes filtrados por busca */}
         {searchTerm && (
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="p-3 border border-border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-40" />
-                        <Skeleton className="h-3 w-32" />
-                        <Skeleton className="h-3 w-28" />
-                      </div>
-                      <div className="text-right space-y-1">
-                        <Skeleton className="h-5 w-16" />
-                        <Skeleton className="h-3 w-20" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <>
-                {filteredPatients.map((patient) => (
-                  <div
-                    key={patient.id}
-                    className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => onPatientSelect(patient)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium text-foreground">{patient.name}</h4>
-                        <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
-                        <p className="text-sm text-muted-foreground">Tel: {patient.phone}</p>
-                        <p className="text-sm text-muted-foreground">Email: {patient.email}</p>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="outline">
-                          Cadastrado
-                        </Badge>
+          <div>
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Resultados da busca:</h4>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {isLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="p-3 border border-border rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-40" />
+                          <Skeleton className="h-3 w-32" />
+                          <Skeleton className="h-3 w-28" />
+                        </div>
+                        <div className="text-right space-y-1">
+                          <Skeleton className="h-5 w-16" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                {filteredPatients.length === 0 && !isLoading && (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <p>Nenhum paciente encontrado</p>
-                    <Button variant="link" onClick={() => setShowNewForm(true)}>
-                      Criar novo paciente
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {filteredPatients.map((patient) => (
+                    <div
+                      key={patient.id}
+                      className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => onPatientSelect(patient)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-foreground">{patient.name}</h4>
+                          <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
+                          <p className="text-sm text-muted-foreground">Tel: {patient.phone}</p>
+                          <p className="text-sm text-muted-foreground">Email: {patient.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline">
+                            Cadastrado
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {filteredPatients.length === 0 && !isLoading && (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <p>Nenhum paciente encontrado</p>
+                      <Button variant="link" onClick={() => setShowNewForm(true)}>
+                        Criar novo paciente
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Lista de todos os pacientes do dentista */}
+        {!searchTerm && (
+          <div>
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">
+              {profile?.role === 'admin' ? 'Todos os pacientes:' : 'Seus pacientes:'}
+            </h4>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {isLoadingAll ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="p-3 border border-border rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-40" />
+                          <Skeleton className="h-3 w-32" />
+                          <Skeleton className="h-3 w-28" />
+                        </div>
+                        <div className="text-right space-y-1">
+                          <Skeleton className="h-5 w-16" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {currentDentistPatients.map((patient) => (
+                    <div
+                      key={patient.id}
+                      className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => onPatientSelect(patient)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-foreground">{patient.name}</h4>
+                          <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
+                          <p className="text-sm text-muted-foreground">Tel: {patient.phone}</p>
+                          <p className="text-sm text-muted-foreground">Email: {patient.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline">
+                            Cadastrado
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {currentDentistPatients.length === 0 && !isLoadingAll && (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <p>Nenhum paciente cadastrado ainda</p>
+                      <Button variant="link" onClick={() => setShowNewForm(true)}>
+                        Criar primeiro paciente
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
       </CardContent>
