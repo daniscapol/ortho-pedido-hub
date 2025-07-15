@@ -737,8 +737,9 @@ const Agenda = () => {
                                        className={cn(
                                          "min-h-[80px] p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md",
                                          isCurrentMonth ? "bg-white" : "bg-gray-50",
-                                         isToday(day) && "ring-2 ring-primary",
-                                         selectedDate && isSameDay(day, selectedDate) && "bg-blue-100 border-blue-300 ring-2 ring-blue-400",
+                                         selectedDate && isSameDay(day, selectedDate) 
+                                           ? "bg-blue-100 border-blue-300 ring-2 ring-blue-400" 
+                                           : isToday(day) && "ring-2 ring-primary",
                                          !isCurrentMonth && "opacity-50"
                                        )}
                                       onClick={() => setSelectedDate(day)}
