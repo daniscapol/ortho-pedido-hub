@@ -124,28 +124,26 @@ const Dashboard = () => {
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
-      <div className="fixed inset-y-0 left-0 z-50 h-screen">
+      <div className="sticky top-0 h-screen">
         <Sidebar />
       </div>
       
-      <div className="flex-1 flex flex-col min-h-screen ml-64">
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-20 flex fixed top-0 right-0 left-64 z-40">
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
           {/* Main header content - now full width and centered */}
-          <div className="flex-1 flex items-center justify-between px-8">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-white">Gerenciamento de Pedidos</h1>
-            </div>
+          <div className="flex-1 flex items-center justify-end px-6">
+            
             <div className="flex items-center gap-4">
               <NotificationDropdown />
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700 px-4 py-3 h-auto">
-                    <User className="w-6 h-6" />
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
                     <div className="text-left">
-                      <div className="text-base font-semibold">Olá, {profile?.name || 'Usuário'}!</div>
-                      <div className="text-sm text-slate-300">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
                         SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
                       </div>
                     </div>
@@ -168,7 +166,7 @@ const Dashboard = () => {
         </header>
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden pt-20">
+        <div className="flex-1 flex overflow-hidden">
           <main className="flex-1 p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
@@ -194,6 +192,19 @@ const Dashboard = () => {
                   <Plus className="w-4 h-4" />
                   Novo Caso
                 </Button>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative max-w-md">
+                <Input
+                  placeholder="Pesquise um clínica, dentista ou paciente"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-background border-border focus:border-ring focus:ring-ring"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               </div>
             </div>
 

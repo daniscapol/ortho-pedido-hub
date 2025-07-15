@@ -132,8 +132,8 @@ const Admin = () => {
         
         <div className="flex-1 flex flex-col">
           <Header />
-        
-        <main className="flex-1 p-6 pt-20">
+          
+          <main className="flex-1 p-6">
             <div className="container mx-auto text-center">
               <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
               <p className="text-muted-foreground mb-4">
@@ -194,15 +194,13 @@ const Admin = () => {
   });
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <div className="fixed inset-y-0 left-0 z-50">
-        <Sidebar />
-      </div>
-      <div className="flex-1 flex flex-col ml-64">
-        <div className="fixed top-0 right-0 left-64 z-40">
-          <Header />
-        </div>
-        <main className="flex-1 p-6 pt-24">
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col">
+        <Header />
+        
+        <main className="flex-1 p-6">
           <div className="container mx-auto max-w-6xl">
             <div className="flex items-center gap-4 mb-8">
               <Button variant="outline" onClick={() => navigate("/")}>

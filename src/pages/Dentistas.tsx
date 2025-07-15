@@ -90,7 +90,7 @@ const Dentistas = () => {
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="fixed top-0 right-0 left-64 z-40 bg-slate-800 border-b border-slate-700 h-20">
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
           <div className="flex-1 flex items-center justify-center px-6">
             <div className="flex items-center gap-4 flex-1 max-w-4xl">
               <div className="flex-1 max-w-md">
@@ -106,18 +106,18 @@ const Dentistas = () => {
               </div>
             </div>
             
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700">
                 <Bell className="w-5 h-5" />
               </Button>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700 px-4 py-3 h-auto">
-                    <User className="w-6 h-6" />
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
                     <div className="text-left">
-                      <div className="text-base font-semibold">Olá, {profile?.name || 'Usuário'}!</div>
-                      <div className="text-sm text-slate-300">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
                         SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
                       </div>
                     </div>

@@ -124,27 +124,35 @@ const Patients = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <div className="fixed inset-y-0 left-0 z-50">
-        <Sidebar />
-      </div>
-      <div className="flex-1 flex flex-col ml-64">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="fixed top-0 right-0 left-64 z-40 bg-slate-800 border-b border-slate-700 h-20">
-          <div className="flex-1 flex items-center justify-between px-8 h-full">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-white">Gerenciamento de Pacientes</h1>
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="flex items-center gap-4 flex-1 max-w-4xl">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Input
+                    placeholder="Pesquise um paciente pelo nome ou CPF"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                </div>
+              </div>
             </div>
             
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               <NotificationDropdown />
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700 px-4 py-3 h-auto">
-                    <User className="w-6 h-6" />
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
                     <div className="text-left">
-                      <div className="text-base font-semibold">Olá, {profile?.name || 'Usuário'}!</div>
-                      <div className="text-sm text-slate-300">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
                         SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
                       </div>
                     </div>
@@ -166,7 +174,7 @@ const Patients = () => {
           </div>
         </header>
         
-        <main className="flex-1 p-6 pt-24">
+        <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <div>
