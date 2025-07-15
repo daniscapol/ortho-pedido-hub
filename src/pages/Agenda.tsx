@@ -209,13 +209,17 @@ const Agenda = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="fixed top-0 left-0 h-full z-40">
+        <Sidebar />
+      </div>
+      
+      <div className="flex-1 flex flex-col ml-48">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
-          <div className="flex-1 flex items-center justify-center px-6">
-            <div className="flex items-center gap-4 flex-1 max-w-4xl">
-              <div className="flex-1 max-w-md">
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-30">          
+          <div className="flex-1 flex items-center justify-between px-6">
+            <div></div> {/* Espaço para balancear com a sidebar */}
+            <div className="flex items-center gap-4">
+              <div className="max-w-md">
                 <div className="relative">
                   <Input
                     placeholder="Pesquise um dentista ou paciente"
@@ -226,9 +230,7 @@ const Agenda = () => {
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 </div>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
+              
               <NotificationDropdown />
               
               <DropdownMenu>
@@ -559,6 +561,62 @@ const Agenda = () => {
                   </TabsContent>
 
                   <TabsContent value="month" className="space-y-4">
+                    {/* Detalhes do dia selecionado */}
+                    {selectedDate && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <CalendarIcon className="w-5 h-5" />
+                            Pedidos para {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {(() => {
+                            const selectedDayOrders = getOrdersForDay(selectedDate)
+                            if (selectedDayOrders.length === 0) {
+                              return (
+                                <div className="text-center py-8 text-gray-500">
+                                  Nenhum pedido para este dia
+                                </div>
+                              )
+                            }
+                            
+                            return (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {selectedDayOrders.map((order) => (
+                                  <Card 
+                                    key={order.id}
+                                    className={cn(
+                                      "p-4 cursor-pointer hover:shadow-md transition-shadow",
+                                      getTypeColor(order.prosthesis_type)
+                                    )}
+                                     onClick={() => handleOrderClick(order)}
+                                  >
+                                    <div className="space-y-2">
+                                      <div className="font-medium">{order.prosthesis_type}</div>
+                                      <div className="text-sm text-gray-600">
+                                        <div>Dr(a). {order.dentist}</div>
+                                        {order.patients && <div>{order.patients.name}</div>}
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <Badge className={getStatusColor(order.status)}>
+                                          {statusOptions.find(s => s.value === order.status)?.label}
+                                        </Badge>
+                                        <Badge className={getPriorityColor(order.priority)}>
+                                          {order.priority}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            )
+                          })()}
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    {/* Calendário Mensal */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between">
                         <div className="flex items-center space-x-4">
@@ -694,61 +752,6 @@ const Agenda = () => {
                         </div>
                       </CardContent>
                     </Card>
-
-                    {/* Detalhes do dia selecionado */}
-                    {selectedDate && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <CalendarIcon className="w-5 h-5" />
-                            Pedidos para {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {(() => {
-                            const selectedDayOrders = getOrdersForDay(selectedDate)
-                            if (selectedDayOrders.length === 0) {
-                              return (
-                                <div className="text-center py-8 text-gray-500">
-                                  Nenhum pedido para este dia
-                                </div>
-                              )
-                            }
-                            
-                            return (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {selectedDayOrders.map((order) => (
-                                  <Card 
-                                    key={order.id}
-                                    className={cn(
-                                      "p-4 cursor-pointer hover:shadow-md transition-shadow",
-                                      getTypeColor(order.prosthesis_type)
-                                    )}
-                                     onClick={() => handleOrderClick(order)}
-                                  >
-                                    <div className="space-y-2">
-                                      <div className="font-medium">{order.prosthesis_type}</div>
-                                      <div className="text-sm text-gray-600">
-                                        <div>Dr(a). {order.dentist}</div>
-                                        {order.patients && <div>{order.patients.name}</div>}
-                                      </div>
-                                      <div className="flex gap-2">
-                                        <Badge className={getStatusColor(order.status)}>
-                                          {statusOptions.find(s => s.value === order.status)?.label}
-                                        </Badge>
-                                        <Badge className={getPriorityColor(order.priority)}>
-                                          {order.priority}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  </Card>
-                                ))}
-                              </div>
-                            )
-                          })()}
-                        </CardContent>
-                      </Card>
-                    )}
                   </TabsContent>
 
                   <TabsContent value="list" className="space-y-4">
