@@ -54,12 +54,16 @@ const OrderDetails = () => {
   if (ordersLoading || profileLoading) {
     return (
       <div className="min-h-screen bg-background flex">
-        <Sidebar />
+        <div className="fixed top-0 left-0 h-full z-40">
+          <Sidebar />
+        </div>
         
-        <div className="flex-1 flex flex-col">
-          <Header />
+        <div className="flex-1 flex flex-col ml-64">
+          <div className="fixed top-0 right-0 left-64 z-30 bg-background border-b">
+            <Header />
+          </div>
           
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 pt-20">
             <div className="container mx-auto max-w-4xl space-y-6">
               <Skeleton className="h-8 w-64" />
               <Card>
@@ -82,12 +86,16 @@ const OrderDetails = () => {
   if (!order) {
     return (
       <div className="min-h-screen bg-background flex">
-        <Sidebar />
+        <div className="fixed top-0 left-0 h-full z-40">
+          <Sidebar />
+        </div>
         
-        <div className="flex-1 flex flex-col">
-          <Header />
+        <div className="flex-1 flex flex-col ml-64">
+          <div className="fixed top-0 right-0 left-64 z-30 bg-background border-b">
+            <Header />
+          </div>
           
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 pt-20">
             <div className="container mx-auto text-center">
               <h1 className="text-2xl font-bold mb-4">Pedido não encontrado</h1>
               <Button onClick={() => navigate("/")}>
@@ -102,12 +110,16 @@ const OrderDetails = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <Sidebar />
+      <div className="fixed top-0 left-0 h-full z-40">
+        <Sidebar />
+      </div>
       
-      <div className="flex-1 flex flex-col">
-        <Header />
+      <div className="flex-1 flex flex-col ml-64">
+        <div className="fixed top-0 right-0 left-64 z-30 bg-background border-b">
+          <Header />
+        </div>
         
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 pt-20">
           <div className="container mx-auto max-w-4xl">
             <div className="flex items-center gap-4 mb-8">
               <Button variant="outline" onClick={() => navigate("/")}>
