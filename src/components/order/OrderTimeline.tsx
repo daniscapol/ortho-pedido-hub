@@ -104,7 +104,7 @@ const OrderTimeline = ({ orderId }: OrderTimelineProps) => {
                 <div key={event.id} className="relative flex items-start space-x-4">
                   {/* Ícone do status */}
                   <div className={`
-                    relative z-10 flex items-center justify-center w-10 h-10 rounded-full border-2 border-background
+                    relative flex items-center justify-center w-10 h-10 rounded-full border-2 border-background
                     ${isFirst ? 'bg-primary text-primary-foreground' : 'bg-muted'}
                   `}>
                     <Icon className="h-4 w-4" />
