@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CalendarIcon, ChevronLeft, ChevronRight, Search, User, Settings, LogOut, Clock, Filter, BarChart3, Eye, MapPin, Phone, Calendar as CalendarLucide } from "lucide-react"
+import { addDays } from "date-fns"
 import { useOrders, Order } from "@/hooks/useOrders"
 import { useProfile } from "@/hooks/useProfile"
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO, isToday, isPast, isFuture } from "date-fns"
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO, isToday, isPast, isFuture, startOfMonth, endOfMonth, eachWeekOfInterval, addMonths, subMonths, isSameMonth } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import Sidebar from "@/components/layout/Sidebar"
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown"
@@ -88,6 +89,11 @@ const Agenda = () => {
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
 
   // Obter pedidos para cada dia da semana
+  // Obter dias do mês atual
+  const monthStart = startOfMonth(currentDate)
+  const monthEnd = endOfMonth(currentDate)
+  const monthWeeks = eachWeekOfInterval({ start: monthStart, end: monthEnd }, { weekStartsOn: 0 })
+  
   const getOrdersForDay = (day: Date) => {
     return filteredOrders.filter(order => {
       const orderDate = parseISO(order.deadline)
@@ -154,6 +160,20 @@ const Agenda = () => {
     setCurrentDate(prev => 
       direction === 'prev' ? subWeeks(prev, 1) : addWeeks(prev, 1)
     )
+  }
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => 
+      direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1)
+    )
+  }
+
+  const getDayDensity = (count: number) => {
+    if (count === 0) return ''
+    if (count <= 2) return 'bg-blue-100 text-blue-800'
+    if (count <= 4) return 'bg-blue-200 text-blue-900'
+    if (count <= 6) return 'bg-blue-300 text-blue-900'
+    return 'bg-blue-500 text-white'
   }
 
   if (isLoading) {
@@ -524,6 +544,199 @@ const Agenda = () => {
                         </div>
                       </CardContent>
                     </Card>
+                  </TabsContent>
+
+                  <TabsContent value="month" className="space-y-4">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigateMonth('prev')}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </Button>
+                          <h2 className="text-xl font-semibold">
+                            {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+                          </h2>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigateMonth('next')}
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Clique em um dia para ver os detalhes
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {/* Cabeçalho dos dias da semana */}
+                        <div className="grid grid-cols-7 gap-2 mb-4">
+                          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dayName) => (
+                            <div key={dayName} className="text-center text-sm font-medium text-gray-500 py-2">
+                              {dayName}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Grid do calendário mensal */}
+                        <div className="space-y-2">
+                          {monthWeeks.map((weekStart) => {
+                            const weekDays = eachDayOfInterval({
+                              start: weekStart,
+                              end: addDays(weekStart, 6)
+                            })
+                            
+                            return (
+                              <div key={weekStart.toISOString()} className="grid grid-cols-7 gap-2">
+                                {weekDays.map((day) => {
+                                  const dayOrders = getOrdersForDay(day)
+                                  const isCurrentMonth = isSameMonth(day, currentDate)
+                                  const dayCount = dayOrders.length
+                                  
+                                  return (
+                                    <div
+                                      key={day.toISOString()}
+                                      className={cn(
+                                        "min-h-[80px] p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md",
+                                        isCurrentMonth ? "bg-white" : "bg-gray-50",
+                                        isToday(day) && "ring-2 ring-primary",
+                                        !isCurrentMonth && "opacity-50"
+                                      )}
+                                      onClick={() => setSelectedDate(day)}
+                                    >
+                                      {/* Número do dia */}
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className={cn(
+                                          "text-sm font-medium",
+                                          isToday(day) ? "text-primary font-bold" : "text-gray-900",
+                                          !isCurrentMonth && "text-gray-400"
+                                        )}>
+                                          {format(day, "d")}
+                                        </span>
+                                        
+                                        {/* Indicador de densidade */}
+                                        {dayCount > 0 && (
+                                          <div className={cn(
+                                            "text-xs px-2 py-1 rounded-full font-medium",
+                                            getDayDensity(dayCount)
+                                          )}>
+                                            {dayCount}
+                                          </div>
+                                        )}
+                                      </div>
+                                      
+                                      {/* Preview dos pedidos (máximo 2) */}
+                                      <div className="space-y-1">
+                                        {dayOrders.slice(0, 2).map((order) => (
+                                          <div
+                                            key={order.id}
+                                            className="text-xs p-1 rounded bg-gray-100 truncate"
+                                            title={`${order.prosthesis_type} - ${order.dentist}`}
+                                          >
+                                            <div className="font-medium truncate">
+                                              {order.prosthesis_type}
+                                            </div>
+                                            <div className="text-gray-600 truncate">
+                                              {order.dentist}
+                                            </div>
+                                          </div>
+                                        ))}
+                                        
+                                        {/* Indicador de mais pedidos */}
+                                        {dayCount > 2 && (
+                                          <div className="text-xs text-center text-gray-500 font-medium">
+                                            +{dayCount - 2} mais
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )
+                          })}
+                        </div>
+
+                        {/* Legenda */}
+                        <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-600">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-blue-100 rounded"></div>
+                            <span>1-2 pedidos</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-blue-200 rounded"></div>
+                            <span>3-4 pedidos</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-blue-300 rounded"></div>
+                            <span>5-6 pedidos</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                            <span>7+ pedidos</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Detalhes do dia selecionado */}
+                    {selectedDate && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <CalendarIcon className="w-5 h-5" />
+                            Pedidos para {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {(() => {
+                            const selectedDayOrders = getOrdersForDay(selectedDate)
+                            if (selectedDayOrders.length === 0) {
+                              return (
+                                <div className="text-center py-8 text-gray-500">
+                                  Nenhum pedido para este dia
+                                </div>
+                              )
+                            }
+                            
+                            return (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {selectedDayOrders.map((order) => (
+                                  <Card 
+                                    key={order.id}
+                                    className={cn(
+                                      "p-4 cursor-pointer hover:shadow-md transition-shadow",
+                                      getTypeColor(order.prosthesis_type)
+                                    )}
+                                    onClick={() => setSelectedOrder(order)}
+                                  >
+                                    <div className="space-y-2">
+                                      <div className="font-medium">{order.prosthesis_type}</div>
+                                      <div className="text-sm text-gray-600">
+                                        <div>Dr(a). {order.dentist}</div>
+                                        {order.patients && <div>{order.patients.name}</div>}
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <Badge className={getStatusColor(order.status)}>
+                                          {statusOptions.find(s => s.value === order.status)?.label}
+                                        </Badge>
+                                        <Badge className={getPriorityColor(order.priority)}>
+                                          {order.priority}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            )
+                          })()}
+                        </CardContent>
+                      </Card>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="list" className="space-y-4">
