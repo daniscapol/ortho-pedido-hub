@@ -69,7 +69,7 @@ const OrderDetails = () => {
           <Sidebar />
         </div>
         
-        <div className="flex-1 flex flex-col ml-64">
+        <div className="flex-1 flex flex-col ml-48">
           {/* Header */}
           <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
             <div className="flex-1 flex items-center justify-between px-6">
@@ -132,7 +132,7 @@ const OrderDetails = () => {
           <Sidebar />
         </div>
         
-        <div className="flex-1 flex flex-col ml-64">
+        <div className="flex-1 flex flex-col ml-48">
           {/* Header */}
           <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
             <div className="flex-1 flex items-center justify-between px-6">
@@ -187,7 +187,7 @@ const OrderDetails = () => {
         <Sidebar />
       </div>
       
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col ml-48">
         {/* Header */}
         <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
           <div className="flex-1 flex items-center justify-between px-6">
