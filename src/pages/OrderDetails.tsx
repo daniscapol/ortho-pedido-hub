@@ -39,7 +39,7 @@ const OrderDetails = () => {
     };
 
     return (
-      <Badge className={colors[status as keyof typeof colors] || colors.pending}>
+      <Badge className={`text-lg px-4 py-2 ${colors[status as keyof typeof colors] || colors.pending}`}>
         {labels[status as keyof typeof labels] || status}
       </Badge>
     );
