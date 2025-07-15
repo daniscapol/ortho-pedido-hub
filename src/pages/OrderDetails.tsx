@@ -2,14 +2,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { User, LogOut, Settings } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
 import OrderTimeline from "@/components/order/OrderTimeline";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/lib/supabase";
@@ -19,7 +22,15 @@ const OrderDetails = () => {
   const navigate = useNavigate();
   const { data: orders, isLoading: ordersLoading } = useOrders();
   const { data: profile, isLoading: profileLoading } = useProfile();
+  const { signOut } = useAuth();
   const updateOrderStatus = useUpdateOrderStatus();
+
+  // Enable real-time notifications
+  useRealtimeNotifications();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   const order = orders?.find(o => o.id === id);
   const isAdmin = profile?.role === 'admin';
@@ -59,7 +70,39 @@ const OrderDetails = () => {
         </div>
         
         <div className="flex-1 flex flex-col ml-64">
-          <Header />
+          {/* Header */}
+          <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
+            <div className="flex-1 flex items-center justify-end px-6">
+              <div className="flex items-center gap-4">
+                <NotificationDropdown />
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                      <User className="w-5 h-5" />
+                      <div className="text-left">
+                        <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                        <div className="text-xs text-slate-300">
+                          SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
+                        </div>
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Meu Perfil
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </header>
           
           <main className="flex-1 p-6">
             <div className="container mx-auto max-w-4xl space-y-6">
@@ -89,7 +132,39 @@ const OrderDetails = () => {
         </div>
         
         <div className="flex-1 flex flex-col ml-64">
-          <Header />
+          {/* Header */}
+          <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
+            <div className="flex-1 flex items-center justify-end px-6">
+              <div className="flex items-center gap-4">
+                <NotificationDropdown />
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                      <User className="w-5 h-5" />
+                      <div className="text-left">
+                        <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                        <div className="text-xs text-slate-300">
+                          SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
+                        </div>
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Meu Perfil
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </header>
           
           <main className="flex-1 p-6">
             <div className="container mx-auto text-center">
@@ -111,7 +186,39 @@ const OrderDetails = () => {
       </div>
       
       <div className="flex-1 flex flex-col ml-64">
-        <Header />
+        {/* Header */}
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">
+          <div className="flex-1 flex items-center justify-end px-6">
+            <div className="flex items-center gap-4">
+              <NotificationDropdown />
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
+                        SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
+                      </div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
         
         <main className="flex-1 p-6">
           <div className="container mx-auto max-w-4xl">
