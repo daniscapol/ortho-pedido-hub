@@ -746,11 +746,15 @@ const Agenda = () => {
                                     >
                                       {/* Número do dia */}
                                       <div className="flex items-center justify-between mb-1">
-                                        <span className={cn(
-                                          "text-sm font-medium",
-                                          isToday(day) ? "text-primary font-bold" : "text-gray-900",
-                                          !isCurrentMonth && "text-gray-400"
-                                        )}>
+                                         <span className={cn(
+                                           "text-sm font-medium",
+                                           selectedDate && isSameDay(day, selectedDate) 
+                                             ? "text-blue-600 font-bold" 
+                                             : isToday(day) 
+                                               ? "text-primary font-bold" 
+                                               : "text-gray-900",
+                                           !isCurrentMonth && "text-gray-400"
+                                         )}>
                                           {format(day, "d")}
                                         </span>
                                         
