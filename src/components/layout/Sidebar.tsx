@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutGrid, Users, Building2, Calendar, Phone } from "lucide-react";
+import { LayoutGrid, Users, Building2, Calendar, Phone, Shield } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 // Ícone customizado de dente
 const ToothIcon = ({ className, ...props }: { className?: string }) => (
@@ -26,6 +27,7 @@ const ToothIcon = ({ className, ...props }: { className?: string }) => (
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: profile } = useProfile();
 
   const menuItems = [
     {
@@ -105,6 +107,24 @@ const Sidebar = () => {
             );
           })}
         </nav>
+
+        {/* Seção Admin - apenas para administradores */}
+        {profile?.role === 'admin' && (
+          <div className="mt-6 pt-4 border-t border-slate-600">
+            <Button
+              variant={location.pathname === "/admin" ? "secondary" : "ghost"}
+              className={`w-full justify-start h-10 text-sm ${
+                location.pathname === "/admin"
+                  ? "bg-orange-600 text-white font-medium hover:bg-orange-700" 
+                  : "text-orange-300 hover:bg-orange-600/20 hover:text-orange-200"
+              }`}
+              onClick={() => navigate("/admin")}
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Admin
+            </Button>
+          </div>
+        )}
 
       </div>
     </aside>

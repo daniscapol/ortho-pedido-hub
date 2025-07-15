@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
-import { User, Settings, LogOut, Shield } from "lucide-react";
+import { User, Settings, LogOut } from "lucide-react";
 
 const Header = () => {
   const { signOut } = useAuth();
@@ -32,16 +32,6 @@ const Header = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            {profile?.role === 'admin' && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate("/admin")}
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Admin
-              </Button>
-            )}
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
