@@ -467,7 +467,7 @@ const Agenda = () => {
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
-                        className="w-full"
+                        className="w-full [&_.rdp-day_today]:bg-transparent [&_.rdp-day_today]:text-foreground [&_.rdp-day_today]:font-normal"
                         locale={ptBR}
                       />
                     </CardContent>
