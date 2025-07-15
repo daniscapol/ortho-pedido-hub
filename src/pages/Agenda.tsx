@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import OrderDetailsModal from "@/components/dashboard/OrderDetailsModal"
+import OrdersListModal from "@/components/agenda/OrdersListModal"
 
 const Agenda = () => {
   const navigate = useNavigate()
@@ -31,6 +32,9 @@ const Agenda = () => {
   const [selectedStatus, setSelectedStatus] = useState<string[]>([])
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isListModalOpen, setIsListModalOpen] = useState(false)
+  const [listModalOrders, setListModalOrders] = useState<Order[]>([])
+  const [listModalTitle, setListModalTitle] = useState("")
 
   const { data: orders, isLoading } = useOrders()
   const { data: profile } = useProfile()
@@ -47,6 +51,51 @@ const Agenda = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setSelectedOrder(null)
+  }
+
+  const handleStatsCardClick = (filterType: string) => {
+    let filteredOrdersForCard: Order[] = []
+    let title = ""
+
+    switch (filterType) {
+      case 'total':
+        filteredOrdersForCard = filteredOrders
+        title = "Todos os Pedidos"
+        break
+      case 'pending':
+        filteredOrdersForCard = filteredOrders.filter(o => o.status === 'pending')
+        title = "Pedidos Pendentes"
+        break
+      case 'production':
+        filteredOrdersForCard = filteredOrders.filter(o => o.status === 'producao')
+        title = "Pedidos em Produção"
+        break
+      case 'ready':
+        filteredOrdersForCard = filteredOrders.filter(o => o.status === 'pronto')
+        title = "Pedidos Prontos"
+        break
+      case 'delivered':
+        filteredOrdersForCard = filteredOrders.filter(o => o.status === 'entregue')
+        title = "Pedidos Entregues"
+        break
+    }
+
+    setListModalOrders(filteredOrdersForCard)
+    setListModalTitle(title)
+    setIsListModalOpen(true)
+  }
+
+  const handleCloseListModal = () => {
+    setIsListModalOpen(false)
+    setListModalOrders([])
+    setListModalTitle("")
+  }
+
+  const handleOrderClickFromList = (order: Order) => {
+    // Fecha o modal de lista e abre o modal de detalhes
+    setIsListModalOpen(false)
+    setSelectedOrder(order)
+    setIsModalOpen(true)
   }
 
   // Tipos de próteses únicos dos pedidos
@@ -297,7 +346,10 @@ const Agenda = () => {
 
               {/* Cards de estatísticas */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                <Card 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleStatsCardClick('total')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -309,7 +361,10 @@ const Agenda = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
+                <Card 
+                  className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleStatsCardClick('pending')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -321,7 +376,10 @@ const Agenda = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+                <Card 
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleStatsCardClick('production')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -333,7 +391,10 @@ const Agenda = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                <Card 
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleStatsCardClick('ready')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -345,7 +406,10 @@ const Agenda = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-gradient-to-r from-gray-500 to-gray-600 text-white">
+                <Card 
+                  className="bg-gradient-to-r from-gray-500 to-gray-600 text-white cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleStatsCardClick('delivered')}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -806,6 +870,15 @@ const Agenda = () => {
           order={selectedOrder}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
+        />
+        
+        {/* Modal de lista de pedidos */}
+        <OrdersListModal 
+          orders={listModalOrders}
+          title={listModalTitle}
+          isOpen={isListModalOpen}
+          onClose={handleCloseListModal}
+          onOrderClick={handleOrderClickFromList}
         />
       </div>
     </div>
