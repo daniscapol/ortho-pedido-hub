@@ -18,6 +18,7 @@ import { useAuth } from "@/components/auth/AuthProvider"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import OrderDetailsModal from "@/components/dashboard/OrderDetailsModal"
 
 const Agenda = () => {
   const navigate = useNavigate()
@@ -29,12 +30,23 @@ const Agenda = () => {
   const [viewMode, setViewMode] = useState("week")
   const [selectedStatus, setSelectedStatus] = useState<string[]>([])
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const { data: orders, isLoading } = useOrders()
   const { data: profile } = useProfile()
 
   const handleLogout = async () => {
     await signOut()
+  }
+
+  const handleOrderClick = (order: Order) => {
+    setSelectedOrder(order)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedOrder(null)
   }
 
   // Tipos de próteses únicos dos pedidos
@@ -513,7 +525,7 @@ const Agenda = () => {
                                       "p-3 cursor-pointer hover:shadow-md transition-shadow",
                                       getTypeColor(order.prosthesis_type)
                                     )}
-                                    onClick={() => setSelectedOrder(order)}
+                                    onClick={() => handleOrderClick(order)}
                                   >
                                     <div className="space-y-2">
                                       <div className="font-medium text-sm truncate">
@@ -712,7 +724,7 @@ const Agenda = () => {
                                       "p-4 cursor-pointer hover:shadow-md transition-shadow",
                                       getTypeColor(order.prosthesis_type)
                                     )}
-                                    onClick={() => setSelectedOrder(order)}
+                                     onClick={() => handleOrderClick(order)}
                                   >
                                     <div className="space-y-2">
                                       <div className="font-medium">{order.prosthesis_type}</div>
@@ -753,7 +765,7 @@ const Agenda = () => {
                                 "p-4 cursor-pointer hover:shadow-md transition-shadow",
                                 getTypeColor(order.prosthesis_type)
                               )}
-                              onClick={() => setSelectedOrder(order)}
+                              onClick={() => handleOrderClick(order)}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="space-y-1">
@@ -785,6 +797,13 @@ const Agenda = () => {
             </Tabs>
           </div>
         </main>
+        
+        {/* Modal de detalhes do pedido */}
+        <OrderDetailsModal 
+          order={selectedOrder}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </div>
     </div>
   )
