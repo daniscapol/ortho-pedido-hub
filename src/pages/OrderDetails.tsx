@@ -131,28 +131,6 @@ const OrderDetails = () => {
                 {getStatusBadge(order.status)}
               </CardTitle>
             </CardHeader>
-            {isAdmin && (
-              <CardContent>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Alterar Status:</label>
-                  <Select
-                    value={order.status}
-                    onValueChange={handleStatusChange}
-                    disabled={updateOrderStatus.isPending}
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="producao">Em Produção</SelectItem>
-                      <SelectItem value="pronto">Pronto</SelectItem>
-                      <SelectItem value="entregue">Entregue</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            )}
           </Card>
 
           {/* Dados do Paciente */}
