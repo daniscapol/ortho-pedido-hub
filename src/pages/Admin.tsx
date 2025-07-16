@@ -114,6 +114,7 @@ const Admin = () => {
   // Mutation para criar novo usuário
   const createUser = useMutation({
     mutationFn: async ({ name, email, password }: { name: string; email: string; password: string }) => {
+      // Criar usuário no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -124,13 +125,32 @@ const Admin = () => {
       });
 
       if (error) throw error;
+
+      // Enviar email de boas-vindas personalizado
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
+          body: {
+            name,
+            email,
+            temporaryPassword: password
+          }
+        });
+
+        if (emailError) {
+          console.error('Erro ao enviar email de boas-vindas:', emailError);
+          // Não falha a criação do usuário se o email falhar
+        }
+      } catch (emailError) {
+        console.error('Erro ao enviar email de boas-vindas:', emailError);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
         title: "Usuário criado",
-        description: "Novo dentista criado com sucesso!",
+        description: "Novo dentista criado com sucesso! Email de boas-vindas enviado.",
       });
       setShowCreateUser(false);
       setNewUserData({ name: '', email: '', password: '' });
