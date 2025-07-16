@@ -20,6 +20,7 @@ interface OrderItemFormProps {
 
 const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontogram = true }: OrderItemFormProps) => {
   const formRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
   const [currentItem, setCurrentItem] = useState<Omit<CreateOrderItem, 'order_id'>>({
     product_name: "",
     prosthesis_type: "",
@@ -45,6 +46,15 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
     } else {
       // Está adicionando um novo item
       onAddItem(currentItem);
+      
+      // Scroll para o topo para visualizar o produto adicionado
+      setTimeout(() => {
+        topRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        });
+      }, 100);
     }
 
     // Resetar formulário
@@ -112,7 +122,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={topRef}>
       {/* Lista de itens adicionados */}
       {items.length > 0 && (
         <Card>
@@ -189,16 +199,18 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
         </Card>
       )}
 
-      {/* Botão para adicionar novo item (só mostra se não está editando) */}
+      {/* Botão para adicionar novo produto (só mostra se não está editando) */}
       {!showItemForm && editingIndex === null && (
-        <Button 
-          onClick={() => setShowItemForm(true)} 
-          variant="outline" 
-          className="w-full"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Adicionar Produto/Prótese
-        </Button>
+        <div className="text-center">
+          <Button 
+            onClick={() => setShowItemForm(true)} 
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Adicionar Produto/Prótese
+          </Button>
+        </div>
       )}
 
       {/* Formulário de novo item */}
