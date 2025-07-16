@@ -46,7 +46,7 @@ const Admin = () => {
   const updateOrderStatus = useUpdateOrderStatus();
 
   // Buscar todos os usuários
-  const { data: users, isLoading: usersLoading } = useQuery({
+  const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -180,7 +180,9 @@ const Admin = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Invalidar queries e fazer refetch manual
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      refetchUsers();
       toast({
         title: "Usuário deletado",
         description: "Usuário removido com sucesso do sistema.",
