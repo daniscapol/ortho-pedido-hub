@@ -12,13 +12,10 @@ const OdontogramSVG = ({
   const [selectedTeeth, setSelectedTeeth] = useState<string[]>(externalSelectedTeeth || []);
   const [hoveredTooth, setHoveredTooth] = useState<string | null>(null);
 
-  // Numeração padrão dos dentes (sistema FDI)
-  const upperRightTeeth = ["18", "17", "16", "15", "14", "13", "12", "11"];
-  const upperLeftTeeth = ["21", "22", "23", "24", "25", "26", "27", "28"];
-  const lowerRightTeeth = ["48", "47", "46", "45", "44", "43", "42", "41"];
-  const lowerLeftTeeth = ["31", "32", "33", "34", "35", "36", "37", "38"];
+  // Numeração FDI dos dentes
+  const upperTeeth = ["18", "17", "16", "15", "14", "13", "12", "11", "21", "22", "23", "24", "25", "26", "27", "28"];
+  const lowerTeeth = ["48", "47", "46", "45", "44", "43", "42", "41", "31", "32", "33", "34", "35", "36", "37", "38"];
 
-  // Atualizar seleção quando prop externa mudar
   useEffect(() => {
     if (externalSelectedTeeth) {
       setSelectedTeeth(externalSelectedTeeth);
@@ -38,91 +35,83 @@ const OdontogramSVG = ({
     return selectedTeeth.includes(toothNumber);
   };
 
-  const ToothShape = ({ 
-    toothNumber, 
+  // Componente do dente individual
+  const Tooth = ({ 
+    number, 
     x, 
     y, 
-    rotation = 0, 
-    isSelected, 
-    isHovered,
-    onClick 
-  }: {
-    toothNumber: string;
-    x: number;
-    y: number;
-    rotation?: number;
-    isSelected: boolean;
-    isHovered: boolean;
-    onClick: () => void;
+    type = "molar" 
+  }: { 
+    number: string; 
+    x: number; 
+    y: number; 
+    type?: "incisor" | "canine" | "premolar" | "molar";
   }) => {
-    // Diferentes formas para diferentes tipos de dentes
-    const getToothShape = (num: string) => {
-      const lastDigit = parseInt(num.slice(-1));
-      
-      // Incisivos (1, 2)
-      if (lastDigit === 1 || lastDigit === 2) {
-        return (
-          <path d="M -8,-12 L 8,-12 L 6,12 L -6,12 Z" />
-        );
-      }
-      // Caninos (3)
-      if (lastDigit === 3) {
-        return (
-          <path d="M -6,-15 L 6,-15 L 8,12 L -8,12 Z" />
-        );
-      }
-      // Pré-molares (4, 5)
-      if (lastDigit === 4 || lastDigit === 5) {
-        return (
-          <rect x="-8" y="-10" width="16" height="20" rx="2" />
-        );
-      }
-      // Molares (6, 7, 8)
-      return (
-        <rect x="-10" y="-12" width="20" height="24" rx="3" />
-      );
-    };
-
-    const fillColor = isSelected 
-      ? "rgba(34, 197, 94, 0.8)" 
-      : isHovered 
-        ? "rgba(59, 130, 246, 0.3)"
-        : "hsl(var(--background))";
+    const isSelected = isToothSelected(number);
+    const isHovered = hoveredTooth === number;
     
-    const strokeColor = isSelected 
-      ? "rgba(34, 197, 94, 1)" 
-      : "hsl(var(--border))";
-
+    // Definir dimensões baseadas no tipo do dente
+    const dimensions = {
+      incisor: { width: 16, height: 20, rx: 3 },
+      canine: { width: 18, height: 24, rx: 4 },
+      premolar: { width: 20, height: 22, rx: 4 },
+      molar: { width: 24, height: 26, rx: 5 }
+    };
+    
+    const { width, height, rx } = dimensions[type];
+    
     return (
-      <g 
-        transform={`translate(${x}, ${y}) rotate(${rotation})`}
-        className="cursor-pointer transition-all duration-200 hover:scale-110"
-        onClick={onClick}
-        onMouseEnter={() => setHoveredTooth(toothNumber)}
+      <g
+        className="cursor-pointer transition-all duration-200 hover:scale-105"
+        onClick={() => toggleTooth(number)}
+        onMouseEnter={() => setHoveredTooth(number)}
         onMouseLeave={() => setHoveredTooth(null)}
       >
-        {/* Dente */}
-        <g 
-          fill={fillColor}
-          stroke={strokeColor}
+        {/* Sombra do dente */}
+        <rect
+          x={x - width/2 + 1}
+          y={y - height/2 + 1}
+          width={width}
+          height={height}
+          rx={rx}
+          fill="rgba(0,0,0,0.1)"
+        />
+        
+        {/* Corpo do dente */}
+        <rect
+          x={x - width/2}
+          y={y - height/2}
+          width={width}
+          height={height}
+          rx={rx}
+          fill={isSelected ? "hsl(var(--primary))" : isHovered ? "hsl(var(--primary)/50)" : "hsl(var(--card))"}
+          stroke={isSelected ? "hsl(var(--primary))" : "hsl(var(--border))"}
           strokeWidth={isSelected ? "3" : "2"}
-          filter={isSelected ? "drop-shadow(0 0 8px rgba(34, 197, 94, 0.6))" : "none"}
-        >
-          {getToothShape(toothNumber)}
-        </g>
+          className={`transition-all duration-200 ${isSelected ? "drop-shadow-lg" : ""}`}
+        />
         
         {/* Número do dente */}
-        <text 
-          x="0" 
-          y="4" 
-          textAnchor="middle" 
+        <text
+          x={x}
+          y={y + 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
           className="text-xs font-bold pointer-events-none select-none"
-          fill="hsl(var(--foreground))"
+          fill={isSelected ? "white" : "hsl(var(--foreground))"}
         >
-          {toothNumber}
+          {number}
         </text>
       </g>
     );
+  };
+
+  // Função para determinar o tipo do dente baseado no número
+  const getToothType = (number: string): "incisor" | "canine" | "premolar" | "molar" => {
+    const lastDigit = parseInt(number.slice(-1));
+    if (lastDigit <= 2) return "incisor";
+    if (lastDigit === 3) return "canine";
+    if (lastDigit <= 5) return "premolar";
+    return "molar";
   };
 
   return (
@@ -138,54 +127,44 @@ const OdontogramSVG = ({
               width="600" 
               height="400" 
               viewBox="0 0 600 400"
-              className="max-w-full h-auto"
+              className="max-w-full h-auto border rounded-lg bg-card"
             >
-              <style>{`
-                .tooth-element {
-                  transition: all 0.3s ease;
-                }
-              `}</style>
-              
               {/* Arcada Superior */}
               <g>
                 {/* Lado direito superior (18-11) */}
-                {upperRightTeeth.map((tooth, index) => {
-                  const angle = (index * 20) - 70; // Ângulo para formar o arco
-                  const radius = 120;
+                {upperTeeth.slice(0, 8).map((tooth, index) => {
+                  const angle = (index * 22.5) - 78.75; // Ângulo para formar o arco
+                  const radius = 100;
                   const x = 300 + radius * Math.cos((angle * Math.PI) / 180);
-                  const y = 120 + radius * Math.sin((angle * Math.PI) / 180);
+                  const y = 130 + radius * Math.sin((angle * Math.PI) / 180);
+                  const type = getToothType(tooth);
                   
                   return (
-                    <ToothShape
+                    <Tooth
                       key={tooth}
-                      toothNumber={tooth}
+                      number={tooth}
                       x={x}
                       y={y}
-                      rotation={angle + 90}
-                      isSelected={isToothSelected(tooth)}
-                      isHovered={hoveredTooth === tooth}
-                      onClick={() => toggleTooth(tooth)}
+                      type={type}
                     />
                   );
                 })}
                 
                 {/* Lado esquerdo superior (21-28) */}
-                {upperLeftTeeth.map((tooth, index) => {
-                  const angle = (index * 20) + 110; // Ângulo para formar o arco
-                  const radius = 120;
+                {upperTeeth.slice(8, 16).map((tooth, index) => {
+                  const angle = (index * 22.5) + 101.25; // Ângulo para formar o arco
+                  const radius = 100;
                   const x = 300 + radius * Math.cos((angle * Math.PI) / 180);
-                  const y = 120 + radius * Math.sin((angle * Math.PI) / 180);
+                  const y = 130 + radius * Math.sin((angle * Math.PI) / 180);
+                  const type = getToothType(tooth);
                   
                   return (
-                    <ToothShape
+                    <Tooth
                       key={tooth}
-                      toothNumber={tooth}
+                      number={tooth}
                       x={x}
                       y={y}
-                      rotation={angle + 90}
-                      isSelected={isToothSelected(tooth)}
-                      isHovered={hoveredTooth === tooth}
-                      onClick={() => toggleTooth(tooth)}
+                      type={type}
                     />
                   );
                 })}
@@ -194,49 +173,45 @@ const OdontogramSVG = ({
               {/* Arcada Inferior */}
               <g>
                 {/* Lado direito inferior (48-41) */}
-                {lowerRightTeeth.map((tooth, index) => {
-                  const angle = (-index * 20) + 70; // Ângulo para formar o arco
-                  const radius = 120;
+                {lowerTeeth.slice(0, 8).map((tooth, index) => {
+                  const angle = (-index * 22.5) + 78.75; // Ângulo para formar o arco
+                  const radius = 100;
                   const x = 300 + radius * Math.cos((angle * Math.PI) / 180);
-                  const y = 280 + radius * Math.sin((angle * Math.PI) / 180);
+                  const y = 270 + radius * Math.sin((angle * Math.PI) / 180);
+                  const type = getToothType(tooth);
                   
                   return (
-                    <ToothShape
+                    <Tooth
                       key={tooth}
-                      toothNumber={tooth}
+                      number={tooth}
                       x={x}
                       y={y}
-                      rotation={angle - 90}
-                      isSelected={isToothSelected(tooth)}
-                      isHovered={hoveredTooth === tooth}
-                      onClick={() => toggleTooth(tooth)}
+                      type={type}
                     />
                   );
                 })}
                 
                 {/* Lado esquerdo inferior (31-38) */}
-                {lowerLeftTeeth.map((tooth, index) => {
-                  const angle = (-index * 20) - 110; // Ângulo para formar o arco
-                  const radius = 120;
+                {lowerTeeth.slice(8, 16).map((tooth, index) => {
+                  const angle = (-index * 22.5) - 101.25; // Ângulo para formar o arco
+                  const radius = 100;
                   const x = 300 + radius * Math.cos((angle * Math.PI) / 180);
-                  const y = 280 + radius * Math.sin((angle * Math.PI) / 180);
+                  const y = 270 + radius * Math.sin((angle * Math.PI) / 180);
+                  const type = getToothType(tooth);
                   
                   return (
-                    <ToothShape
+                    <Tooth
                       key={tooth}
-                      toothNumber={tooth}
+                      number={tooth}
                       x={x}
                       y={y}
-                      rotation={angle - 90}
-                      isSelected={isToothSelected(tooth)}
-                      isHovered={hoveredTooth === tooth}
-                      onClick={() => toggleTooth(tooth)}
+                      type={type}
                     />
                   );
                 })}
               </g>
 
-              {/* Tooltip para dente em hover */}
+              {/* Tooltip */}
               {hoveredTooth && (
                 <g>
                   <rect
