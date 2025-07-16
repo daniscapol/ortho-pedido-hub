@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import toothIcon from "@/assets/tooth-icon.png";
+import toothColorful from "@/assets/tooth-colorful.png";
+import toothOutline from "@/assets/tooth-outline.png";
 
 const OdontogramSVG = ({ 
   onToothSelect, 
@@ -35,88 +38,76 @@ const OdontogramSVG = ({
     return selectedTeeth.includes(toothNumber);
   };
 
-  // Componente do dente individual com formas realistas
+  // Componente do dente individual usando ícones reais
   const Tooth = ({ 
     number, 
     x, 
     y, 
-    type = "molar",
     rotation = 0 
   }: { 
     number: string; 
     x: number; 
     y: number; 
-    type?: "incisor" | "canine" | "premolar" | "molar";
     rotation?: number;
   }) => {
     const isSelected = isToothSelected(number);
     const isHovered = hoveredTooth === number;
     
-    // Formas anatômicas realistas para cada tipo de dente
-    const getToothPath = (type: string) => {
-      switch (type) {
-        case "incisor":
-          return "M -6,-15 C -8,-16 -8,-14 -6,-12 L -6,8 C -6,12 -4,15 0,15 C 4,15 6,12 6,8 L 6,-12 C 8,-14 8,-16 6,-15 C 4,-14 2,-14 0,-14 C -2,-14 -4,-14 -6,-15 Z";
-        case "canine":
-          return "M -7,-18 C -9,-19 -9,-17 -7,-15 L -7,10 C -7,14 -5,17 0,17 C 5,17 7,14 7,10 L 7,-15 C 9,-17 9,-19 7,-18 C 5,-17 2,-17 0,-16 C -2,-17 -5,-17 -7,-18 Z";
-        case "premolar":
-          return "M -8,-12 C -10,-13 -10,-11 -8,-9 L -8,8 C -8,12 -6,15 0,15 C 6,15 8,12 8,8 L 8,-9 C 10,-11 10,-13 8,-12 C 6,-11 3,-11 0,-11 C -3,-11 -6,-11 -8,-12 Z M -3,-8 C -1,-9 1,-9 3,-8 C 2,-6 1,-6 0,-6 C -1,-6 -2,-6 -3,-8 Z";
-        case "molar":
-          return "M -10,-12 C -12,-13 -12,-11 -10,-9 L -10,10 C -10,14 -8,17 0,17 C 8,17 10,14 10,10 L 10,-9 C 12,-11 12,-13 10,-12 C 8,-11 5,-11 0,-11 C -5,-11 -8,-11 -10,-12 Z M -4,-8 C -2,-9 0,-9 2,-8 C 1,-6 0,-6 -1,-6 C -2,-6 -3,-6 -4,-8 Z M 2,-8 C 4,-9 6,-9 8,-8 C 7,-6 6,-6 5,-6 C 4,-6 3,-6 2,-8 Z";
-        default:
-          return "M -8,-12 C -10,-13 -10,-11 -8,-9 L -8,8 C -8,12 -6,15 0,15 C 6,15 8,12 8,8 L 8,-9 C 10,-11 10,-13 8,-12 C 6,-11 3,-11 0,-11 C -3,-11 -6,-11 -8,-12 Z";
-      }
+    // Escolher o ícone baseado no estado
+    const getToothIcon = () => {
+      if (isSelected) return toothColorful;
+      if (isHovered) return toothIcon;
+      return toothOutline;
     };
-    
-    const fillColor = isSelected 
-      ? "hsl(var(--primary))" 
-      : isHovered 
-        ? "hsl(var(--primary)/50)" 
-        : "#f8f8f8";
-    
-    const strokeColor = isSelected 
-      ? "hsl(var(--primary))" 
-      : "#d4d4d4";
     
     return (
       <g
         transform={`translate(${x}, ${y}) rotate(${rotation})`}
-        className="cursor-pointer transition-all duration-200 hover:scale-105"
+        className="cursor-pointer transition-all duration-200 hover:scale-110"
         onClick={() => toggleTooth(number)}
         onMouseEnter={() => setHoveredTooth(number)}
         onMouseLeave={() => setHoveredTooth(null)}
       >
         {/* Sombra do dente */}
-        <path
-          d={getToothPath(type)}
+        <circle
+          cx="1"
+          cy="1"
+          r="18"
           fill="rgba(0,0,0,0.1)"
-          transform="translate(1, 1)"
         />
         
-        {/* Corpo do dente */}
-        <path
-          d={getToothPath(type)}
-          fill={fillColor}
-          stroke={strokeColor}
-          strokeWidth={isSelected ? "2.5" : "1.5"}
+        {/* Fundo circular para destacar o dente */}
+        <circle
+          cx="0"
+          cy="0"
+          r="18"
+          fill={isSelected ? "hsl(var(--primary))" : isHovered ? "hsl(var(--primary)/20)" : "transparent"}
+          stroke={isSelected ? "hsl(var(--primary))" : isHovered ? "hsl(var(--primary)/50)" : "transparent"}
+          strokeWidth="2"
+          className="transition-all duration-200"
+        />
+        
+        {/* Ícone do dente */}
+        <image
+          href={getToothIcon()}
+          x="-12"
+          y="-12"
+          width="24"
+          height="24"
           className={`transition-all duration-200 ${isSelected ? "drop-shadow-lg" : ""}`}
-        />
-        
-        {/* Raiz do dente (linha sutil) */}
-        <line
-          x1="0"
-          y1="15"
-          x2="0"
-          y2="20"
-          stroke={strokeColor}
-          strokeWidth="1"
-          opacity="0.5"
+          style={{
+            filter: isSelected 
+              ? "drop-shadow(0 0 8px hsl(var(--primary)))" 
+              : isHovered 
+                ? "drop-shadow(0 0 4px hsl(var(--primary)/50))" 
+                : "none"
+          }}
         />
         
         {/* Número do dente */}
         <text
           x="0"
-          y="30"
+          y="32"
           textAnchor="middle"
           dominantBaseline="middle"
           className="text-xs font-bold pointer-events-none select-none"
@@ -126,15 +117,6 @@ const OdontogramSVG = ({
         </text>
       </g>
     );
-  };
-
-  // Função para determinar o tipo do dente baseado no número
-  const getToothType = (number: string): "incisor" | "canine" | "premolar" | "molar" => {
-    const lastDigit = parseInt(number.slice(-1));
-    if (lastDigit <= 2) return "incisor";
-    if (lastDigit === 3) return "canine";
-    if (lastDigit <= 5) return "premolar";
-    return "molar";
   };
 
   return (
@@ -150,13 +132,13 @@ const OdontogramSVG = ({
               width="650" 
               height="500" 
               viewBox="0 0 650 500"
-              className="max-w-full h-auto border rounded-lg bg-gradient-to-b from-red-50 to-red-100"
+              className="max-w-full h-auto border rounded-lg bg-gradient-to-b from-blue-50 to-blue-100"
             >
               {/* Fundo da boca */}
               <defs>
                 <radialGradient id="mouthGradient" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#dc2626" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#dc2626" stopOpacity="0.6" />
+                  <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#0284c7" stopOpacity="0.1" />
                 </radialGradient>
               </defs>
               
@@ -164,24 +146,26 @@ const OdontogramSVG = ({
               <ellipse
                 cx="325"
                 cy="180"
-                rx="180"
-                ry="120"
+                rx="200"
+                ry="130"
                 fill="url(#mouthGradient)"
-                stroke="#b91c1c"
+                stroke="#0284c7"
                 strokeWidth="2"
-                opacity="0.4"
+                strokeDasharray="5,5"
+                opacity="0.3"
               />
               
               {/* Mandíbula (Arcada Inferior) */}
               <ellipse
                 cx="325"
                 cy="320"
-                rx="180"
-                ry="120"
+                rx="200"
+                ry="130"
                 fill="url(#mouthGradient)"
-                stroke="#b91c1c"
+                stroke="#0284c7"
                 strokeWidth="2"
-                opacity="0.4"
+                strokeDasharray="5,5"
+                opacity="0.3"
               />
 
               {/* Labels das arcadas */}
@@ -193,10 +177,10 @@ const OdontogramSVG = ({
               </text>
               
               {/* Labels dos lados */}
-              <text x="100" y="250" className="text-sm font-medium" fill="hsl(var(--muted-foreground))">
+              <text x="80" y="250" className="text-sm font-medium" fill="hsl(var(--muted-foreground))">
                 Lado Direito
               </text>
-              <text x="500" y="250" className="text-sm font-medium" fill="hsl(var(--muted-foreground))">
+              <text x="520" y="250" className="text-sm font-medium" fill="hsl(var(--muted-foreground))">
                 Lado Esquerdo
               </text>
 
@@ -205,10 +189,9 @@ const OdontogramSVG = ({
                 {/* Lado direito superior (18-11) */}
                 {upperTeeth.slice(0, 8).map((tooth, index) => {
                   const angle = (index * 22.5) - 78.75; // Ângulo para formar o arco
-                  const radius = 120;
+                  const radius = 130;
                   const x = 325 + radius * Math.cos((angle * Math.PI) / 180);
                   const y = 180 + radius * Math.sin((angle * Math.PI) / 180);
-                  const type = getToothType(tooth);
                   
                   return (
                     <Tooth
@@ -216,7 +199,6 @@ const OdontogramSVG = ({
                       number={tooth}
                       x={x}
                       y={y}
-                      type={type}
                       rotation={angle + 90}
                     />
                   );
@@ -225,10 +207,9 @@ const OdontogramSVG = ({
                 {/* Lado esquerdo superior (21-28) */}
                 {upperTeeth.slice(8, 16).map((tooth, index) => {
                   const angle = (index * 22.5) + 101.25; // Ângulo para formar o arco
-                  const radius = 120;
+                  const radius = 130;
                   const x = 325 + radius * Math.cos((angle * Math.PI) / 180);
                   const y = 180 + radius * Math.sin((angle * Math.PI) / 180);
-                  const type = getToothType(tooth);
                   
                   return (
                     <Tooth
@@ -236,7 +217,6 @@ const OdontogramSVG = ({
                       number={tooth}
                       x={x}
                       y={y}
-                      type={type}
                       rotation={angle + 90}
                     />
                   );
@@ -248,10 +228,9 @@ const OdontogramSVG = ({
                 {/* Lado direito inferior (48-41) */}
                 {lowerTeeth.slice(0, 8).map((tooth, index) => {
                   const angle = (-index * 22.5) + 78.75; // Ângulo para formar o arco
-                  const radius = 120;
+                  const radius = 130;
                   const x = 325 + radius * Math.cos((angle * Math.PI) / 180);
                   const y = 320 + radius * Math.sin((angle * Math.PI) / 180);
-                  const type = getToothType(tooth);
                   
                   return (
                     <Tooth
@@ -259,7 +238,6 @@ const OdontogramSVG = ({
                       number={tooth}
                       x={x}
                       y={y}
-                      type={type}
                       rotation={angle - 90}
                     />
                   );
@@ -268,10 +246,9 @@ const OdontogramSVG = ({
                 {/* Lado esquerdo inferior (31-38) */}
                 {lowerTeeth.slice(8, 16).map((tooth, index) => {
                   const angle = (-index * 22.5) - 101.25; // Ângulo para formar o arco
-                  const radius = 120;
+                  const radius = 130;
                   const x = 325 + radius * Math.cos((angle * Math.PI) / 180);
                   const y = 320 + radius * Math.sin((angle * Math.PI) / 180);
-                  const type = getToothType(tooth);
                   
                   return (
                     <Tooth
@@ -279,7 +256,6 @@ const OdontogramSVG = ({
                       number={tooth}
                       x={x}
                       y={y}
-                      type={type}
                       rotation={angle - 90}
                     />
                   );
