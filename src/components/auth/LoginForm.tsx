@@ -11,53 +11,31 @@ import { supabase } from '@/lib/supabase'
 const LoginForm = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [isResetting, setIsResetting] = useState(false)
-  const { signIn, signUp } = useAuth()
+  const { signIn } = useAuth()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    if (isSignUp) {
-      const { error } = await signUp(email, password, { name })
-      if (error) {
-        toast({
-          title: "Erro no cadastro",
-          description: error.message === "User already registered" 
-            ? "Este email já está cadastrado"
-            : "Erro ao criar conta. Tente novamente.",
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "Conta criada com sucesso! 🎉",
-          description: "Sua conta foi criada como Dentista. Faça login para continuar.",
-        })
-        setIsSignUp(false)
-        setName('')
-      }
+    const { error } = await signIn(email, password)
+    if (error) {
+      toast({
+        title: "Erro no login",
+        description: error.message === "Invalid login credentials" 
+          ? "Email ou senha incorretos"
+          : "Erro ao fazer login. Tente novamente.",
+        variant: "destructive",
+      })
     } else {
-      const { error } = await signIn(email, password)
-      if (error) {
-        toast({
-          title: "Erro no login",
-          description: error.message === "Invalid login credentials" 
-            ? "Email ou senha incorretos"
-            : "Erro ao fazer login. Tente novamente.",
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "Login realizado",
-          description: "Bem-vindo ao Sistema SB Prótese!",
-        })
-      }
+      toast({
+        title: "Login realizado",
+        description: "Bem-vindo ao Sistema SB Prótese!",
+      })
     }
 
     setIsLoading(false)
@@ -158,33 +136,11 @@ const LoginForm = () => {
             Sistema SB Prótese
           </CardTitle>
           <CardDescription>
-            {isSignUp ? "Crie sua conta para acessar o sistema" : "Entre com sua conta para acessar o sistema"}
+            Entre com sua conta para acessar o sistema
           </CardDescription>
-          {isSignUp && (
-            <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-              <p>📝 Novas contas são criadas como <strong>Dentista</strong></p>
-              <p>🔐 Entre em contato com admin para virar administrador</p>
-            </div>
-          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome Completo</Label>
-                <div className="relative">
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="Seu nome completo"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required={isSignUp}
-                  />
-                </div>
-              </div>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -231,37 +187,20 @@ const LoginForm = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (isSignUp ? "Criando conta..." : "Entrando...") : (isSignUp ? "Criar Conta" : "Entrar")}
+              {isLoading ? "Entrando..." : "Entrar"}
             </Button>
 
-            {!isSignUp && (
-              <div className="text-center">
-                <Button 
-                  variant="link" 
-                  size="sm"
-                  onClick={() => setShowForgotPassword(true)}
-                  disabled={isLoading}
-                >
-                  Esqueci minha senha
-                </Button>
-              </div>
-            )}
+            <div className="text-center">
+              <Button 
+                variant="link" 
+                size="sm"
+                onClick={() => setShowForgotPassword(true)}
+                disabled={isLoading}
+              >
+                Esqueci minha senha
+              </Button>
+            </div>
           </form>
-          
-          <div className="mt-4 text-center">
-            <Button 
-              variant="link" 
-              onClick={() => {
-                setIsSignUp(!isSignUp)
-                setName('')
-                setEmail('')
-                setPassword('')
-              }}
-              disabled={isLoading}
-            >
-              {isSignUp ? "Já tem uma conta? Faça login" : "Não tem conta? Cadastre-se"}
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

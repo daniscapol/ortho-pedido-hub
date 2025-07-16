@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/layout/Sidebar";
@@ -17,7 +18,7 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3 } from "lucide-react";
+import { Search, Eye, Filter, BarChart3, UserPlus } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 
 interface User {
@@ -38,6 +39,8 @@ const Admin = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("overview");
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [newUserData, setNewUserData] = useState({ name: '', email: '', password: '' });
   const updateOrderStatus = useUpdateOrderStatus();
 
   // Buscar todos os usuários
@@ -108,6 +111,41 @@ const Admin = () => {
     },
   });
 
+  // Mutation para criar novo usuário
+  const createUser = useMutation({
+    mutationFn: async ({ name, email, password }: { name: string; email: string; password: string }) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: { name }
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: "Usuário criado",
+        description: "Novo dentista criado com sucesso!",
+      });
+      setShowCreateUser(false);
+      setNewUserData({ name: '', email: '', password: '' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message === "User already registered" 
+          ? "Este email já está cadastrado"
+          : "Erro ao criar usuário. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Verificar se o usuário é admin
   if (profileLoading) {
     return (
@@ -151,6 +189,19 @@ const Admin = () => {
 
   const handleRoleChange = (userId: string, newRole: 'admin' | 'dentist') => {
     updateUserRole.mutate({ userId, newRole });
+  };
+
+  const handleCreateUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUserData.name || !newUserData.email || !newUserData.password) {
+      toast({
+        title: "Erro",
+        description: "Todos os campos são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+    createUser.mutate(newUserData);
   };
 
   const handleOrderStatusChange = (orderId: string, newStatus: string) => {
@@ -479,7 +530,65 @@ const Admin = () => {
           {/* Gerenciamento de Usuários */}
           <Card>
             <CardHeader>
-              <CardTitle>Gerenciamento de Usuários</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Gerenciamento de Usuários</CardTitle>
+                <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
+                  <DialogTrigger asChild>
+                    <Button className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Criar Usuário
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Criar Novo Dentista</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateUser} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="new-name">Nome Completo</Label>
+                        <Input
+                          id="new-name"
+                          type="text"
+                          placeholder="Nome do dentista"
+                          value={newUserData.name}
+                          onChange={(e) => setNewUserData(prev => ({ ...prev, name: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-email">Email</Label>
+                        <Input
+                          id="new-email"
+                          type="email"
+                          placeholder="email@exemplo.com"
+                          value={newUserData.email}
+                          onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-password">Senha</Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          placeholder="Senha temporária"
+                          value={newUserData.password}
+                          onChange={(e) => setNewUserData(prev => ({ ...prev, password: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setShowCreateUser(false)}>
+                          Cancelar
+                        </Button>
+                        <Button type="submit" disabled={createUser.isPending}>
+                          {createUser.isPending ? "Criando..." : "Criar Usuário"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent>
               {usersLoading ? (
