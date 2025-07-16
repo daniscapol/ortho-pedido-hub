@@ -3,12 +3,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
+import { useOrderItems } from "@/hooks/useOrderItems";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const OrdersTable = () => {
-  const { data: orders, isLoading } = useOrders();
+const OrderRow = ({ order }: { order: any }) => {
+  const { data: orderItems = [] } = useOrderItems(order.id);
   const updateOrderStatus = useUpdateOrderStatus();
+
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    updateOrderStatus.mutate({ id: orderId, status: newStatus });
+  };
 
   const getStatusBadge = (status: string) => {
     const colors = {
@@ -32,9 +37,69 @@ const OrdersTable = () => {
     );
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
-    updateOrderStatus.mutate({ id: orderId, status: newStatus });
+  const getDisplayType = () => {
+    if (orderItems.length > 0) {
+      return orderItems.length === 1 
+        ? orderItems[0].prosthesis_type 
+        : `${orderItems.length} produtos`;
+    }
+    return order.prosthesis_type;
   };
+
+  return (
+    <tr className="border-b border-border/50">
+      <td className="py-3 px-2 text-sm font-mono text-foreground">
+        {order.id.slice(-8)}
+      </td>
+      <td className="py-3 px-2 text-sm text-foreground">
+        {order.patients?.name || 'N/A'}
+      </td>
+      <td className="py-3 px-2 text-sm text-foreground">{order.dentist}</td>
+      <td className="py-3 px-2 text-sm text-foreground">
+        <div>
+          <span>{getDisplayType()}</span>
+          {orderItems.length > 1 && (
+            <div className="text-xs text-muted-foreground">
+              {orderItems.slice(0, 2).map(item => item.product_name).join(', ')}
+              {orderItems.length > 2 && '...'}
+            </div>
+          )}
+        </div>
+      </td>
+      <td className="py-3 px-2">{getStatusBadge(order.status)}</td>
+      <td className="py-3 px-2 text-sm text-foreground">
+        {format(new Date(order.deadline), 'dd/MM/yyyy', { locale: ptBR })}
+      </td>
+      <td className="py-3 px-2">
+        <div className="flex gap-2">
+          {order.status !== 'entregue' && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                const nextStatus = {
+                  pending: 'producao',
+                  producao: 'pronto',
+                  pronto: 'entregue'
+                }[order.status] || order.status;
+                handleStatusChange(order.id, nextStatus);
+              }}
+            >
+              Avançar
+            </Button>
+          )}
+          <Button variant="outline" size="sm">
+            <a href={`/pedido/${order.id}`}>Ver</a>
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+const OrdersTable = () => {
+  const { data: orders, isLoading } = useOrders();
+
 
   if (isLoading) {
     return (
@@ -82,43 +147,7 @@ const OrdersTable = () => {
             </thead>
             <tbody>
               {orders?.map((order) => (
-                <tr key={order.id} className="border-b border-border/50">
-                  <td className="py-3 px-2 text-sm font-mono text-foreground">
-                    {order.id.slice(-8)}
-                  </td>
-                  <td className="py-3 px-2 text-sm text-foreground">
-                    {order.patients?.name || 'N/A'}
-                  </td>
-                  <td className="py-3 px-2 text-sm text-foreground">{order.dentist}</td>
-                  <td className="py-3 px-2 text-sm text-foreground">{order.prosthesis_type}</td>
-                  <td className="py-3 px-2">{getStatusBadge(order.status)}</td>
-                  <td className="py-3 px-2 text-sm text-foreground">
-                    {format(new Date(order.deadline), 'dd/MM/yyyy', { locale: ptBR })}
-                  </td>
-                  <td className="py-3 px-2">
-                    <div className="flex gap-2">
-                      {order.status !== 'entregue' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            const nextStatus = {
-                              pending: 'producao',
-                              producao: 'pronto',
-                              pronto: 'entregue'
-                            }[order.status] || order.status;
-                            handleStatusChange(order.id, nextStatus);
-                          }}
-                        >
-                          Avançar
-                        </Button>
-                      )}
-                      <Button variant="outline" size="sm">
-                        <a href={`/pedido/${order.id}`}>Ver</a>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
+                <OrderRow key={order.id} order={order} />
               ))}
             </tbody>
           </table>

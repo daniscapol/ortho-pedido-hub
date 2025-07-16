@@ -11,6 +11,7 @@ import OrderTimeline from "@/components/order/OrderTimeline";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
+import { useOrderItems } from "@/hooks/useOrderItems";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { format } from "date-fns";
@@ -33,6 +34,7 @@ const OrderDetails = () => {
   };
 
   const order = orders?.find(o => o.id === id);
+  const { data: orderItems = [] } = useOrderItems(id);
   const isAdmin = profile?.role === 'admin';
 
   const getStatusBadge = (status: string) => {
@@ -289,20 +291,6 @@ const OrderDetails = () => {
                     <p>{order.dentist}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Tipo de Prótese</p>
-                    <p>{order.prosthesis_type}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Material</p>
-                    <p>{order.material || 'Não especificado'}</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Cor</p>
-                    <p>{order.color || 'Não especificado'}</p>
-                  </div>
-                  <div>
                     <p className="text-sm font-medium text-muted-foreground">Prioridade</p>
                     <Badge variant="outline">{order.priority}</Badge>
                   </div>
@@ -311,44 +299,130 @@ const OrderDetails = () => {
                     <p>{format(new Date(order.deadline), 'dd/MM/yyyy', { locale: ptBR })}</p>
                   </div>
                 </div>
+                <div className="space-y-3">
+                  {order.delivery_address && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Endereço de Entrega</p>
+                      <p className="text-sm">{order.delivery_address}</p>
+                    </div>
+                  )}
+                  {order.observations && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Observações Gerais</p>
+                      <p className="text-sm bg-muted p-3 rounded-lg">{order.observations}</p>
+                    </div>
+                  )}
+                </div>
               </div>
-
-              {order.selected_teeth.length > 0 && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Dentes Selecionados
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {order.selected_teeth.map((tooth) => (
-                      <Badge key={tooth} variant="secondary">
-                        {tooth}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {order.observations && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Observações
-                  </p>
-                  <p className="text-sm bg-muted p-3 rounded-lg">
-                    {order.observations}
-                  </p>
-                </div>
-              )}
-
-              {order.delivery_address && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">
-                    Endereço de Entrega
-                  </p>
-                  <p className="text-sm">{order.delivery_address}</p>
-                </div>
-              )}
             </CardContent>
           </Card>
+
+          {/* Produtos do Pedido */}
+          {orderItems.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Produtos do Pedido ({orderItems.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {orderItems.map((item, index) => (
+                    <div key={item.id} className="border border-border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h4 className="font-semibold text-lg">{item.product_name}</h4>
+                          <p className="text-muted-foreground">{item.prosthesis_type}</p>
+                        </div>
+                        <Badge variant="outline">#{index + 1}</Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        {item.material && (
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Material</p>
+                            <p className="text-sm">{item.material}</p>
+                          </div>
+                        )}
+                        {item.color && (
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Cor</p>
+                            <p className="text-sm">{item.color}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Quantidade</p>
+                          <p className="text-sm">{item.quantity}</p>
+                        </div>
+                      </div>
+
+                      {item.selected_teeth.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-sm font-medium text-muted-foreground mb-2">Dentes Selecionados</p>
+                          <div className="flex flex-wrap gap-2">
+                            {item.selected_teeth.map((tooth) => (
+                              <Badge key={tooth} variant="secondary" className="text-xs">
+                                {tooth}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {item.observations && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground mb-2">Observações do Produto</p>
+                          <p className="text-sm bg-muted p-3 rounded-lg">{item.observations}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            // Fallback para pedidos antigos sem produtos separados
+            order.prosthesis_type !== 'multiplos' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Detalhes do Serviço</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Tipo de Prótese</p>
+                        <p>{order.prosthesis_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Material</p>
+                        <p>{order.material || 'Não especificado'}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Cor</p>
+                        <p>{order.color || 'Não especificado'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {order.selected_teeth.length > 0 && (
+                    <div className="mt-6">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">
+                        Dentes Selecionados
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {order.selected_teeth.map((tooth) => (
+                          <Badge key={tooth} variant="secondary">
+                            {tooth}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          )}
 
           {/* Imagens do Pedido */}
           {order.order_images && order.order_images.length > 0 && (

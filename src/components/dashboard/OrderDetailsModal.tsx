@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Order } from "@/hooks/useOrders";
+import { useOrderItems } from "@/hooks/useOrderItems";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { X, MapPin } from "lucide-react";
@@ -15,6 +16,7 @@ interface OrderDetailsModalProps {
 
 const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) => {
   const navigate = useNavigate();
+  const { data: orderItems = [] } = useOrderItems(order?.id);
   
   if (!order) return null;
 
@@ -84,23 +86,74 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
           </div>
 
           {/* Informações do Serviço */}
-          <div className="space-y-2">
-            <h3 className="font-semibold text-foreground">Informações do Serviço</h3>
-            <div className="space-y-1 text-sm">
-              <p><strong>Serviço:</strong> <span className="text-muted-foreground">{order.prosthesis_type}</span></p>
-              {order.material && (
-                <p><strong>Material:</strong> <span className="text-muted-foreground">{order.material}</span></p>
-              )}
-              {order.color && (
-                <p><strong>Cor:</strong> <span className="text-muted-foreground">{order.color}</span></p>
-              )}
-              <p><strong>Prioridade:</strong> <span className="text-muted-foreground">{order.priority}</span></p>
-              <p><strong>Prazo:</strong> <span className="text-muted-foreground">{format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR })}</span></p>
-            </div>
-          </div>
+          {orderItems.length > 0 ? (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-foreground">Produtos do Pedido ({orderItems.length})</h3>
+              <div className="space-y-3">
+                {orderItems.map((item, index) => (
+                  <div key={item.id} className="border border-border rounded-lg p-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium">{item.product_name}</p>
+                        <p className="text-sm text-muted-foreground">{item.prosthesis_type}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      {item.material && (
+                        <div><strong>Material:</strong> <span className="text-muted-foreground">{item.material}</span></div>
+                      )}
+                      {item.color && (
+                        <div><strong>Cor:</strong> <span className="text-muted-foreground">{item.color}</span></div>
+                      )}
+                      <div><strong>Qtd:</strong> <span className="text-muted-foreground">{item.quantity}</span></div>
+                    </div>
 
-          {/* Dentes Selecionados */}
-          {order.selected_teeth && order.selected_teeth.length > 0 && (
+                    {item.selected_teeth.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Dentes:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {item.selected_teeth.map((tooth) => (
+                            <Badge key={tooth} variant="secondary" className="text-xs py-0">
+                              {tooth}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {item.observations && (
+                      <div className="mt-2">
+                        <p className="text-xs text-muted-foreground">{item.observations}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            // Fallback para pedidos antigos
+            order.prosthesis_type !== 'multiplos' && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Informações do Serviço</h3>
+                <div className="space-y-1 text-sm">
+                  <p><strong>Serviço:</strong> <span className="text-muted-foreground">{order.prosthesis_type}</span></p>
+                  {order.material && (
+                    <p><strong>Material:</strong> <span className="text-muted-foreground">{order.material}</span></p>
+                  )}
+                  {order.color && (
+                    <p><strong>Cor:</strong> <span className="text-muted-foreground">{order.color}</span></p>
+                  )}
+                  <p><strong>Prioridade:</strong> <span className="text-muted-foreground">{order.priority}</span></p>
+                  <p><strong>Prazo:</strong> <span className="text-muted-foreground">{format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR })}</span></p>
+                </div>
+              </div>
+            )
+          )}
+
+          {/* Dentes Selecionados - só mostra se não há produtos ou se é pedido antigo */}
+          {(!orderItems.length && order.selected_teeth && order.selected_teeth.length > 0) && (
             <div className="space-y-2">
               <h3 className="font-semibold text-foreground">Dentes Selecionados</h3>
               <div className="flex flex-wrap gap-2">
@@ -113,10 +166,10 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
             </div>
           )}
 
-          {/* Observações */}
+          {/* Observações Gerais */}
           {order.observations && (
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">Observações</h3>
+              <h3 className="font-semibold text-foreground">Observações Gerais</h3>
               <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
                 {order.observations}
               </p>
