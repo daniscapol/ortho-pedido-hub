@@ -19,7 +19,7 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3, UserPlus, Trash2 } from "lucide-react";
+import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 
 interface User {
@@ -168,6 +168,29 @@ const Admin = () => {
     },
   });
 
+  // Mutation para reenviar email de redefinir senha
+  const sendResetPassword = useMutation({
+    mutationFn: async (email: string) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email enviado",
+        description: "Email de redefinição de senha enviado com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao enviar email de redefinição de senha. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Mutation para deletar usuário
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
@@ -289,6 +312,10 @@ const Admin = () => {
 
   const handleDeleteUser = (userId: string) => {
     deleteUser.mutate(userId);
+  };
+
+  const handleSendResetPassword = (email: string) => {
+    sendResetPassword.mutate(email);
   };
 
   const handleOrderStatusChange = (orderId: string, newStatus: string) => {
@@ -719,54 +746,64 @@ const Admin = () => {
                         </TableCell>
                          <TableCell>
                            <div className="flex items-center gap-2">
-                             <Select
-                               value={user.role}
-                               onValueChange={(newRole: 'admin' | 'dentist') => 
-                                 handleRoleChange(user.id, newRole)
-                               }
-                               disabled={user.id === profile?.id || updateUserRole.isPending}
-                             >
-                               <SelectTrigger className="w-32">
-                                 <SelectValue />
-                               </SelectTrigger>
-                               <SelectContent>
-                                 <SelectItem value="dentist">Dentista</SelectItem>
-                                 <SelectItem value="admin">Admin</SelectItem>
-                               </SelectContent>
-                             </Select>
-                             
-                             {user.id !== profile?.id && (
-                               <AlertDialog>
-                                 <AlertDialogTrigger asChild>
-                                   <Button
-                                     variant="outline"
-                                     size="sm"
-                                     className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
-                                     disabled={deleteUser.isPending}
-                                   >
-                                     <Trash2 className="h-4 w-4" />
-                                   </Button>
-                                 </AlertDialogTrigger>
-                                 <AlertDialogContent>
-                                   <AlertDialogHeader>
-                                     <AlertDialogTitle>Deletar Usuário</AlertDialogTitle>
-                                     <AlertDialogDescription>
-                                       Tem certeza que deseja deletar o usuário <strong>{user.name || user.email}</strong>? 
-                                       Esta ação não pode ser desfeita e todos os dados do usuário serão permanentemente removidos.
-                                     </AlertDialogDescription>
-                                   </AlertDialogHeader>
-                                   <AlertDialogFooter>
-                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                     <AlertDialogAction
-                                       onClick={() => handleDeleteUser(user.id)}
-                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                     >
-                                       Deletar
-                                     </AlertDialogAction>
-                                   </AlertDialogFooter>
-                                 </AlertDialogContent>
-                               </AlertDialog>
-                             )}
+                              <Select
+                                value={user.role}
+                                onValueChange={(newRole: 'admin' | 'dentist') => 
+                                  handleRoleChange(user.id, newRole)
+                                }
+                                disabled={user.id === profile?.id || updateUserRole.isPending}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="dentist">Dentista</SelectItem>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSendResetPassword(user.email || '')}
+                                disabled={!user.email || sendResetPassword.isPending}
+                                title="Enviar email de redefinição de senha"
+                              >
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                              
+                              {user.id !== profile?.id && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                                      disabled={deleteUser.isPending}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Deletar Usuário</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Tem certeza que deseja deletar o usuário <strong>{user.name || user.email}</strong>? 
+                                        Esta ação não pode ser desfeita e todos os dados do usuário serão permanentemente removidos.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteUser(user.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Deletar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
                            </div>
                         </TableCell>
                       </TableRow>
