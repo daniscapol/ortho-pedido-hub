@@ -41,7 +41,7 @@ const Admin = () => {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("overview");
   const [showCreateUser, setShowCreateUser] = useState(false);
-  const [newUserData, setNewUserData] = useState({ name: '', email: '', password: '' });
+  const [newUserData, setNewUserData] = useState({ name: '', email: '', password: '', role: 'dentist' as 'admin' | 'dentist' });
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const updateOrderStatus = useUpdateOrderStatus();
 
@@ -115,14 +115,14 @@ const Admin = () => {
 
   // Mutation para criar novo usuário
   const createUser = useMutation({
-    mutationFn: async ({ name, email, password }: { name: string; email: string; password: string }) => {
+    mutationFn: async ({ name, email, password, role }: { name: string; email: string; password: string; role: 'admin' | 'dentist' }) => {
       // Criar usuário no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: { name }
+          data: { name, role }
         }
       });
 
@@ -155,7 +155,7 @@ const Admin = () => {
         description: "Novo dentista criado com sucesso! Email de boas-vindas enviado.",
       });
       setShowCreateUser(false);
-      setNewUserData({ name: '', email: '', password: '' });
+      setNewUserData({ name: '', email: '', password: '', role: 'dentist' });
     },
     onError: (error: any) => {
       toast({
@@ -299,7 +299,7 @@ const Admin = () => {
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserData.name || !newUserData.email || !newUserData.password) {
+    if (!newUserData.name || !newUserData.email || !newUserData.password || !newUserData.role) {
       toast({
         title: "Erro",
         description: "Todos os campos são obrigatórios",
@@ -655,7 +655,7 @@ const Admin = () => {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Criar Novo Dentista</DialogTitle>
+                      <DialogTitle>Criar Novo Usuário</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleCreateUser} className="space-y-4">
                       <div className="space-y-2">
@@ -690,6 +690,23 @@ const Admin = () => {
                           onChange={(e) => setNewUserData(prev => ({ ...prev, password: e.target.value }))}
                           required
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-role">Tipo de Usuário</Label>
+                        <Select
+                          value={newUserData.role}
+                          onValueChange={(value: 'admin' | 'dentist') => 
+                            setNewUserData(prev => ({ ...prev, role: value }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="dentist">Dentista</SelectItem>
+                            <SelectItem value="admin">Administrador</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => setShowCreateUser(false)}>
