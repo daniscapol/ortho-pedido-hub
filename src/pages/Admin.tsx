@@ -171,8 +171,12 @@ const Admin = () => {
   // Mutation para deletar usuário
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
-      // Primeiro deletar o profile do usuário
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      // Deletar o profile do usuário da tabela profiles
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+      
       if (error) throw error;
     },
     onSuccess: () => {
