@@ -195,18 +195,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="mb-6">
-              <div className="relative max-w-md">
-                <Input
-                  placeholder="Pesquise um clínica, dentista ou paciente"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-background border-border focus:border-ring focus:ring-ring"
-                />
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              </div>
-            </div>
 
 
             {/* Orders columns */}
