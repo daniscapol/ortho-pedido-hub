@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/layout/Sidebar";
@@ -18,7 +19,7 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3, UserPlus } from "lucide-react";
+import { Search, Eye, Filter, BarChart3, UserPlus, Trash2 } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 
 interface User {
@@ -41,6 +42,7 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [newUserData, setNewUserData] = useState({ name: '', email: '', password: '' });
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const updateOrderStatus = useUpdateOrderStatus();
 
   // Buscar todos os usuários
@@ -166,6 +168,31 @@ const Admin = () => {
     },
   });
 
+  // Mutation para deletar usuário
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      // Primeiro deletar o profile do usuário
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: "Usuário deletado",
+        description: "Usuário removido com sucesso do sistema.",
+      });
+      setUserToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao deletar usuário. Tente novamente.",
+        variant: "destructive",
+      });
+      setUserToDelete(null);
+    },
+  });
+
   // Verificar se o usuário é admin
   if (profileLoading) {
     return (
@@ -222,6 +249,10 @@ const Admin = () => {
       return;
     }
     createUser.mutate(newUserData);
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    deleteUser.mutate(userId);
   };
 
   const handleOrderStatusChange = (orderId: string, newStatus: string) => {
@@ -650,22 +681,57 @@ const Admin = () => {
                         <TableCell>
                           {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                         </TableCell>
-                        <TableCell>
-                          <Select
-                            value={user.role}
-                            onValueChange={(newRole: 'admin' | 'dentist') => 
-                              handleRoleChange(user.id, newRole)
-                            }
-                            disabled={user.id === profile?.id || updateUserRole.isPending}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="dentist">Dentista</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
+                         <TableCell>
+                           <div className="flex items-center gap-2">
+                             <Select
+                               value={user.role}
+                               onValueChange={(newRole: 'admin' | 'dentist') => 
+                                 handleRoleChange(user.id, newRole)
+                               }
+                               disabled={user.id === profile?.id || updateUserRole.isPending}
+                             >
+                               <SelectTrigger className="w-32">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="dentist">Dentista</SelectItem>
+                                 <SelectItem value="admin">Admin</SelectItem>
+                               </SelectContent>
+                             </Select>
+                             
+                             {user.id !== profile?.id && (
+                               <AlertDialog>
+                                 <AlertDialogTrigger asChild>
+                                   <Button
+                                     variant="outline"
+                                     size="sm"
+                                     className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                                     disabled={deleteUser.isPending}
+                                   >
+                                     <Trash2 className="h-4 w-4" />
+                                   </Button>
+                                 </AlertDialogTrigger>
+                                 <AlertDialogContent>
+                                   <AlertDialogHeader>
+                                     <AlertDialogTitle>Deletar Usuário</AlertDialogTitle>
+                                     <AlertDialogDescription>
+                                       Tem certeza que deseja deletar o usuário <strong>{user.name || user.email}</strong>? 
+                                       Esta ação não pode ser desfeita e todos os dados do usuário serão permanentemente removidos.
+                                     </AlertDialogDescription>
+                                   </AlertDialogHeader>
+                                   <AlertDialogFooter>
+                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                     <AlertDialogAction
+                                       onClick={() => handleDeleteUser(user.id)}
+                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                     >
+                                       Deletar
+                                     </AlertDialogAction>
+                                   </AlertDialogFooter>
+                                 </AlertDialogContent>
+                               </AlertDialog>
+                             )}
+                           </div>
                         </TableCell>
                       </TableRow>
                     ))}
