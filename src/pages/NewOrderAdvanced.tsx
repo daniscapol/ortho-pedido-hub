@@ -2,7 +2,7 @@ import { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import PatientSearch from "@/components/forms/PatientSearch";
-import OdontogramSVG from "@/components/forms/OdontogramSVG";
+import Odontogram from "@/components/forms/Odontogram";
 import ImageAnnotation from "@/components/forms/ImageAnnotation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -234,7 +234,7 @@ const NewOrderAdvanced = () => {
           )}
 
           {currentStep === 3 && (
-            <OdontogramSVG onToothSelect={setSelectedTeeth} />
+            <Odontogram onToothSelect={setSelectedTeeth} />
           )}
 
           {currentStep === 4 && (

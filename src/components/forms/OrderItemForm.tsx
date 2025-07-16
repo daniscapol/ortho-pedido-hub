@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, Edit } from "lucide-react";
-import OdontogramSVG from "./OdontogramSVG";
+import Odontogram from "./Odontogram";
 import type { CreateOrderItem } from "@/hooks/useOrderItems";
 
 interface OrderItemFormProps {
@@ -288,7 +288,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
             {showOdontogram && (
               <div className="space-y-2">
                 <Label>Selecionar Dentes</Label>
-                <OdontogramSVG 
+                <Odontogram 
                   onToothSelect={(teeth) => setCurrentItem(prev => ({ ...prev, selected_teeth: teeth }))}
                   selectedTeeth={currentItem.selected_teeth}
                 />
