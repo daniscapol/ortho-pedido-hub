@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import toothIcon from "@/assets/tooth-icon.png";
 
 // Representação simplificada do odontograma
 const Odontogram = ({ 
@@ -56,7 +57,10 @@ const Odontogram = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Odontograma - Seleção de Dentes</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <img src={toothIcon} alt="Dente" className="w-6 h-6" />
+          Odontograma - Seleção de Dentes
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
