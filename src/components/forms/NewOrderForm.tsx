@@ -173,6 +173,10 @@ const NewOrderForm = () => {
     setOrderItems(prev => [...prev, item]);
   };
 
+  const handleEditOrderItem = (index: number, item: Omit<CreateOrderItem, 'order_id'>) => {
+    setOrderItems(prev => prev.map((existingItem, i) => i === index ? item : existingItem));
+  };
+
   const handleRemoveOrderItem = (index: number) => {
     setOrderItems(prev => prev.filter((_, i) => i !== index));
   };
@@ -267,6 +271,7 @@ const NewOrderForm = () => {
           {/* Formulário de Produtos */}
           <OrderItemForm 
             onAddItem={handleAddOrderItem}
+            onEditItem={handleEditOrderItem}
             onRemoveItem={handleRemoveOrderItem}
             items={orderItems}
           />

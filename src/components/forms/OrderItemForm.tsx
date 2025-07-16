@@ -6,18 +6,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Edit } from "lucide-react";
 import Odontogram from "./Odontogram";
 import type { CreateOrderItem } from "@/hooks/useOrderItems";
 
 interface OrderItemFormProps {
   onAddItem: (item: Omit<CreateOrderItem, 'order_id'>) => void;
   onRemoveItem?: (index: number) => void;
+  onEditItem?: (index: number, item: Omit<CreateOrderItem, 'order_id'>) => void;
   items: Array<Omit<CreateOrderItem, 'order_id'>>;
   showOdontogram?: boolean;
 }
 
-const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }: OrderItemFormProps) => {
+const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontogram = true }: OrderItemFormProps) => {
   const [currentItem, setCurrentItem] = useState<Omit<CreateOrderItem, 'order_id'>>({
     product_name: "",
     prosthesis_type: "",
@@ -30,13 +31,23 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }
   });
 
   const [showItemForm, setShowItemForm] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const handleAddItem = () => {
     if (!currentItem.product_name || !currentItem.prosthesis_type || currentItem.selected_teeth.length === 0) {
       return;
     }
 
-    onAddItem(currentItem);
+    if (editingIndex !== null) {
+      // Está editando um item existente
+      onEditItem?.(editingIndex, currentItem);
+      setEditingIndex(null);
+    } else {
+      // Está adicionando um novo item
+      onAddItem(currentItem);
+    }
+
+    // Resetar formulário
     setCurrentItem({
       product_name: "",
       prosthesis_type: "",
@@ -47,6 +58,28 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }
       unit_price: undefined,
       observations: ""
     });
+    setShowItemForm(false);
+  };
+
+  const handleEditItem = (index: number) => {
+    const item = items[index];
+    setCurrentItem(item);
+    setEditingIndex(index);
+    setShowItemForm(true);
+  };
+
+  const handleCancelEdit = () => {
+    setCurrentItem({
+      product_name: "",
+      prosthesis_type: "",
+      material: "",
+      color: "",
+      selected_teeth: [],
+      quantity: 1,
+      unit_price: undefined,
+      observations: ""
+    });
+    setEditingIndex(null);
     setShowItemForm(false);
   };
 
@@ -90,16 +123,28 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }
                         {prosthesisTypes.find(p => p.value === item.prosthesis_type)?.label}
                       </p>
                     </div>
-                    {onRemoveItem && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onRemoveItem(index)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {onEditItem && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditItem(index)}
+                          className="text-primary hover:text-primary"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {onRemoveItem && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onRemoveItem(index)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mb-2">
@@ -142,8 +187,8 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }
         </Card>
       )}
 
-      {/* Botão para adicionar novo item */}
-      {!showItemForm && (
+      {/* Botão para adicionar novo item (só mostra se não está editando) */}
+      {!showItemForm && editingIndex === null && (
         <Button 
           onClick={() => setShowItemForm(true)} 
           variant="outline" 
@@ -158,7 +203,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }
       {showItemForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Novo Produto/Prótese</CardTitle>
+            <CardTitle>{editingIndex !== null ? "Editar Produto/Prótese" : "Novo Produto/Prótese"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,7 +219,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }
 
               <div className="space-y-2">
                 <Label htmlFor="prosthesis_type">Tipo de Prótese</Label>
-                <Select onValueChange={(value) => setCurrentItem(prev => ({ ...prev, prosthesis_type: value }))}>
+                <Select value={currentItem.prosthesis_type} onValueChange={(value) => setCurrentItem(prev => ({ ...prev, prosthesis_type: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
@@ -190,7 +235,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }
 
               <div className="space-y-2">
                 <Label htmlFor="material">Material</Label>
-                <Select onValueChange={(value) => setCurrentItem(prev => ({ ...prev, material: value }))}>
+                <Select value={currentItem.material} onValueChange={(value) => setCurrentItem(prev => ({ ...prev, material: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o material" />
                   </SelectTrigger>
@@ -268,11 +313,11 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, items, showOdontogram = true }
                 onClick={handleAddItem}
                 disabled={!currentItem.product_name || !currentItem.prosthesis_type || currentItem.selected_teeth.length === 0}
               >
-                Adicionar Produto
+                {editingIndex !== null ? "Salvar Alterações" : "Adicionar Produto"}
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setShowItemForm(false)}
+                onClick={handleCancelEdit}
               >
                 Cancelar
               </Button>
