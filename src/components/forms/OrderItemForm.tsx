@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ interface OrderItemFormProps {
 }
 
 const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontogram = true }: OrderItemFormProps) => {
+  const formRef = useRef<HTMLDivElement>(null);
   const [currentItem, setCurrentItem] = useState<Omit<CreateOrderItem, 'order_id'>>({
     product_name: "",
     prosthesis_type: "",
@@ -26,7 +27,6 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
     color: "",
     selected_teeth: [],
     quantity: 1,
-    unit_price: undefined,
     observations: ""
   });
 
@@ -55,7 +55,6 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
       color: "",
       selected_teeth: [],
       quantity: 1,
-      unit_price: undefined,
       observations: ""
     });
     setShowItemForm(false);
@@ -66,6 +65,15 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
     setCurrentItem(item);
     setEditingIndex(index);
     setShowItemForm(true);
+    
+    // Scroll para o formulário de edição
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+    }, 100);
   };
 
   const handleCancelEdit = () => {
@@ -76,7 +84,6 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
       color: "",
       selected_teeth: [],
       quantity: 1,
-      unit_price: undefined,
       observations: ""
     });
     setEditingIndex(null);
@@ -161,11 +168,6 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
                     <div>
                       <span className="text-muted-foreground">Qtd:</span> {item.quantity}
                     </div>
-                    {item.unit_price && (
-                      <div>
-                        <span className="text-muted-foreground">Preço:</span> R$ {item.unit_price}
-                      </div>
-                    )}
                   </div>
 
                   <div className="flex flex-wrap gap-1 mb-2">
@@ -201,7 +203,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
 
       {/* Formulário de novo item */}
       {showItemForm && (
-        <Card>
+        <Card ref={formRef}>
           <CardHeader>
             <CardTitle>{editingIndex !== null ? "Editar Produto/Prótese" : "Novo Produto/Prótese"}</CardTitle>
           </CardHeader>
@@ -267,22 +269,6 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
                   min="1"
                   value={currentItem.quantity}
                   onChange={(e) => setCurrentItem(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="unit_price">Preço Unitário (R$)</Label>
-                <Input
-                  id="unit_price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={currentItem.unit_price || ""}
-                  onChange={(e) => setCurrentItem(prev => ({ 
-                    ...prev, 
-                    unit_price: e.target.value ? parseFloat(e.target.value) : undefined 
-                  }))}
-                  placeholder="0.00"
                 />
               </div>
             </div>

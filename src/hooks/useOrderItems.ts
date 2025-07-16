@@ -11,7 +11,6 @@ export interface OrderItem {
   color?: string;
   selected_teeth: string[];
   quantity: number;
-  unit_price?: number;
   observations?: string;
   created_at: string;
   updated_at: string;
