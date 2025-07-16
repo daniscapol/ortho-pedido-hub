@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import toothIcon from "@/assets/tooth-icon.png";
 
 // Representação simplificada do odontograma
 const Odontogram = ({ 
@@ -43,13 +42,14 @@ const Odontogram = ({
     return (
       <button
         onClick={() => toggleTooth(number)}
-        className={`w-8 h-8 text-xs border border-border rounded transition-colors ${
+        className={`w-10 h-12 text-xs border border-border rounded transition-colors flex flex-col items-center justify-center gap-0.5 ${
           isSelected 
             ? "bg-primary text-primary-foreground" 
             : "bg-card hover:bg-muted text-foreground"
         }`}
       >
-        {number}
+        <div className="text-sm">🦷</div>
+        <div>{number}</div>
       </button>
     );
   };
@@ -58,7 +58,7 @@ const Odontogram = ({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <img src={toothIcon} alt="Dente" className="w-6 h-6" />
+          🦷
           Odontograma - Seleção de Dentes
         </CardTitle>
       </CardHeader>
