@@ -158,11 +158,20 @@ const Admin = () => {
       setNewUserData({ name: '', email: '', password: '', role: 'dentist' });
     },
     onError: (error: any) => {
+      console.error("Erro ao criar usuário:", error);
+      let errorMessage = "Erro ao criar usuário. Tente novamente.";
+      
+      if (error.message === "User already registered") {
+        errorMessage = "Este email já está cadastrado";
+      } else if (error.message?.includes("email_address_invalid") || error.message?.includes("Email address") && error.message?.includes("is invalid")) {
+        errorMessage = "Email inválido. Verifique se o endereço de email está correto e use um domínio válido";
+      } else if (error.message?.includes("Invalid email")) {
+        errorMessage = "Formato de email inválido";
+      }
+      
       toast({
         title: "Erro",
-        description: error.message === "User already registered" 
-          ? "Este email já está cadastrado"
-          : "Erro ao criar usuário. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
