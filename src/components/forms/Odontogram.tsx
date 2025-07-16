@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 // Representação simplificada do odontograma
-const Odontogram = ({ onToothSelect }: { onToothSelect: (teeth: string[]) => void }) => {
-  const [selectedTeeth, setSelectedTeeth] = useState<string[]>([]);
+const Odontogram = ({ 
+  onToothSelect, 
+  selectedTeeth: externalSelectedTeeth 
+}: { 
+  onToothSelect: (teeth: string[]) => void;
+  selectedTeeth?: string[];
+}) => {
+  const [selectedTeeth, setSelectedTeeth] = useState<string[]>(externalSelectedTeeth || []);
 
   // Numeração padrão dos dentes (sistema FDI)
   const upperTeeth = [
@@ -23,6 +29,13 @@ const Odontogram = ({ onToothSelect }: { onToothSelect: (teeth: string[]) => voi
     setSelectedTeeth(newSelection);
     onToothSelect(newSelection);
   };
+
+  // Atualizar seleção quando prop externa mudar
+  useEffect(() => {
+    if (externalSelectedTeeth) {
+      setSelectedTeeth(externalSelectedTeeth);
+    }
+  }, [externalSelectedTeeth]);
 
   const ToothButton = ({ number }: { number: string }) => {
     const isSelected = selectedTeeth.includes(number);

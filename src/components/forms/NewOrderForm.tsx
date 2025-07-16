@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateOrder } from "@/hooks/useOrders";
+import { useCreateOrderItems, type CreateOrderItem } from "@/hooks/useOrderItems";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import PatientSearch from "./PatientSearch";
-import Odontogram from "./Odontogram";
+import OrderItemForm from "./OrderItemForm";
 import { Patient } from "@/hooks/usePatients";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { useProfile } from "@/hooks/useProfile";
@@ -17,17 +18,15 @@ import { Camera, Upload } from "lucide-react";
 
 const NewOrderForm = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [selectedTeeth, setSelectedTeeth] = useState<string[]>([]);
+  const [orderItems, setOrderItems] = useState<Array<Omit<CreateOrderItem, 'order_id'>>>([]);
   const [formData, setFormData] = useState({
-    prosthesisType: "",
-    material: "",
-    color: "",
     observations: "",
     deliveryAddress: "",
     images: [] as File[]
   });
 
   const createOrder = useCreateOrder();
+  const createOrderItems = useCreateOrderItems();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { uploadImages, isUploading } = useImageUpload();
@@ -170,6 +169,14 @@ const NewOrderForm = () => {
     }));
   };
 
+  const handleAddOrderItem = (item: Omit<CreateOrderItem, 'order_id'>) => {
+    setOrderItems(prev => [...prev, item]);
+  };
+
+  const handleRemoveOrderItem = (index: number) => {
+    setOrderItems(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -182,30 +189,38 @@ const NewOrderForm = () => {
       return;
     }
 
-    if (selectedTeeth.length === 0) {
+    if (orderItems.length === 0) {
       toast({
         title: "Erro", 
-        description: "Selecione pelo menos um dente no odontograma",
+        description: "Adicione pelo menos um produto ao pedido",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      // Primeiro criar o pedido
+      // Primeiro criar o pedido principal
       const order = await createOrder.mutateAsync({
         patient_id: selectedPatient.id,
         dentist: profile?.name || "Dentista",
-        prosthesis_type: formData.prosthesisType,
-        material: formData.material,
-        color: formData.color,
+        prosthesis_type: "multiplos", // Indicador de que tem múltiplos produtos
+        material: "",
+        color: "",
         priority: "normal",
         deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
         observations: formData.observations,
         delivery_address: formData.deliveryAddress,
-        selected_teeth: selectedTeeth,
+        selected_teeth: [], // Vazio, pois cada item tem seus próprios dentes
         status: "pending"
       });
+
+      // Criar os itens do pedido
+      const itemsWithOrderId: CreateOrderItem[] = orderItems.map(item => ({
+        ...item,
+        order_id: order.id
+      }));
+      
+      await createOrderItems.mutateAsync(itemsWithOrderId);
 
       // Depois fazer upload das imagens se houver
       if (formData.images.length > 0) {
@@ -249,84 +264,47 @@ const NewOrderForm = () => {
 
       {selectedPatient && (
         <>
-          {/* Odontograma */}
-          <Odontogram onToothSelect={setSelectedTeeth} />
+          {/* Formulário de Produtos */}
+          <OrderItemForm 
+            onAddItem={handleAddOrderItem}
+            onRemoveItem={handleRemoveOrderItem}
+            items={orderItems}
+          />
 
           {/* Formulário do Pedido */}
           <Card>
             <CardHeader>
-              <CardTitle>Dados do Pedido</CardTitle>
+              <CardTitle>Dados Gerais do Pedido</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                  <div className="space-y-2">
-                    <Label htmlFor="dentistName">Dentista Responsável</Label>
-                    <Input
-                      id="dentistName"
-                      value={profile?.name || "Carregando..."}
-                      disabled
-                      className="bg-muted"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="prosthesisType">Tipo de Prótese</Label>
-                    <Select onValueChange={(value) => setFormData(prev => ({ ...prev, prosthesisType: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="coroa-ceramica">Coroa Cerâmica</SelectItem>
-                        <SelectItem value="protese-total">Prótese Total</SelectItem>
-                        <SelectItem value="protese-parcial">Prótese Parcial</SelectItem>
-                        <SelectItem value="implante">Implante</SelectItem>
-                        <SelectItem value="ponte-fixa">Ponte Fixa</SelectItem>
-                        <SelectItem value="protese-flexivel">Prótese Flexível</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="material">Material</Label>
-                    <Input
-                      id="material"
-                      value={formData.material}
-                      onChange={(e) => setFormData(prev => ({ ...prev, material: e.target.value }))}
-                      placeholder="Ex: Zircônia, Metal-cerâmica"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="color">Cor</Label>
-                    <Input
-                      id="color"
-                      value={formData.color}
-                      onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-                      placeholder="Ex: A2, B1, C3"
-                    />
-                  </div>
-
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="deliveryAddress">Endereço de Entrega (Opcional)</Label>
-                    <Input
-                      id="deliveryAddress"
-                      value={formData.deliveryAddress}
-                      onChange={(e) => setFormData(prev => ({ ...prev, deliveryAddress: e.target.value }))}
-                      placeholder="Endereço completo para entrega"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dentistName">Dentista Responsável</Label>
+                  <Input
+                    id="dentistName"
+                    value={profile?.name || "Carregando..."}
+                    disabled
+                    className="bg-muted"
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="observations">Observações e Especificações</Label>
+                  <Label htmlFor="deliveryAddress">Endereço de Entrega (Opcional)</Label>
+                  <Input
+                    id="deliveryAddress"
+                    value={formData.deliveryAddress}
+                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryAddress: e.target.value }))}
+                    placeholder="Endereço completo para entrega"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="observations">Observações Gerais do Pedido</Label>
                   <Textarea
                     id="observations"
                     value={formData.observations}
                     onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
-                    placeholder="Descreva detalhes específicos, cor, material, anatomia, etc."
+                    placeholder="Observações gerais que se aplicam a todo o pedido"
                     rows={4}
                   />
                 </div>
@@ -396,9 +374,10 @@ const NewOrderForm = () => {
                   <Button 
                     type="submit" 
                     className="flex-1"
-                    disabled={createOrder.isPending || isUploading}
+                    disabled={createOrder.isPending || createOrderItems.isPending || isUploading || orderItems.length === 0}
                   >
                     {createOrder.isPending ? "Criando Pedido..." : 
+                     createOrderItems.isPending ? "Adicionando Produtos..." :
                      isUploading ? "Enviando Imagens..." : 
                      "Criar Pedido"}
                   </Button>

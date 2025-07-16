@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, User, Package, MapPin } from "lucide-react";
 import { Order } from "@/hooks/useOrders";
+import { useOrderItems } from "@/hooks/useOrderItems";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -11,6 +12,8 @@ interface OrderCardProps {
 }
 
 const OrderCard = ({ order, onClick }: OrderCardProps) => {
+  const { data: orderItems = [] } = useOrderItems(order.id);
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -74,8 +77,22 @@ const OrderCard = ({ order, onClick }: OrderCardProps) => {
           
           <div className="flex items-center text-muted-foreground">
             <Package className="w-4 h-4 mr-2" />
-            <span>Serviço: {order.prosthesis_type}</span>
+            <span>Serviço: {orderItems.length > 0 
+              ? `${orderItems.length} produto(s)`
+              : order.prosthesis_type
+            }</span>
           </div>
+          
+          {orderItems.length > 0 && (
+            <div className="text-xs text-muted-foreground mt-1 ml-6">
+              {orderItems.slice(0, 2).map((item, index) => (
+                <div key={index}>• {item.product_name}</div>
+              ))}
+              {orderItems.length > 2 && (
+                <div>+ {orderItems.length - 2} outros produtos</div>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

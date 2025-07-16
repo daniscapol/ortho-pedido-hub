@@ -223,6 +223,59 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          material: string | null
+          observations: string | null
+          order_id: string
+          product_name: string
+          prosthesis_type: string
+          quantity: number
+          selected_teeth: string[]
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          material?: string | null
+          observations?: string | null
+          order_id: string
+          product_name: string
+          prosthesis_type: string
+          quantity?: number
+          selected_teeth?: string[]
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          material?: string | null
+          observations?: string | null
+          order_id?: string
+          product_name?: string
+          prosthesis_type?: string
+          quantity?: number
+          selected_teeth?: string[]
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_templates: {
         Row: {
           created_at: string | null
