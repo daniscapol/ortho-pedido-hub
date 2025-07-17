@@ -1,7 +1,7 @@
-import Dashboard from "./Dashboard";
+import Home from "./Home";
 
 const Index = () => {
-  return <Dashboard />;
+  return <Home />;
 };
 
 export default Index;

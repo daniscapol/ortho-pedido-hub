@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutGrid, Users, Building2, Calendar, Phone, Shield } from "lucide-react";
+import { Home, LayoutGrid, Users, Building2, Calendar, Phone, Shield } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 
 // Ícone customizado de dente
@@ -31,10 +31,16 @@ const Sidebar = () => {
 
   const menuItems = [
     {
-      icon: LayoutGrid,
-      label: "Pedidos",
+      icon: Home,
+      label: "Home",
       path: "/",
       active: location.pathname === "/"
+    },
+    {
+      icon: LayoutGrid,
+      label: "Pedidos",
+      path: "/pedidos",
+      active: location.pathname === "/pedidos"
     },
     {
       icon: Users,

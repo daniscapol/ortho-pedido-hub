@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Bell, User, LogOut, Settings, Plus, Download } from "lucide-react";
+import { Search, Bell, User, LogOut, Settings, Plus, Download, LayoutGrid } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -17,7 +17,7 @@ import { useState, useMemo } from "react";
 import * as XLSX from 'xlsx';
 import { Order } from "@/hooks/useOrders";
 
-const Dashboard = () => {
+const Home = () => {
   const { data: orders, isLoading } = useOrders();
   const { data: profile, isLoading: isProfileLoading } = useProfile();
   const { signOut } = useAuth();
@@ -175,11 +175,19 @@ const Dashboard = () => {
                   <div className="w-2 h-2 bg-primary-foreground rounded-sm"></div>
                 </div>
                 <h1 className="text-xl font-semibold text-foreground">
-                  Gerenciamento de Pedidos
+                  Dashboard - Visão Geral
                 </h1>
               </div>
               
               <div className="flex gap-2">
+                <Button 
+                  onClick={() => navigate('/pedidos')} 
+                  variant="outline" 
+                  className="gap-2"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                  Ver Todos os Pedidos
+                </Button>
                 <Button 
                   onClick={exportToExcel} 
                   variant="outline" 
@@ -314,4 +322,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Home;

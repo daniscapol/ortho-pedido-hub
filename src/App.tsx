@@ -8,6 +8,7 @@ import { useSupportChat } from "@/hooks/useSupportChat";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
+import Pedidos from "./pages/Pedidos";
 import NewOrder from "./pages/NewOrder";
 import NewOrderAdvanced from "./pages/NewOrderAdvanced";
 import OrderDetails from "./pages/OrderDetails";
@@ -44,18 +45,19 @@ const App = () => {
                 <ProtectedRoute>
                   <Routes>
                     <Route path="/" element={<Index />} />
+                    <Route path="/pedidos" element={<Pedidos />} />
                     <Route path="/novo-pedido" element={<NewOrder />} />
                     <Route path="/novo-pedido-avancado" element={<NewOrderAdvanced />} />
                     <Route path="/pedido/:id" element={<OrderDetails />} />
                     <Route path="/perfil" element={<Profile />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/suporte" element={<SupportAdmin />} />
-            <Route path="/dentistas" element={<Dentistas />} />
-            <Route path="/dentistas/:id" element={<DentistDetails />} />
-            <Route path="/pacientes" element={<Patients />} />
-            <Route path="/agenda" element={<Agenda />} />
-            <Route path="/filiais" element={<Filiais />} />
-            <Route path="/contato" element={<Contato />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/admin/suporte" element={<SupportAdmin />} />
+                    <Route path="/dentistas" element={<Dentistas />} />
+                    <Route path="/dentistas/:id" element={<DentistDetails />} />
+                    <Route path="/pacientes" element={<Patients />} />
+                    <Route path="/agenda" element={<Agenda />} />
+                    <Route path="/filiais" element={<Filiais />} />
+                    <Route path="/contato" element={<Contato />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ProtectedRoute>
