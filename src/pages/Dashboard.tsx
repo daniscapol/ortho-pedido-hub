@@ -19,7 +19,7 @@ import { Order } from "@/hooks/useOrders";
 
 const Dashboard = () => {
   const { data: orders, isLoading } = useOrders();
-  const { data: profile } = useProfile();
+  const { data: profile, isLoading: isProfileLoading } = useProfile();
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,8 +49,9 @@ const Dashboard = () => {
     
     let filtered = orders;
     
+    // Se ainda estiver carregando o perfil, não filtrar por enquanto (mostrar tudo para evitar flash)
     // Se não for admin, mostrar apenas pedidos do próprio usuário
-    if (profile?.role !== 'admin') {
+    if (!isProfileLoading && profile?.role !== 'admin') {
       filtered = orders.filter(order => order.user_id === profile?.id);
     }
     
@@ -65,7 +66,7 @@ const Dashboard = () => {
     }
     
     return filtered;
-  }, [orders, profile, searchQuery]);
+  }, [orders, profile, searchQuery, isProfileLoading]);
 
   const exportToExcel = () => {
     if (!filteredOrders.length) {
