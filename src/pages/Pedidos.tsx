@@ -313,79 +313,6 @@ const Pedidos = () => {
               </div>
             </div>
 
-            {/* KPIs Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Package className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total</p>
-                      <p className="text-2xl font-bold">{kpis.total}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-yellow-100 rounded-lg">
-                      <Clock className="h-6 w-6 text-yellow-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
-                      <p className="text-2xl font-bold">{kpis.pending}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <TrendingUp className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Produção</p>
-                      <p className="text-2xl font-bold">{kpis.production}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <CheckCircle className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Prontos</p>
-                      <p className="text-2xl font-bold">{kpis.ready}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <CheckSquare className="h-6 w-6 text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Entregues</p>
-                      <p className="text-2xl font-bold">{kpis.delivered}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
             {/* Filtros Avançados */}
             <Card className="mb-6">
               <CardHeader>
@@ -418,54 +345,62 @@ const Pedidos = () => {
                           size="sm"
                           onClick={() => applyQuickDateFilter(range)}
                         >
-                          {range === "all" ? "Todos" : 
-                           range === "today" ? "Hoje" :
-                           range === "week" ? "7 dias" :
-                           range === "month" ? "30 dias" : "90 dias"}
+                          {range === "all" && "Todos"}
+                          {range === "today" && "Hoje"}
+                          {range === "week" && "7 dias"}
+                          {range === "month" && "30 dias"}
+                          {range === "quarter" && "90 dias"}
                         </Button>
                       ))}
                     </div>
                   </div>
                   
-                  {/* Linha 2: Filtros de Período Custom */}
-                  <div className="flex flex-wrap gap-4">
+                  {/* Linha 2: Seletor de Data Customizado */}
+                  <div className="flex items-center gap-4">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
+                        <Button variant="outline" className="w-[300px] justify-start text-left font-normal">
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {dateRange?.from ? (
                             dateRange.to ? (
                               <>
-                                {format(dateRange.from, "dd/MM/yy", { locale: ptBR })} -{" "}
-                                {format(dateRange.to, "dd/MM/yy", { locale: ptBR })}
+                                {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                                {format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
                               </>
                             ) : (
-                              format(dateRange.from, "dd/MM/yy", { locale: ptBR })
+                              format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
                             )
                           ) : (
-                            <span>Período personalizado</span>
+                            <span>Selecionar período</span>
                           )}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
+                          initialFocus
                           mode="range"
+                          defaultMonth={dateRange?.from}
                           selected={dateRange}
-                          onSelect={(range) => {
-                            setDateRange(range);
-                            setQuickDateFilter("custom");
-                          }}
+                          onSelect={setDateRange}
                           numberOfMonths={2}
-                          className={cn("p-3 pointer-events-auto")}
+                          locale={ptBR}
                         />
                       </PopoverContent>
                     </Popover>
                     
-                    {(dateRange?.from || dateRange?.to) && (
-                      <Button 
-                        variant="outline" 
+                    {(searchQuery || statusFilter !== "all" || priorityFilter !== "all" || 
+                      dentistFilter !== "all" || prosthesisTypeFilter !== "all" || 
+                      materialFilter !== "all" || dateRange) && (
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => {
+                          setSearchQuery("");
+                          setStatusFilter("all");
+                          setPriorityFilter("all");
+                          setDentistFilter("all");
+                          setProsthesisTypeFilter("all");
+                          setMaterialFilter("all");
                           setDateRange(undefined);
                           setQuickDateFilter("all");
                         }}
@@ -568,6 +503,80 @@ const Pedidos = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* KPIs Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <Card>
+                <CardContent className="flex items-center p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Package className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total</p>
+                      <p className="text-2xl font-bold">{kpis.total}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="flex items-center p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <Clock className="h-6 w-6 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
+                      <p className="text-2xl font-bold">{kpis.pending}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="flex items-center p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <TrendingUp className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Produção</p>
+                      <p className="text-2xl font-bold">{kpis.production}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="flex items-center p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Prontos</p>
+                      <p className="text-2xl font-bold">{kpis.ready}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="flex items-center p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-gray-100 rounded-lg">
+                      <CheckSquare className="h-6 w-6 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Entregues</p>
+                      <p className="text-2xl font-bold">{kpis.delivered}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
 
             {/* Controles de Visualização e Ações */}
             <Card>
