@@ -52,15 +52,6 @@ const Pedidos = () => {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<{key: string; direction: "asc" | "desc"}>({key: "created_at", direction: "desc"});
   
-  // Auto-refresh
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Trigger refetch of orders data
-      window.location.reload();
-    }, 30000); // Refresh every 30 seconds
-    
-    return () => clearInterval(interval);
-  }, []);
 
   // Enable real-time notifications
   useRealtimeNotifications();
