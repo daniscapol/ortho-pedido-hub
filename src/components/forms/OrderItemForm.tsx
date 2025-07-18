@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, Edit } from "lucide-react";
 import Odontogram from "./Odontogram";
+import OdontogramSVGPro from "./OdontogramSVGPro";
 import type { CreateOrderItem } from "@/hooks/useOrderItems";
 
 interface OrderItemFormProps {
@@ -286,12 +287,22 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
             </div>
 
             {showOdontogram && (
-              <div className="space-y-2">
-                <Label>Selecionar Dentes</Label>
-                <Odontogram 
-                  onToothSelect={(teeth) => setCurrentItem(prev => ({ ...prev, selected_teeth: teeth }))}
-                  selectedTeeth={currentItem.selected_teeth}
-                />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Selecionar Dentes</Label>
+                  
+                  {/* Botões no topo */}
+                  <Odontogram 
+                    onToothSelect={(teeth) => setCurrentItem(prev => ({ ...prev, selected_teeth: teeth }))}
+                    selectedTeeth={currentItem.selected_teeth}
+                  />
+                  
+                  {/* Profissional embaixo */}
+                  <OdontogramSVGPro 
+                    onToothSelect={(teeth) => setCurrentItem(prev => ({ ...prev, selected_teeth: teeth }))}
+                    selectedTeeth={currentItem.selected_teeth}
+                  />
+                </div>
               </div>
             )}
 
