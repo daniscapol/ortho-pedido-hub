@@ -46,6 +46,7 @@ const Pedidos = () => {
   const [materialFilter, setMaterialFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [quickDateFilter, setQuickDateFilter] = useState<string>("all");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   
   // Estados de visualização
   const [viewMode, setViewMode] = useState<"table" | "grid" | "kanban">("table");
@@ -313,183 +314,165 @@ const Pedidos = () => {
               </div>
             </div>
 
-            {/* Filtros Avançados */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Filter className="w-5 h-5" />
-                  Filtros Avançados
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Linha 1: Busca e Filtros Rápidos de Data */}
-                  <div className="flex flex-wrap gap-4">
-                    <div className="flex-1 min-w-[200px]">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                        <Input
-                          placeholder="Buscar por paciente, dentista ou ID..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-10"
-                        />
+            {/* Filtros */}
+            <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-muted/30 rounded-lg">
+              {/* Busca */}
+              <div className="flex-1 min-w-[280px] relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Buscar..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Filtros básicos */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="producao">Produção</SelectItem>
+                  <SelectItem value="pronto">Pronto</SelectItem>
+                  <SelectItem value="entregue">Entregue</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="baixa">Baixa</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="alta">Alta</SelectItem>
+                  <SelectItem value="urgente">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Botão para filtros avançados */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="gap-2"
+              >
+                <Filter className="w-4 h-4" />
+                Mais filtros
+              </Button>
+
+              {/* Limpar filtros */}
+              {(searchQuery || statusFilter !== "all" || priorityFilter !== "all" || 
+                dentistFilter !== "all" || prosthesisTypeFilter !== "all" || 
+                materialFilter !== "all" || dateRange) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                    setPriorityFilter("all");
+                    setDentistFilter("all");
+                    setProsthesisTypeFilter("all");
+                    setMaterialFilter("all");
+                    setDateRange(undefined);
+                    setQuickDateFilter("all");
+                  }}
+                  className="gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Limpar
+                </Button>
+              )}
+            </div>
+
+            {/* Filtros avançados colapsáveis */}
+            {showAdvancedFilters && (
+              <Card className="mb-6">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {/* Data */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex gap-2">
+                        {["all", "today", "week", "month"].map((range) => (
+                          <Button
+                            key={range}
+                            variant={quickDateFilter === range ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => applyQuickDateFilter(range)}
+                          >
+                            {range === "all" && "Todos"}
+                            {range === "today" && "Hoje"}
+                            {range === "week" && "7 dias"}
+                            {range === "month" && "30 dias"}
+                          </Button>
+                        ))}
                       </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      {["all", "today", "week", "month", "quarter"].map((range) => (
-                        <Button
-                          key={range}
-                          variant={quickDateFilter === range ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => applyQuickDateFilter(range)}
-                        >
-                          {range === "all" && "Todos"}
-                          {range === "today" && "Hoje"}
-                          {range === "week" && "7 dias"}
-                          {range === "month" && "30 dias"}
-                          {range === "quarter" && "90 dias"}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Linha 2: Seletor de Data Customizado */}
-                  <div className="flex items-center gap-4">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-[300px] justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {dateRange?.from ? (
-                            dateRange.to ? (
-                              <>
-                                {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                                {format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
-                              </>
+                      
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-[250px] justify-start text-left font-normal">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateRange?.from ? (
+                              dateRange.to ? (
+                                <>
+                                  {format(dateRange.from, "dd/MM", { locale: ptBR })} - {format(dateRange.to, "dd/MM", { locale: ptBR })}
+                                </>
+                              ) : (
+                                format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
+                              )
                             ) : (
-                              format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
-                            )
-                          ) : (
-                            <span>Selecionar período</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          initialFocus
-                          mode="range"
-                          defaultMonth={dateRange?.from}
-                          selected={dateRange}
-                          onSelect={setDateRange}
-                          numberOfMonths={2}
-                          locale={ptBR}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                              <span>Período personalizado</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={dateRange?.from}
+                            selected={dateRange}
+                            onSelect={setDateRange}
+                            numberOfMonths={2}
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     
-                    {(searchQuery || statusFilter !== "all" || priorityFilter !== "all" || 
-                      dentistFilter !== "all" || prosthesisTypeFilter !== "all" || 
-                      materialFilter !== "all" || dateRange) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSearchQuery("");
-                          setStatusFilter("all");
-                          setPriorityFilter("all");
-                          setDentistFilter("all");
-                          setProsthesisTypeFilter("all");
-                          setMaterialFilter("all");
-                          setDateRange(undefined);
-                          setQuickDateFilter("all");
-                        }}
-                      >
-                        <X className="w-4 h-4 mr-1" />
-                        Limpar
-                      </Button>
-                    )}
-                  </div>
-                  
-                  {/* Linha 3: Filtros por Categorias */}
-                  <div className="flex flex-wrap gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        📊 Status do Pedido
-                      </label>
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[160px]">
-                          <SelectValue placeholder="Selecionar status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos os Status</SelectItem>
-                          <SelectItem value="pending">⏳ Pendente</SelectItem>
-                          <SelectItem value="producao">🔄 Em Produção</SelectItem>
-                          <SelectItem value="pronto">✅ Pronto</SelectItem>
-                          <SelectItem value="entregue">📦 Entregue</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        🚨 Prioridade
-                      </label>
-                      <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                        <SelectTrigger className="w-[160px]">
-                          <SelectValue placeholder="Selecionar prioridade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todas</SelectItem>
-                          <SelectItem value="baixa">🔵 Baixa</SelectItem>
-                          <SelectItem value="normal">🟢 Normal</SelectItem>
-                          <SelectItem value="alta">🟡 Alta</SelectItem>
-                          <SelectItem value="urgente">🔴 Urgente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        👨‍⚕️ Dentista
-                      </label>
+                    {/* Outros filtros */}
+                    <div className="flex flex-wrap gap-3">
                       <Select value={dentistFilter} onValueChange={setDentistFilter}>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Selecionar dentista" />
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="Dentista" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Todos os Dentistas</SelectItem>
+                          <SelectItem value="all">Todos</SelectItem>
                           {uniqueDentists.map((dentist) => (
                             <SelectItem key={dentist} value={dentist}>{dentist}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        🦷 Tipo de Prótese
-                      </label>
                       <Select value={prosthesisTypeFilter} onValueChange={setProsthesisTypeFilter}>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Selecionar tipo" />
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="Tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Todos os Tipos</SelectItem>
+                          <SelectItem value="all">Todos</SelectItem>
                           {uniqueProsthesisTypes.map((type) => (
                             <SelectItem key={type} value={type}>{type}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        🧪 Material
-                      </label>
                       <Select value={materialFilter} onValueChange={setMaterialFilter}>
-                        <SelectTrigger className="w-[160px]">
-                          <SelectValue placeholder="Selecionar material" />
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue placeholder="Material" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">Todos</SelectItem>
@@ -500,9 +483,9 @@ const Pedidos = () => {
                       </Select>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* KPIs Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
