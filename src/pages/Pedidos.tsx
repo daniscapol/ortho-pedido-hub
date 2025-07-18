@@ -478,67 +478,92 @@ const Pedidos = () => {
                   
                   {/* Linha 3: Filtros por Categorias */}
                   <div className="flex flex-wrap gap-4">
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os Status</SelectItem>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="producao">Em Produção</SelectItem>
-                        <SelectItem value="pronto">Pronto</SelectItem>
-                        <SelectItem value="entregue">Entregue</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        📊 Status do Pedido
+                      </label>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="Selecionar status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os Status</SelectItem>
+                          <SelectItem value="pending">⏳ Pendente</SelectItem>
+                          <SelectItem value="producao">🔄 Em Produção</SelectItem>
+                          <SelectItem value="pronto">✅ Pronto</SelectItem>
+                          <SelectItem value="entregue">📦 Entregue</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="Prioridade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas</SelectItem>
-                        <SelectItem value="baixa">Baixa</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="alta">Alta</SelectItem>
-                        <SelectItem value="urgente">Urgente</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        🚨 Prioridade
+                      </label>
+                      <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="Selecionar prioridade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas</SelectItem>
+                          <SelectItem value="baixa">🔵 Baixa</SelectItem>
+                          <SelectItem value="normal">🟢 Normal</SelectItem>
+                          <SelectItem value="alta">🟡 Alta</SelectItem>
+                          <SelectItem value="urgente">🔴 Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <Select value={dentistFilter} onValueChange={setDentistFilter}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Dentista" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os Dentistas</SelectItem>
-                        {uniqueDentists.map((dentist) => (
-                          <SelectItem key={dentist} value={dentist}>{dentist}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        👨‍⚕️ Dentista
+                      </label>
+                      <Select value={dentistFilter} onValueChange={setDentistFilter}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Selecionar dentista" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os Dentistas</SelectItem>
+                          {uniqueDentists.map((dentist) => (
+                            <SelectItem key={dentist} value={dentist}>{dentist}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <Select value={prosthesisTypeFilter} onValueChange={setProsthesisTypeFilter}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Tipo de Prótese" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os Tipos</SelectItem>
-                        {uniqueProsthesisTypes.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        🦷 Tipo de Prótese
+                      </label>
+                      <Select value={prosthesisTypeFilter} onValueChange={setProsthesisTypeFilter}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Selecionar tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os Tipos</SelectItem>
+                          {uniqueProsthesisTypes.map((type) => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <Select value={materialFilter} onValueChange={setMaterialFilter}>
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="Material" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        {uniqueMaterials.map((material) => (
-                          <SelectItem key={material} value={material}>{material}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        🧪 Material
+                      </label>
+                      <Select value={materialFilter} onValueChange={setMaterialFilter}>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="Selecionar material" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          {uniqueMaterials.map((material) => (
+                            <SelectItem key={material} value={material}>{material}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               </CardContent>
