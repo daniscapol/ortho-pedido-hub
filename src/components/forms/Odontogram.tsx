@@ -42,13 +42,12 @@ const Odontogram = ({
     return (
       <button
         onClick={() => toggleTooth(number)}
-        className={`w-10 h-12 text-xs border border-border rounded transition-colors flex flex-col items-center justify-center gap-0.5 ${
+        className={`w-10 h-10 text-xs border border-border rounded transition-colors flex items-center justify-center ${
           isSelected 
             ? "bg-primary text-primary-foreground" 
             : "bg-card hover:bg-muted text-foreground"
         }`}
       >
-        <div className="text-sm">🦷</div>
         <div>{number}</div>
       </button>
     );
