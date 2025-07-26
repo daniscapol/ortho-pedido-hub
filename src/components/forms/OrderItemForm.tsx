@@ -10,6 +10,7 @@ import { X, Plus, Edit } from "lucide-react";
 import Odontogram from "./Odontogram";
 import OdontogramSVGPro from "./OdontogramSVGPro";
 import type { CreateOrderItem } from "@/hooks/useOrderItems";
+import { useActiveProducts } from "@/hooks/useProducts";
 
 interface OrderItemFormProps {
   onAddItem: (item: Omit<CreateOrderItem, 'order_id'>) => void;
@@ -22,6 +23,8 @@ interface OrderItemFormProps {
 const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontogram = true }: OrderItemFormProps) => {
   const formRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
+  const { data: products = [] } = useActiveProducts();
+  
   const [currentItem, setCurrentItem] = useState<Omit<CreateOrderItem, 'order_id'>>({
     product_name: "",
     prosthesis_type: "",
@@ -34,6 +37,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
 
   const [showItemForm, setShowItemForm] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<string>("");
 
   const handleAddItem = () => {
     if (!currentItem.product_name || !currentItem.prosthesis_type || currentItem.selected_teeth.length === 0) {
@@ -99,28 +103,33 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
     });
     setEditingIndex(null);
     setShowItemForm(false);
+    setSelectedProduct("");
   };
 
-  const prosthesisTypes = [
-    { value: "coroa-ceramica", label: "Coroa Cerâmica" },
-    { value: "protese-total", label: "Prótese Total" },
-    { value: "protese-parcial", label: "Prótese Parcial" },
-    { value: "implante", label: "Implante" },
-    { value: "ponte-fixa", label: "Ponte Fixa" },
-    { value: "protese-flexivel", label: "Prótese Flexível" },
-    { value: "aparelho-ortodontico", label: "Aparelho Ortodôntico" },
-    { value: "placa-oclusal", label: "Placa Oclusal" }
-  ];
+  const handleProductChange = (productId: string) => {
+    setSelectedProduct(productId);
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setCurrentItem(prev => ({
+        ...prev,
+        product_name: product.nome_produto,
+        prosthesis_type: product.categoria.toLowerCase(),
+        material: product.material,
+        color: product.necessita_cor ? prev.color : "",
+      }));
+    }
+  };
 
-  const materials = [
-    { value: "ceramica", label: "Cerâmica" },
-    { value: "porcelana", label: "Porcelana" },
-    { value: "resina", label: "Resina" },
-    { value: "metal-ceramica", label: "Metal-Cerâmica" },
-    { value: "zirconia", label: "Zircônia" },
-    { value: "titanio", label: "Titânio" },
-    { value: "acrilico", label: "Acrílico" }
-  ];
+  // Agrupar produtos por categoria
+  const groupedProducts = products.reduce((acc, product) => {
+    if (!acc[product.categoria]) {
+      acc[product.categoria] = [];
+    }
+    acc[product.categoria].push(product);
+    return acc;
+  }, {} as Record<string, typeof products>);
+
+  const selectedProductData = products.find(p => p.id === selectedProduct);
 
   return (
     <div className="space-y-6" ref={topRef}>
@@ -135,12 +144,12 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
               {items.map((item, index) => (
                 <div key={index} className="border border-border rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{item.product_name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {prosthesisTypes.find(p => p.value === item.prosthesis_type)?.label}
-                      </p>
-                    </div>
+                     <div className="flex-1">
+                       <h4 className="font-medium">{item.product_name}</h4>
+                       <p className="text-sm text-muted-foreground">
+                         {item.prosthesis_type}
+                       </p>
+                     </div>
                     <div className="flex gap-2">
                       {onEditItem && (
                         <Button
@@ -220,71 +229,83 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
           <CardHeader>
             <CardTitle>{editingIndex !== null ? "Editar Produto/Prótese" : "Novo Produto/Prótese"}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="product_name">Nome do Produto</Label>
-                <Input
-                  id="product_name"
-                  value={currentItem.product_name}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, product_name: e.target.value }))}
-                  placeholder="Ex: Coroa do dente 11"
-                />
-              </div>
+           <CardContent className="space-y-4">
+             <div className="space-y-4">
+               <div className="space-y-2">
+                 <Label htmlFor="product_select">Selecionar Produto</Label>
+                 <Select value={selectedProduct} onValueChange={handleProductChange}>
+                   <SelectTrigger>
+                     <SelectValue placeholder="Selecione um produto do catálogo" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {Object.entries(groupedProducts).map(([categoria, categoryProducts]) => (
+                       <div key={categoria}>
+                         <div className="font-semibold text-sm text-muted-foreground px-2 py-1">
+                           {categoria}
+                         </div>
+                         {categoryProducts.map((product) => (
+                           <SelectItem key={product.id} value={product.id}>
+                             <div className="flex flex-col">
+                               <span>{product.nome_produto}</span>
+                               <span className="text-xs text-muted-foreground">
+                                 {product.codigo} - {product.material}
+                                 {product.tipo_resina && ` (${product.tipo_resina})`}
+                               </span>
+                             </div>
+                           </SelectItem>
+                         ))}
+                       </div>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="prosthesis_type">Tipo de Prótese</Label>
-                <Select value={currentItem.prosthesis_type} onValueChange={(value) => setCurrentItem(prev => ({ ...prev, prosthesis_type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {prosthesisTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+               {selectedProductData && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <Label htmlFor="product_name">Nome do Produto</Label>
+                     <Input
+                       id="product_name"
+                       value={currentItem.product_name}
+                       onChange={(e) => setCurrentItem(prev => ({ ...prev, product_name: e.target.value }))}
+                       placeholder="Personalize o nome se necessário"
+                     />
+                   </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="material">Material</Label>
-                <Select value={currentItem.material} onValueChange={(value) => setCurrentItem(prev => ({ ...prev, material: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o material" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {materials.map((material) => (
-                      <SelectItem key={material.value} value={material.value}>
-                        {material.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                   {selectedProductData.necessita_cor && (
+                     <div className="space-y-2">
+                       <Label htmlFor="color">Cor/Tonalidade *</Label>
+                       <Input
+                         id="color"
+                         value={currentItem.color}
+                         onChange={(e) => setCurrentItem(prev => ({ ...prev, color: e.target.value }))}
+                         placeholder="Ex: A2, B1, etc."
+                         required
+                       />
+                     </div>
+                   )}
 
-              <div className="space-y-2">
-                <Label htmlFor="color">Cor/Tonalidade</Label>
-                <Input
-                  id="color"
-                  value={currentItem.color}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, color: e.target.value }))}
-                  placeholder="Ex: A2, B1, etc."
-                />
-              </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="quantity">Quantidade</Label>
+                     <Input
+                       id="quantity"
+                       type="number"
+                       min="1"
+                       value={currentItem.quantity}
+                       onChange={(e) => setCurrentItem(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
+                     />
+                   </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantidade</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  value={currentItem.quantity}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
-                />
-              </div>
-            </div>
+                   {selectedProductData.necessita_implante && (
+                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                       <p className="text-sm text-blue-800">
+                         ⚠️ Este produto requer informações sobre implante
+                       </p>
+                     </div>
+                   )}
+                 </div>
+               )}
+             </div>
 
             {showOdontogram && (
               <div className="space-y-4">
@@ -317,20 +338,25 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
               />
             </div>
 
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleAddItem}
-                disabled={!currentItem.product_name || !currentItem.prosthesis_type || currentItem.selected_teeth.length === 0}
-              >
-                {editingIndex !== null ? "Salvar Alterações" : "Adicionar Produto"}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleCancelEdit}
-              >
-                Cancelar
-              </Button>
-            </div>
+             <div className="flex gap-2">
+               <Button 
+                 onClick={handleAddItem}
+                 disabled={
+                   !selectedProduct || 
+                   !currentItem.product_name || 
+                   currentItem.selected_teeth.length === 0 ||
+                   (selectedProductData?.necessita_cor && !currentItem.color)
+                 }
+               >
+                 {editingIndex !== null ? "Salvar Alterações" : "Adicionar Produto"}
+               </Button>
+               <Button 
+                 variant="outline" 
+                 onClick={handleCancelEdit}
+               >
+                 Cancelar
+               </Button>
+             </div>
           </CardContent>
         </Card>
       )}

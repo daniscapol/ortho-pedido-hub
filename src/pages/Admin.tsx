@@ -21,6 +21,7 @@ import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
+import { ProductsManager } from "@/components/admin/ProductsManager";
 
 interface User {
   id: string;
@@ -404,10 +405,20 @@ const Admin = () => {
             <BarChart3 className="h-4 w-4" />
             Analytics
           </Button>
+          <Button 
+            variant={activeTab === "products" ? "default" : "outline"}
+            onClick={() => setActiveTab("products")}
+            className="flex items-center gap-2"
+          >
+            <Search className="h-4 w-4" />
+            Produtos
+          </Button>
         </div>
 
         {activeTab === "analytics" ? (
           <AnalyticsSection />
+        ) : activeTab === "products" ? (
+          <ProductsManager />
         ) : (
           <div className="space-y-6">
             {/* Estatísticas dos Pedidos */}

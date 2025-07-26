@@ -503,6 +503,51 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          ativo: boolean
+          categoria: string
+          codigo: string
+          created_at: string
+          id: string
+          material: string
+          necessita_cor: boolean
+          necessita_implante: boolean
+          nome_produto: string
+          subcategoria: string
+          tipo_resina: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria: string
+          codigo: string
+          created_at?: string
+          id?: string
+          material: string
+          necessita_cor?: boolean
+          necessita_implante?: boolean
+          nome_produto: string
+          subcategoria: string
+          tipo_resina?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string
+          codigo?: string
+          created_at?: string
+          id?: string
+          material?: string
+          necessita_cor?: boolean
+          necessita_implante?: boolean
+          nome_produto?: string
+          subcategoria?: string
+          tipo_resina?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
