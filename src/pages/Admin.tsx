@@ -14,6 +14,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
@@ -369,23 +371,26 @@ const Admin = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Sidebar />
-      
-      <div className="flex-1 flex flex-col">
-        <Header />
+    <SidebarProvider>
+      <div className="min-h-screen bg-background flex w-full">
+        <AdminSidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <header className="h-12 flex items-center border-b px-4">
+            <SidebarTrigger className="mr-4" />
+            <h1 className="text-lg font-semibold">Painel Administrativo</h1>
+          </header>
         
         <main className="flex-1 p-6">
           <div className="container mx-auto max-w-6xl">
-            <div className="flex items-center gap-4 mb-8">
-              <Button variant="outline" onClick={() => navigate("/")}>
-                ← Voltar
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">Painel Administrativo</h1>
-                <p className="text-muted-foreground">Gerencie usuários e visualize estatísticas do sistema</p>
-              </div>
-            </div>
+             <div className="flex items-center gap-4 mb-8">
+               <Button variant="outline" onClick={() => navigate("/")}>
+                 ← Voltar
+               </Button>
+               <div>
+                 <p className="text-muted-foreground">Gerencie usuários e visualize estatísticas do sistema</p>
+               </div>
+             </div>
 
         {/* Navegação por Abas */}
         <div className="flex gap-2 mb-6">
@@ -854,8 +859,9 @@ const Admin = () => {
         )}
           </div>
         </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
