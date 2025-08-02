@@ -719,17 +719,7 @@ export type Database = {
       }
     }
     Views: {
-      order_analytics: {
-        Row: {
-          avg_completion_hours: number | null
-          completed_orders: number | null
-          date: string | null
-          in_production: number | null
-          pending_orders: number | null
-          total_orders: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       cleanup_typing_indicators: {
@@ -753,6 +743,17 @@ export type Database = {
       get_or_create_conversation: {
         Args: { p_dentist_id: string; p_dentist_name: string }
         Returns: string
+      }
+      get_order_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          date: string
+          total_orders: number
+          completed_orders: number
+          in_production: number
+          pending_orders: number
+          avg_completion_hours: number
+        }[]
       }
       get_user_role: {
         Args: { user_id: string }
