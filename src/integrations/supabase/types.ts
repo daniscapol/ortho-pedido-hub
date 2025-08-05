@@ -184,29 +184,49 @@ export type Database = {
       filiais: {
         Row: {
           ativo: boolean
+          clinica_id: string | null
+          cnpj: string | null
           created_at: string
+          email: string | null
           endereco_entrega: string
           id: string
           nome: string
+          telefone: string | null
           updated_at: string
         }
         Insert: {
           ativo?: boolean
+          clinica_id?: string | null
+          cnpj?: string | null
           created_at?: string
+          email?: string | null
           endereco_entrega: string
           id?: string
           nome: string
+          telefone?: string | null
           updated_at?: string
         }
         Update: {
           ativo?: boolean
+          clinica_id?: string | null
+          cnpj?: string | null
           created_at?: string
+          email?: string | null
           endereco_entrega?: string
           id?: string
           nome?: string
+          telefone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "filiais_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       image_annotations: {
         Row: {
@@ -500,6 +520,7 @@ export type Database = {
           created_at: string
           dentist_id: string | null
           email: string
+          filial_id: string | null
           id: string
           name: string
           phone: string
@@ -510,6 +531,7 @@ export type Database = {
           created_at?: string
           dentist_id?: string | null
           email: string
+          filial_id?: string | null
           id?: string
           name: string
           phone: string
@@ -520,6 +542,7 @@ export type Database = {
           created_at?: string
           dentist_id?: string | null
           email?: string
+          filial_id?: string | null
           id?: string
           name?: string
           phone?: string
@@ -531,6 +554,13 @@ export type Database = {
             columns: ["dentist_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patients_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
             referencedColumns: ["id"]
           },
         ]
@@ -697,30 +727,76 @@ export type Database = {
       }
       profiles: {
         Row: {
+          clinica_id: string | null
           created_at: string
+          created_by: string | null
+          documento: string | null
           email: string | null
+          filial_id: string | null
           id: string
           name: string | null
           role: Database["public"]["Enums"]["user_role"]
+          role_extended:
+            | Database["public"]["Enums"]["user_role_extended"]
+            | null
+          telefone: string | null
           updated_at: string
         }
         Insert: {
+          clinica_id?: string | null
           created_at?: string
+          created_by?: string | null
+          documento?: string | null
           email?: string | null
+          filial_id?: string | null
           id: string
           name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          role_extended?:
+            | Database["public"]["Enums"]["user_role_extended"]
+            | null
+          telefone?: string | null
           updated_at?: string
         }
         Update: {
+          clinica_id?: string | null
           created_at?: string
+          created_by?: string | null
+          documento?: string | null
           email?: string | null
+          filial_id?: string | null
           id?: string
           name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          role_extended?:
+            | Database["public"]["Enums"]["user_role_extended"]
+            | null
+          telefone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_chat_messages: {
         Row: {
