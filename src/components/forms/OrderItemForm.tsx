@@ -281,8 +281,9 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
                         <Input
                           id="product_name"
                           value={currentItem.product_name}
-                          onChange={(e) => setCurrentItem(prev => ({ ...prev, product_name: e.target.value }))}
-                          placeholder="Personalize o nome se necessário"
+                          disabled
+                          className="bg-muted"
+                          placeholder="Selecione um produto acima"
                         />
                       </div>
 
