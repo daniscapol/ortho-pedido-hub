@@ -179,6 +179,57 @@ export const useTiposProtese = () => {
   });
 };
 
+export const useCreateTipoProtese = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (tipo: CreateTipoProtese) => {
+      const { data, error } = await supabase
+        .from('tipos_protese')
+        .insert(tipo)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as TipoProtese;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tipos_protese'] });
+      toast({
+        title: "Tipo criado",
+        description: "Tipo de prótese criado com sucesso",
+      });
+    },
+  });
+};
+
+export const useUpdateTipoProtese = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<TipoProtese> & { id: number }) => {
+      const { data, error } = await supabase
+        .from('tipos_protese')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as TipoProtese;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tipos_protese'] });
+      toast({
+        title: "Tipo atualizado",
+        description: "Tipo de prótese atualizado com sucesso",
+      });
+    },
+  });
+};
+
 // Hooks for materiais
 export const useMateriais = () => {
   return useQuery({
@@ -196,6 +247,57 @@ export const useMateriais = () => {
   });
 };
 
+export const useCreateMaterial = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (material: CreateMaterial) => {
+      const { data, error } = await supabase
+        .from('materiais')
+        .insert(material)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Material;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['materiais'] });
+      toast({
+        title: "Material criado",
+        description: "Material criado com sucesso",
+      });
+    },
+  });
+};
+
+export const useUpdateMaterial = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Material> & { id: number }) => {
+      const { data, error } = await supabase
+        .from('materiais')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Material;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['materiais'] });
+      toast({
+        title: "Material atualizado",
+        description: "Material atualizado com sucesso",
+      });
+    },
+  });
+};
+
 // Hooks for cores
 export const useCores = () => {
   return useQuery({
@@ -209,6 +311,57 @@ export const useCores = () => {
 
       if (error) throw error;
       return data as Cor[];
+    },
+  });
+};
+
+export const useCreateCor = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (cor: CreateCor) => {
+      const { data, error } = await supabase
+        .from('cores')
+        .insert(cor)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Cor;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cores'] });
+      toast({
+        title: "Cor criada",
+        description: "Cor criada com sucesso",
+      });
+    },
+  });
+};
+
+export const useUpdateCor = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Cor> & { id: number }) => {
+      const { data, error } = await supabase
+        .from('cores')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Cor;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cores'] });
+      toast({
+        title: "Cor atualizada",
+        description: "Cor atualizada com sucesso",
+      });
     },
   });
 };

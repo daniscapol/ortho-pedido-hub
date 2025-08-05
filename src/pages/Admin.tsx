@@ -19,9 +19,13 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail } from "lucide-react";
+import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { ProductsManager } from "@/components/admin/ProductsManager";
+import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
+import { MateriaisManager } from "@/components/admin/MateriaisManager";
+import { CoresManager } from "@/components/admin/CoresManager";
+import { CompatibilidadeManager } from "@/components/admin/CompatibilidadeManager";
 
 interface User {
   id: string;
@@ -388,7 +392,7 @@ const Admin = () => {
             </div>
 
         {/* Navegação por Abas */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
           <Button 
             variant={activeTab === "overview" ? "default" : "outline"}
             onClick={() => setActiveTab("overview")}
@@ -410,8 +414,40 @@ const Admin = () => {
             onClick={() => setActiveTab("products")}
             className="flex items-center gap-2"
           >
-            <Search className="h-4 w-4" />
+            <Package className="h-4 w-4" />
             Produtos
+          </Button>
+          <Button 
+            variant={activeTab === "tipos" ? "default" : "outline"}
+            onClick={() => setActiveTab("tipos")}
+            className="flex items-center gap-2"
+          >
+            <Layers className="h-4 w-4" />
+            Tipos de Prótese
+          </Button>
+          <Button 
+            variant={activeTab === "materiais" ? "default" : "outline"}
+            onClick={() => setActiveTab("materiais")}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Materiais
+          </Button>
+          <Button 
+            variant={activeTab === "cores" ? "default" : "outline"}
+            onClick={() => setActiveTab("cores")}
+            className="flex items-center gap-2"
+          >
+            <Palette className="h-4 w-4" />
+            Cores
+          </Button>
+          <Button 
+            variant={activeTab === "compatibilidades" ? "default" : "outline"}
+            onClick={() => setActiveTab("compatibilidades")}
+            className="flex items-center gap-2"
+          >
+            <Link className="h-4 w-4" />
+            Compatibilidades
           </Button>
         </div>
 
@@ -419,6 +455,14 @@ const Admin = () => {
           <AnalyticsSection />
         ) : activeTab === "products" ? (
           <ProductsManager />
+        ) : activeTab === "tipos" ? (
+          <TiposProteseManager />
+        ) : activeTab === "materiais" ? (
+          <MateriaisManager />
+        ) : activeTab === "cores" ? (
+          <CoresManager />
+        ) : activeTab === "compatibilidades" ? (
+          <CompatibilidadeManager />
         ) : (
           <div className="space-y-6">
             {/* Estatísticas dos Pedidos */}
