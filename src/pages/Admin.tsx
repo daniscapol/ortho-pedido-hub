@@ -283,7 +283,7 @@ const Admin = () => {
     );
   }
 
-  if (profile?.role !== 'admin') {
+  if (profile?.role_extended !== 'admin_master') {
     return (
       <div className="min-h-screen bg-background flex">
         <Sidebar />
@@ -295,7 +295,7 @@ const Admin = () => {
             <div className="container mx-auto text-center">
               <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
               <p className="text-muted-foreground mb-4">
-                Você não tem permissão para acessar esta página.
+                Apenas administradores master podem acessar esta página.
               </p>
               <Button onClick={() => navigate("/")}>
                 Voltar ao Dashboard
