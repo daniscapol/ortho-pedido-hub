@@ -88,6 +88,42 @@ export type Database = {
           },
         ]
       }
+      clinicas: {
+        Row: {
+          ativo: boolean
+          cnpj: string | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       compatibilidade_produto_material_cor: {
         Row: {
           cores_compativeis: string
@@ -918,6 +954,11 @@ export type Database = {
     }
     Enums: {
       user_role: "admin" | "dentist"
+      user_role_extended:
+        | "admin_master"
+        | "admin_clinica"
+        | "admin_filial"
+        | "dentist"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1046,6 +1087,12 @@ export const Constants = {
   public: {
     Enums: {
       user_role: ["admin", "dentist"],
+      user_role_extended: [
+        "admin_master",
+        "admin_clinica",
+        "admin_filial",
+        "dentist",
+      ],
     },
   },
 } as const
