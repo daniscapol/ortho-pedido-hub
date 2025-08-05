@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useProducts, useDeleteProduct, Product } from "@/hooks/useProducts";
+import { useProducts, useDeleteProduct, type Product } from "@/hooks/useProducts";
 import { ProductForm } from "./ProductForm";
 
 export const ProductsManager = () => {
@@ -20,7 +20,6 @@ export const ProductsManager = () => {
 
   const filteredProducts = products.filter(product =>
     product.nome_produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.categoria.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -68,7 +67,7 @@ export const ProductsManager = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Buscar por nome, código ou categoria..."
+                placeholder="Buscar por nome ou categoria..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -80,13 +79,9 @@ export const ProductsManager = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
+                  <TableHead>ID</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Categoria</TableHead>
-                  <TableHead>Subcategoria</TableHead>
-                  <TableHead>Material</TableHead>
-                  <TableHead>Cor</TableHead>
-                  <TableHead>Implante</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -94,31 +89,13 @@ export const ProductsManager = () => {
               <TableBody>
                 {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell className="font-mono text-sm">{product.codigo}</TableCell>
+                    <TableCell>{product.id}</TableCell>
                     <TableCell className="font-medium">{product.nome_produto}</TableCell>
                     <TableCell>{product.categoria}</TableCell>
-                    <TableCell>{product.subcategoria}</TableCell>
-                    <TableCell>{product.material}</TableCell>
                     <TableCell>
-                      {product.necessita_cor ? (
-                        <Badge variant="secondary">Sim</Badge>
-                      ) : (
-                        <Badge variant="outline">Não</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {product.necessita_implante ? (
-                        <Badge variant="secondary">Sim</Badge>
-                      ) : (
-                        <Badge variant="outline">Não</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {product.ativo ? (
-                        <Badge variant="default">Ativo</Badge>
-                      ) : (
-                        <Badge variant="destructive">Inativo</Badge>
-                      )}
+                      <Badge variant={product.ativo ? "default" : "secondary"}>
+                        {product.ativo ? "Ativo" : "Inativo"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -134,6 +111,7 @@ export const ProductsManager = () => {
                           size="sm"
                           onClick={() => handleDelete(product)}
                           disabled={deleteProduct.isPending}
+                          className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

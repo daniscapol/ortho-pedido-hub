@@ -108,14 +108,14 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
 
   const handleProductChange = (productId: string) => {
     setSelectedProduct(productId);
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.id === Number(productId));
     if (product) {
       setCurrentItem(prev => ({
         ...prev,
         product_name: product.nome_produto,
         prosthesis_type: product.categoria.toLowerCase(),
-        material: product.material,
-        color: product.necessita_cor ? prev.color : "",
+        material: "",
+        color: "",
       }));
     }
   };
@@ -129,7 +129,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
     return acc;
   }, {} as Record<string, typeof products>);
 
-  const selectedProductData = products.find(p => p.id === selectedProduct);
+  const selectedProductData = products.find(p => p.id === Number(selectedProduct));
 
   return (
     <div className="space-y-6" ref={topRef}>
@@ -243,17 +243,13 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
                          <div className="font-semibold text-sm text-muted-foreground px-2 py-1">
                            {categoria}
                          </div>
-                         {categoryProducts.map((product) => (
-                           <SelectItem key={product.id} value={product.id}>
-                             <div className="flex flex-col">
-                               <span>{product.nome_produto}</span>
-                               <span className="text-xs text-muted-foreground">
-                                 {product.codigo} - {product.material}
-                                 {product.tipo_resina && ` (${product.tipo_resina})`}
-                               </span>
-                             </div>
-                           </SelectItem>
-                         ))}
+                          {categoryProducts.map((product) => (
+                            <SelectItem key={product.id} value={product.id.toString()}>
+                              <div className="flex flex-col">
+                                <span>{product.nome_produto}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
                        </div>
                      ))}
                    </SelectContent>
@@ -272,18 +268,15 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
                      />
                    </div>
 
-                   {selectedProductData.necessita_cor && (
-                     <div className="space-y-2">
-                       <Label htmlFor="color">Cor/Tonalidade *</Label>
-                       <Input
-                         id="color"
-                         value={currentItem.color}
-                         onChange={(e) => setCurrentItem(prev => ({ ...prev, color: e.target.value }))}
-                         placeholder="Ex: A2, B1, etc."
-                         required
-                       />
-                     </div>
-                   )}
+                    <div className="space-y-2">
+                      <Label htmlFor="color">Cor/Tonalidade</Label>
+                      <Input
+                        id="color"
+                        value={currentItem.color}
+                        onChange={(e) => setCurrentItem(prev => ({ ...prev, color: e.target.value }))}
+                        placeholder="Ex: A2, B1, etc."
+                      />
+                    </div>
 
                    <div className="space-y-2">
                      <Label htmlFor="quantity">Quantidade</Label>
@@ -296,13 +289,15 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
                      />
                    </div>
 
-                   {selectedProductData.necessita_implante && (
-                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                       <p className="text-sm text-blue-800">
-                         ⚠️ Este produto requer informações sobre implante
-                       </p>
-                     </div>
-                   )}
+                    <div className="space-y-2">
+                      <Label htmlFor="material">Material</Label>
+                      <Input
+                        id="material"
+                        value={currentItem.material}
+                        onChange={(e) => setCurrentItem(prev => ({ ...prev, material: e.target.value }))}
+                        placeholder="Ex: E-max, Zircônia, etc."
+                      />
+                    </div>
                  </div>
                )}
              </div>
@@ -341,12 +336,11 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
              <div className="flex gap-2">
                <Button 
                  onClick={handleAddItem}
-                 disabled={
-                   !selectedProduct || 
-                   !currentItem.product_name || 
-                   currentItem.selected_teeth.length === 0 ||
-                   (selectedProductData?.necessita_cor && !currentItem.color)
-                 }
+                  disabled={
+                    !selectedProduct || 
+                    !currentItem.product_name || 
+                    currentItem.selected_teeth.length === 0
+                  }
                >
                  {editingIndex !== null ? "Salvar Alterações" : "Adicionar Produto"}
                </Button>

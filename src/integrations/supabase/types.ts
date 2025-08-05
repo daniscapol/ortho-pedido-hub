@@ -88,6 +88,63 @@ export type Database = {
           },
         ]
       }
+      compatibilidade_produto_material_cor: {
+        Row: {
+          cores_compativeis: string
+          created_at: string
+          id: number
+          id_produto: number
+          materiais_compativeis: number[]
+          updated_at: string
+        }
+        Insert: {
+          cores_compativeis: string
+          created_at?: string
+          id?: number
+          id_produto: number
+          materiais_compativeis?: number[]
+          updated_at?: string
+        }
+        Update: {
+          cores_compativeis?: string
+          created_at?: string
+          id?: number
+          id_produto?: number
+          materiais_compativeis?: number[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cores: {
+        Row: {
+          codigo_cor: string
+          created_at: string
+          escala: string | null
+          grupo: string | null
+          id: number
+          nome_cor: string
+          updated_at: string
+        }
+        Insert: {
+          codigo_cor: string
+          created_at?: string
+          escala?: string | null
+          grupo?: string | null
+          id?: number
+          nome_cor: string
+          updated_at?: string
+        }
+        Update: {
+          codigo_cor?: string
+          created_at?: string
+          escala?: string | null
+          grupo?: string | null
+          id?: number
+          nome_cor?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       filiais: {
         Row: {
           ativo: boolean
@@ -149,6 +206,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      materiais: {
+        Row: {
+          compativel_produtos: number[]
+          created_at: string
+          id: number
+          nome_material: string
+          tipo_material: string
+          updated_at: string
+        }
+        Insert: {
+          compativel_produtos?: number[]
+          created_at?: string
+          id?: number
+          nome_material: string
+          tipo_material: string
+          updated_at?: string
+        }
+        Update: {
+          compativel_produtos?: number[]
+          created_at?: string
+          id?: number
+          nome_material?: string
+          tipo_material?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -507,6 +591,33 @@ export type Database = {
         Row: {
           ativo: boolean
           categoria: string
+          created_at: string
+          id: number
+          nome_produto: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria: string
+          created_at?: string
+          id?: number
+          nome_produto: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string
+          created_at?: string
+          id?: number
+          nome_produto?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products_backup: {
+        Row: {
+          ativo: boolean
+          categoria: string
           codigo: string
           created_at: string
           id: string
@@ -683,6 +794,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tipos_protese: {
+        Row: {
+          categoria_tipo: string
+          compativel_produtos: number[]
+          created_at: string
+          id: number
+          nome_tipo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria_tipo: string
+          compativel_produtos?: number[]
+          created_at?: string
+          id?: number
+          nome_tipo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria_tipo?: string
+          compativel_produtos?: number[]
+          created_at?: string
+          id?: number
+          nome_tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_preferences: {
         Row: {
