@@ -972,6 +972,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_clinica: {
+        Args: { target_clinica_id: string }
+        Returns: boolean
+      }
+      can_manage_filial: {
+        Args: { target_filial_id: string }
+        Returns: boolean
+      }
       cleanup_typing_indicators: {
         Args: Record<PropertyKey, never>
         Returns: undefined
