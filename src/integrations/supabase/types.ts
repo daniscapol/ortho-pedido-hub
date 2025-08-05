@@ -1005,12 +1005,28 @@ export type Database = {
           avg_completion_hours: number
         }[]
       }
+      get_user_clinica_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_filial_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_role_extended: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role_extended"]
+      }
       is_admin: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      is_admin_master: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       log_audit_event: {
