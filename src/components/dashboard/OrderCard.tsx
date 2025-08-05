@@ -86,7 +86,7 @@ const OrderCard = ({ order, onClick }: OrderCardProps) => {
           {orderItems.length > 0 && (
             <div className="text-xs text-muted-foreground mt-1 ml-6">
               {orderItems.slice(0, 2).map((item, index) => (
-                <div key={index}>• {item.product_name}</div>
+                <div key={index}>• {item.product_name} ({item.prosthesis_type})</div>
               ))}
               {orderItems.length > 2 && (
                 <div>+ {orderItems.length - 2} outros produtos</div>

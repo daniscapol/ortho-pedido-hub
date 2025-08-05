@@ -100,15 +100,16 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
                       <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      {item.material && (
-                        <div><strong>Material:</strong> <span className="text-muted-foreground">{item.material}</span></div>
-                      )}
-                      {item.color && (
-                        <div><strong>Cor:</strong> <span className="text-muted-foreground">{item.color}</span></div>
-                      )}
-                      <div><strong>Qtd:</strong> <span className="text-muted-foreground">{item.quantity}</span></div>
-                    </div>
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                       <div><strong>Tipo:</strong> <span className="text-muted-foreground">{item.prosthesis_type}</span></div>
+                       {item.material && (
+                         <div><strong>Material:</strong> <span className="text-muted-foreground">{item.material}</span></div>
+                       )}
+                       {item.color && (
+                         <div><strong>Cor:</strong> <span className="text-muted-foreground">{item.color}</span></div>
+                       )}
+                       <div><strong>Qtd:</strong> <span className="text-muted-foreground">{item.quantity}</span></div>
+                     </div>
 
                     {item.selected_teeth.length > 0 && (
                       <div className="mt-2">
