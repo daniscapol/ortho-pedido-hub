@@ -24,6 +24,8 @@ export const useDentists = () => {
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single()
 
+      console.log('Current profile:', currentProfile)
+
       let query = supabase
         .from('profiles')
         .select(`
@@ -36,22 +38,30 @@ export const useDentists = () => {
           updated_at
         `)
 
-      // Se for admin_master, mostrar todos os dentistas
+      // Se for admin_master, mostrar todos os perfis com role_extended = 'dentist'
       if (currentProfile?.role_extended === 'admin_master') {
-        query = query.in('role_extended', ['dentist'])
+        console.log('User is admin_master, fetching all dentists')
+        query = query.eq('role_extended', 'dentist')
       } 
       // Se for admin de clínica ou filial, mostrar dentistas da hierarquia
       else if (currentProfile?.role === 'admin') {
-        query = query.in('role_extended', ['dentist'])
+        console.log('User is admin, fetching dentists')
+        query = query.eq('role', 'dentist')
       }
       // Se não for admin, mostrar apenas o próprio perfil
       else {
+        console.log('User is not admin, fetching own profile')
         query = query.eq('id', (await supabase.auth.getUser()).data.user?.id)
       }
 
       const { data, error } = await query.order('name', { ascending: true })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching dentists:', error)
+        throw error
+      }
+
+      console.log('Fetched dentists:', data)
 
       // Get order counts for each dentist
       const dentistsWithCounts = await Promise.all(
