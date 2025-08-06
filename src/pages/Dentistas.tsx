@@ -4,7 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone, UserPlus } from "lucide-react";
 import { useDentists, Dentist } from "@/hooks/useDentists";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -12,10 +15,21 @@ import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 interface DentistCardProps {
   dentist: Dentist;
   onClick: () => void;
+}
+
+interface NewDentistForm {
+  name: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'dentist';
 }
 
 const DentistCard = ({ dentist, onClick }: DentistCardProps) => {
@@ -61,6 +75,57 @@ const Dentistas = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<NewDentistForm>({
+    defaultValues: {
+      role: 'dentist'
+    }
+  });
+
+  // Mutation para criar novo dentista
+  const createDentist = useMutation({
+    mutationFn: async ({ name, email, password, role }: NewDentistForm) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: { name, role }
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dentists'] });
+      toast({
+        title: "Dentista criado",
+        description: "Novo dentista criado com sucesso!",
+      });
+      setShowCreateUser(false);
+      reset();
+    },
+    onError: (error: any) => {
+      console.error("Erro ao criar dentista:", error);
+      let errorMessage = "Erro ao criar dentista. Tente novamente.";
+      
+      if (error.message === "User already registered") {
+        errorMessage = "Este email já está cadastrado";
+      } else if (error.message?.includes("email_address_invalid")) {
+        errorMessage = "Email inválido. Verifique o endereço de email.";
+      }
+      
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleLogout = async () => {
     await signOut();
@@ -68,6 +133,10 @@ const Dentistas = () => {
 
   const handleDentistClick = (dentist: Dentist) => {
     navigate(`/dentistas/${dentist.id}`);
+  };
+
+  const handleCreateDentist = (data: NewDentistForm) => {
+    createDentist.mutate(data);
   };
 
   // Filtrar dentistas baseado na busca
@@ -134,17 +203,115 @@ const Dentistas = () => {
                 <UserCheck className="w-4 h-4 text-primary-foreground" />
               </div>
               <h1 className="text-xl font-semibold text-foreground">
-                {profile?.role === 'admin' ? 'Gerenciamento de Dentistas' : 'Meu Perfil'}
+                {profile?.role === 'admin' || profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica' 
+                  ? 'Gerenciamento de Dentistas' 
+                  : 'Meu Perfil'
+                }
               </h1>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <Badge variant="outline" className="text-sm">
                 {filteredDentists.length} {profile?.role === 'admin' 
                   ? `dentista${filteredDentists.length !== 1 ? 's' : ''}` 
                   : 'perfil'
                 }
               </Badge>
+              
+              {/* Apenas admins podem criar dentistas */}
+              {(profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
+                profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_filial') && (
+                <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
+                  <DialogTrigger asChild>
+                    <Button className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Novo Dentista
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Criar Novo Dentista</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit(handleCreateDentist)} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="new-name">Nome Completo</Label>
+                        <Input
+                          id="new-name"
+                          type="text"
+                          placeholder="Nome do dentista"
+                          {...register("name", { required: "Nome é obrigatório" })}
+                        />
+                        {errors.name && (
+                          <p className="text-sm text-red-500">{errors.name.message}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-email">Email</Label>
+                        <Input
+                          id="new-email"
+                          type="email"
+                          placeholder="email@exemplo.com"
+                          {...register("email", { 
+                            required: "Email é obrigatório",
+                            pattern: {
+                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                              message: "Email inválido"
+                            }
+                          })}
+                        />
+                        {errors.email && (
+                          <p className="text-sm text-red-500">{errors.email.message}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-password">Senha</Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          placeholder="Senha temporária"
+                          {...register("password", { 
+                            required: "Senha é obrigatória",
+                            minLength: {
+                              value: 6,
+                              message: "Senha deve ter pelo menos 6 caracteres"
+                            }
+                          })}
+                        />
+                        {errors.password && (
+                          <p className="text-sm text-red-500">{errors.password.message}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-role">Tipo de Usuário</Label>
+                        <Select
+                          defaultValue="dentist"
+                          onValueChange={(value: 'admin' | 'dentist') => 
+                            register("role").onChange({ target: { value } })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="dentist">Dentista</SelectItem>
+                            {(profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica') && (
+                              <SelectItem value="admin">Administrador</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setShowCreateUser(false)}>
+                          Cancelar
+                        </Button>
+                        <Button type="submit" disabled={createDentist.isPending}>
+                          {createDentist.isPending ? "Criando..." : "Criar Dentista"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </div>
 

@@ -13,6 +13,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/hooks/useProfile";
 
 interface FilialForm {
   nome: string;
@@ -26,6 +27,7 @@ const Filiais = () => {
   const [isNewFilialOpen, setIsNewFilialOpen] = useState(false)
   
   const { data: filiais, isLoading } = useFiliais();
+  const { data: profile } = useProfile();
   const createFilial = useCreateFilial();
   const updateFilial = useUpdateFilial();
   
@@ -126,12 +128,15 @@ const Filiais = () => {
                   <Building2 className="h-6 w-6" />
                   <CardTitle className="text-2xl">Filiais</CardTitle>
                 </div>
-                <Dialog open={isNewFilialOpen} onOpenChange={setIsNewFilialOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-slate-700 hover:bg-slate-800">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nova Filial
-                    </Button>
+                {/* Apenas admins podem criar filiais */}
+                {(profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
+                  profile?.role_extended === 'admin_clinica') && (
+                  <Dialog open={isNewFilialOpen} onOpenChange={setIsNewFilialOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-slate-700 hover:bg-slate-800">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nova Filial
+                      </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
@@ -174,7 +179,8 @@ const Filiais = () => {
                       </div>
                     </form>
                   </DialogContent>
-                </Dialog>
+                  </Dialog>
+                )}
               </div>
             </CardHeader>
             <CardContent>
