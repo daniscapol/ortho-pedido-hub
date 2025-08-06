@@ -8,18 +8,12 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useFiliais, useCreateFilial, useUpdateFilial, type Filial } from "@/hooks/useFiliais";
-import { useForm } from "react-hook-form";
 import Sidebar from "@/components/layout/Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
-
-interface FilialForm {
-  nome: string;
-  endereco_entrega: string;
-  ativo: boolean;
-}
+import { FilialForm } from "@/components/forms/FilialForm";
 
 const Filiais = () => {
   const navigate = useNavigate()
@@ -30,25 +24,13 @@ const Filiais = () => {
   const { data: profile } = useProfile();
   const createFilial = useCreateFilial();
   const updateFilial = useUpdateFilial();
-  
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FilialForm>({
-    defaultValues: {
-      ativo: true
-    }
-  });
 
   const filteredFiliais = filiais?.filter(filial =>
-    filial.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    filial.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const onSubmit = async (data: FilialForm) => {
-    try {
-      await createFilial.mutateAsync(data);
-      reset();
-      setIsNewFilialOpen(false);
-    } catch (error) {
-      console.error("Erro ao criar filial:", error);
-    }
+  const handleCreateFilial = async (data: any) => {
+    await createFilial.mutateAsync(data);
   };
 
   const handleToggleAtivo = async (filial: Filial) => {
@@ -131,55 +113,21 @@ const Filiais = () => {
                 {/* Apenas admins podem criar filiais */}
                 {(profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
                   profile?.role_extended === 'admin_clinica') && (
-                  <Dialog open={isNewFilialOpen} onOpenChange={setIsNewFilialOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-slate-700 hover:bg-slate-800">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Nova Filial
-                      </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Nova Filial</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                      <div>
-                        <Label htmlFor="nome">Nome</Label>
-                        <Input
-                          id="nome"
-                          {...register("nome", { required: "Nome é obrigatório" })}
-                          placeholder="Nome da filial"
-                        />
-                        {errors.nome && (
-                          <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor="endereco_entrega">Endereço de entrega</Label>
-                        <Input
-                          id="endereco_entrega"
-                          {...register("endereco_entrega", { required: "Endereço é obrigatório" })}
-                          placeholder="Endereço completo"
-                        />
-                        {errors.endereco_entrega && (
-                          <p className="text-sm text-red-500 mt-1">{errors.endereco_entrega.message}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch id="ativo" {...register("ativo")} defaultChecked />
-                        <Label htmlFor="ativo">Ativo</Label>
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => setIsNewFilialOpen(false)}>
-                          Cancelar
-                        </Button>
-                        <Button type="submit" disabled={createFilial.isPending}>
-                          {createFilial.isPending ? "Criando..." : "Criar Filial"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                  </Dialog>
+                  <>
+                    <Button 
+                      onClick={() => setIsNewFilialOpen(true)}
+                      className="bg-slate-700 hover:bg-slate-800"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Filial
+                    </Button>
+                    <FilialForm
+                      open={isNewFilialOpen}
+                      onOpenChange={setIsNewFilialOpen}
+                      onSubmit={handleCreateFilial}
+                      isLoading={createFilial.isPending}
+                    />
+                  </>
                 )}
               </div>
             </CardHeader>
@@ -201,11 +149,11 @@ const Filiais = () => {
                 ) : (
                   filteredFiliais.map((filial) => (
                     <div key={filial.id} className="grid grid-cols-5 gap-4 p-4 border-b last:border-b-0 items-center">
-                      <div className="font-medium">{filial.nome}</div>
+                      <div className="font-medium">{filial.nome_completo}</div>
                       <div>
                         <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                           <Building2 className="h-3 w-3 mr-1" />
-                          {filial.endereco_entrega}
+                          {filial.endereco}
                         </Badge>
                       </div>
                       <div className="text-center">{filial.qntd_pacientes}</div>

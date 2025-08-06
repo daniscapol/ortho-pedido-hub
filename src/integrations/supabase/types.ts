@@ -91,35 +91,50 @@ export type Database = {
       clinicas: {
         Row: {
           ativo: boolean
-          cnpj: string | null
+          cep: string | null
+          cidade: string | null
+          cnpj: string
+          complemento: string | null
           created_at: string
-          email: string | null
+          email: string
           endereco: string | null
+          estado: string | null
           id: string
-          nome: string
-          telefone: string | null
+          nome_completo: string
+          numero: string | null
+          telefone: string
           updated_at: string
         }
         Insert: {
           ativo?: boolean
-          cnpj?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj: string
+          complemento?: string | null
           created_at?: string
-          email?: string | null
+          email: string
           endereco?: string | null
+          estado?: string | null
           id?: string
-          nome: string
-          telefone?: string | null
+          nome_completo: string
+          numero?: string | null
+          telefone: string
           updated_at?: string
         }
         Update: {
           ativo?: boolean
-          cnpj?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string
+          complemento?: string | null
           created_at?: string
-          email?: string | null
+          email?: string
           endereco?: string | null
+          estado?: string | null
           id?: string
-          nome?: string
-          telefone?: string | null
+          nome_completo?: string
+          numero?: string | null
+          telefone?: string
           updated_at?: string
         }
         Relationships: []
@@ -184,37 +199,52 @@ export type Database = {
       filiais: {
         Row: {
           ativo: boolean
+          cep: string | null
+          cidade: string | null
           clinica_id: string | null
           cnpj: string | null
+          complemento: string | null
           created_at: string
           email: string | null
-          endereco_entrega: string
+          endereco: string
+          estado: string | null
           id: string
-          nome: string
+          nome_completo: string
+          numero: string | null
           telefone: string | null
           updated_at: string
         }
         Insert: {
           ativo?: boolean
+          cep?: string | null
+          cidade?: string | null
           clinica_id?: string | null
           cnpj?: string | null
+          complemento?: string | null
           created_at?: string
           email?: string | null
-          endereco_entrega: string
+          endereco: string
+          estado?: string | null
           id?: string
-          nome: string
+          nome_completo: string
+          numero?: string | null
           telefone?: string | null
           updated_at?: string
         }
         Update: {
           ativo?: boolean
+          cep?: string | null
+          cidade?: string | null
           clinica_id?: string | null
           cnpj?: string | null
+          complemento?: string | null
           created_at?: string
           email?: string | null
-          endereco_entrega?: string
+          endereco?: string
+          estado?: string | null
           id?: string
-          nome?: string
+          nome_completo?: string
+          numero?: string | null
           telefone?: string | null
           updated_at?: string
         }
@@ -516,36 +546,54 @@ export type Database = {
       }
       patients: {
         Row: {
+          ativo: boolean | null
+          clinica_id: string | null
           cpf: string
           created_at: string
           dentist_id: string | null
           email: string
+          email_contato: string | null
           filial_id: string | null
           id: string
           name: string
+          nome_completo: string
+          observacoes: string | null
           phone: string
+          telefone_contato: string | null
           updated_at: string
         }
         Insert: {
+          ativo?: boolean | null
+          clinica_id?: string | null
           cpf: string
           created_at?: string
           dentist_id?: string | null
           email: string
+          email_contato?: string | null
           filial_id?: string | null
           id?: string
           name: string
+          nome_completo: string
+          observacoes?: string | null
           phone: string
+          telefone_contato?: string | null
           updated_at?: string
         }
         Update: {
+          ativo?: boolean | null
+          clinica_id?: string | null
           cpf?: string
           created_at?: string
           dentist_id?: string | null
           email?: string
+          email_contato?: string | null
           filial_id?: string | null
           id?: string
           name?: string
+          nome_completo?: string
+          observacoes?: string | null
           phone?: string
+          telefone_contato?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -727,14 +775,25 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ativo: boolean | null
+          cep: string | null
+          cidade: string | null
           clinica_id: string | null
+          complemento: string | null
+          cpf: string | null
           created_at: string
           created_by: string | null
+          cro: string | null
           documento: string | null
           email: string | null
+          endereco: string | null
+          estado: string | null
           filial_id: string | null
+          filial_padrao_id: string | null
           id: string
           name: string | null
+          nome_completo: string | null
+          numero: string | null
           role: Database["public"]["Enums"]["user_role"]
           role_extended:
             | Database["public"]["Enums"]["user_role_extended"]
@@ -743,14 +802,25 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ativo?: boolean | null
+          cep?: string | null
+          cidade?: string | null
           clinica_id?: string | null
+          complemento?: string | null
+          cpf?: string | null
           created_at?: string
           created_by?: string | null
+          cro?: string | null
           documento?: string | null
           email?: string | null
+          endereco?: string | null
+          estado?: string | null
           filial_id?: string | null
+          filial_padrao_id?: string | null
           id: string
           name?: string | null
+          nome_completo?: string | null
+          numero?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           role_extended?:
             | Database["public"]["Enums"]["user_role_extended"]
@@ -759,14 +829,25 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ativo?: boolean | null
+          cep?: string | null
+          cidade?: string | null
           clinica_id?: string | null
+          complemento?: string | null
+          cpf?: string | null
           created_at?: string
           created_by?: string | null
+          cro?: string | null
           documento?: string | null
           email?: string | null
+          endereco?: string | null
+          estado?: string | null
           filial_id?: string | null
+          filial_padrao_id?: string | null
           id?: string
           name?: string | null
+          nome_completo?: string | null
+          numero?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           role_extended?:
             | Database["public"]["Enums"]["user_role_extended"]
@@ -792,6 +873,13 @@ export type Database = {
           {
             foreignKeyName: "profiles_filial_id_fkey"
             columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_filial_padrao_id_fkey"
+            columns: ["filial_padrao_id"]
             isOneToOne: false
             referencedRelation: "filiais"
             referencedColumns: ["id"]
