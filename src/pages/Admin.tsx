@@ -19,7 +19,7 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link } from "lucide-react";
+import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
@@ -402,6 +402,14 @@ const Admin = () => {
             Visão Geral
           </Button>
           <Button 
+            variant={activeTab === "users" ? "default" : "outline"}
+            onClick={() => setActiveTab("users")}
+            className="flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Usuários
+          </Button>
+          <Button 
             variant={activeTab === "analytics" ? "default" : "outline"}
             onClick={() => setActiveTab("analytics")}
             className="flex items-center gap-2"
@@ -451,7 +459,197 @@ const Admin = () => {
           </Button>
         </div>
 
-        {activeTab === "analytics" ? (
+        {activeTab === "users" ? (
+          /* Gerenciamento de Usuários */
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Gerenciamento de Usuários</CardTitle>
+                <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
+                  <DialogTrigger asChild>
+                    <Button className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Criar Usuário
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Criar Novo Usuário</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateUser} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="new-name">Nome Completo</Label>
+                        <Input
+                          id="new-name"
+                          type="text"
+                          placeholder="Nome do dentista"
+                          value={newUserData.name}
+                          onChange={(e) => setNewUserData(prev => ({ ...prev, name: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-email">Email</Label>
+                        <Input
+                          id="new-email"
+                          type="email"
+                          placeholder="email@exemplo.com"
+                          value={newUserData.email}
+                          onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-password">Senha</Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          placeholder="Senha temporária"
+                          value={newUserData.password}
+                          onChange={(e) => setNewUserData(prev => ({ ...prev, password: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-role">Tipo de Usuário</Label>
+                        <Select
+                          value={newUserData.role}
+                          onValueChange={(value: 'admin' | 'dentist') => 
+                            setNewUserData(prev => ({ ...prev, role: value }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="dentist">Dentista</SelectItem>
+                            <SelectItem value="admin">Administrador</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setShowCreateUser(false)}>
+                          Cancelar
+                        </Button>
+                        <Button type="submit" disabled={createUser.isPending}>
+                          {createUser.isPending ? "Criando..." : "Criar Usuário"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {usersLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center space-x-4">
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-8 w-24" />
+                      <Skeleton className="h-8 w-32" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Criado em</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users?.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">
+                          {user.name || 'Nome não informado'}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {user.email || 'Email não informado'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                            {user.role === 'admin' ? 'Administrador' : 'Dentista'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                        </TableCell>
+                         <TableCell>
+                           <div className="flex items-center gap-2">
+                              <Select
+                                value={user.role}
+                                onValueChange={(newRole: 'admin' | 'dentist') => 
+                                  handleRoleChange(user.id, newRole)
+                                }
+                                disabled={user.id === profile?.id || updateUserRole.isPending}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="dentist">Dentista</SelectItem>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSendResetPassword(user.email || '')}
+                                disabled={!user.email || sendResetPassword.isPending}
+                                title="Enviar email de redefinição de senha"
+                              >
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                              
+                              {user.id !== profile?.id && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                                      title="Deletar usuário"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Tem certeza que deseja deletar o usuário <strong>{user.name}</strong>?
+                                        Esta ação não pode ser desfeita. Todos os pacientes vinculados a este dentista serão desassociados.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteUser(user.id)}
+                                        className="bg-destructive hover:bg-destructive/90"
+                                      >
+                                        Deletar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                           </div>
+                         </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        ) : activeTab === "analytics" ? (
           <AnalyticsSection />
         ) : activeTab === "products" ? (
           <ProductsManager />
@@ -705,195 +903,6 @@ const Admin = () => {
             </CardContent>
           </Card>
 
-          {/* Gerenciamento de Usuários */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Gerenciamento de Usuários</CardTitle>
-                <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
-                  <DialogTrigger asChild>
-                    <Button className="flex items-center gap-2">
-                      <UserPlus className="h-4 w-4" />
-                      Criar Usuário
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Criar Novo Usuário</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleCreateUser} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="new-name">Nome Completo</Label>
-                        <Input
-                          id="new-name"
-                          type="text"
-                          placeholder="Nome do dentista"
-                          value={newUserData.name}
-                          onChange={(e) => setNewUserData(prev => ({ ...prev, name: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-email">Email</Label>
-                        <Input
-                          id="new-email"
-                          type="email"
-                          placeholder="email@exemplo.com"
-                          value={newUserData.email}
-                          onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-password">Senha</Label>
-                        <Input
-                          id="new-password"
-                          type="password"
-                          placeholder="Senha temporária"
-                          value={newUserData.password}
-                          onChange={(e) => setNewUserData(prev => ({ ...prev, password: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-role">Tipo de Usuário</Label>
-                        <Select
-                          value={newUserData.role}
-                          onValueChange={(value: 'admin' | 'dentist') => 
-                            setNewUserData(prev => ({ ...prev, role: value }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="dentist">Dentista</SelectItem>
-                            <SelectItem value="admin">Administrador</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => setShowCreateUser(false)}>
-                          Cancelar
-                        </Button>
-                        <Button type="submit" disabled={createUser.isPending}>
-                          {createUser.isPending ? "Criando..." : "Criar Usuário"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {usersLoading ? (
-                <div className="space-y-3">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex items-center space-x-4">
-                      <Skeleton className="h-4 w-48" />
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-8 w-24" />
-                      <Skeleton className="h-8 w-32" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Criado em</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users?.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          {user.name || 'Nome não informado'}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {user.email || 'Email não informado'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                            {user.role === 'admin' ? 'Administrador' : 'Dentista'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                        </TableCell>
-                         <TableCell>
-                           <div className="flex items-center gap-2">
-                              <Select
-                                value={user.role}
-                                onValueChange={(newRole: 'admin' | 'dentist') => 
-                                  handleRoleChange(user.id, newRole)
-                                }
-                                disabled={user.id === profile?.id || updateUserRole.isPending}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="dentist">Dentista</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleSendResetPassword(user.email || '')}
-                                disabled={!user.email || sendResetPassword.isPending}
-                                title="Enviar email de redefinição de senha"
-                              >
-                                <Mail className="h-4 w-4" />
-                              </Button>
-                              
-                              {user.id !== profile?.id && (
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
-                                      disabled={deleteUser.isPending}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Deletar Usuário</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Tem certeza que deseja deletar o usuário <strong>{user.name || user.email}</strong>? 
-                                        Esta ação não pode ser desfeita e todos os dados do usuário serão permanentemente removidos.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDeleteUser(user.id)}
-                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      >
-                                        Deletar
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              )}
-                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
           </div>
         )}
           </div>
