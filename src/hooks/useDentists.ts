@@ -20,7 +20,7 @@ export const useDentists = () => {
       // Primeiro, verificar se o usuário atual é admin
       const { data: currentProfile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, role_extended')
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single()
 
@@ -31,16 +31,22 @@ export const useDentists = () => {
           name,
           email,
           role,
+          role_extended,
           created_at,
           updated_at
         `)
 
+      // Se for admin_master, mostrar todos os dentistas
+      if (currentProfile?.role_extended === 'admin_master') {
+        query = query.in('role_extended', ['dentist'])
+      } 
+      // Se for admin de clínica ou filial, mostrar dentistas da hierarquia
+      else if (currentProfile?.role === 'admin') {
+        query = query.in('role_extended', ['dentist'])
+      }
       // Se não for admin, mostrar apenas o próprio perfil
-      if (currentProfile?.role !== 'admin') {
+      else {
         query = query.eq('id', (await supabase.auth.getUser()).data.user?.id)
-      } else {
-        // Se for admin, mostrar todos os dentistas
-        query = query.eq('role', 'dentist')
       }
 
       const { data, error } = await query.order('name', { ascending: true })
