@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,14 +25,25 @@ interface FilialFormProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: FilialFormData) => Promise<void>;
   isLoading?: boolean;
+  initialData?: Partial<FilialFormData> | null;
 }
 
-export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading }: FilialFormProps) => {
+export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading, initialData }: FilialFormProps) => {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<FilialFormData>({
     defaultValues: {
-      ativo: true
+      ativo: initialData?.ativo ?? true,
+      ...initialData,
     }
   });
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        ativo: initialData?.ativo ?? true,
+        ...initialData,
+      } as FilialFormData);
+    }
+  }, [open, initialData, reset]);
 
   const ativo = watch("ativo");
 
@@ -46,7 +57,7 @@ export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading }: FilialFo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nova Filial</DialogTitle>
+          <DialogTitle>{initialData ? "Editar Filial" : "Nova Filial"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,7 +185,7 @@ export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading }: FilialFo
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Criando..." : "Criar Filial"}
+              {isLoading ? (initialData ? "Salvando..." : "Criando...") : (initialData ? "Salvar Alterações" : "Criar Filial")}
             </Button>
           </div>
         </form>

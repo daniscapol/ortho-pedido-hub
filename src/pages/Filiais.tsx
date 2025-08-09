@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { useFiliais, useCreateFilial, useUpdateFilial, type Filial } from "@/hooks/useFiliais";
+import { useFiliais, useCreateFilial, useUpdateFilial, useDeleteFilial, type Filial } from "@/hooks/useFiliais";
 import Sidebar from "@/components/layout/Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -19,11 +20,16 @@ const Filiais = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [isNewFilialOpen, setIsNewFilialOpen] = useState(false)
+  const [editingFilial, setEditingFilial] = useState<Filial | null>(null)
+  const [deleteFilialId, setDeleteFilialId] = useState<string | null>(null)
   
   const { data: filiais, isLoading } = useFiliais();
   const { data: profile } = useProfile();
   const createFilial = useCreateFilial();
   const updateFilial = useUpdateFilial();
+  const deleteFilial = useDeleteFilial();
+
+  const canManageFiliais = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_filial';
 
   const filteredFiliais = filiais?.filter(filial =>
     filial.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -167,11 +173,21 @@ const Filiais = () => {
                           {filial.ativo ? "Sim" : "Não"}
                         </span>
                       </div>
-                      <div>
+                      <div className="flex items-center gap-2 justify-end">
                         <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
                           <Eye className="h-4 w-4 mr-1" />
                           Ver detalhes
                         </Button>
+                        {canManageFiliais && (
+                          <>
+                            <Button variant="outline" size="sm" onClick={() => setEditingFilial(filial)}>
+                              Editar
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={() => setDeleteFilialId(filial.id)} disabled={deleteFilial.isPending}>
+                              Remover
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))
@@ -179,6 +195,47 @@ const Filiais = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Edit Filial Form */}
+          <FilialForm
+            open={!!editingFilial}
+            onOpenChange={(open) => {
+              if (!open) setEditingFilial(null);
+            }}
+            onSubmit={async (data) => {
+              if (editingFilial) {
+                await updateFilial.mutateAsync({ id: editingFilial.id, ...data });
+              }
+              setEditingFilial(null);
+            }}
+            isLoading={updateFilial.isPending}
+            initialData={editingFilial || undefined}
+          />
+
+          {/* Delete confirmation */}
+          <AlertDialog open={!!deleteFilialId} onOpenChange={(o) => { if (!o) setDeleteFilialId(null); }}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remover filial?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação não pode ser desfeita. A filial será removida permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={async () => {
+                    if (deleteFilialId) {
+                      await deleteFilial.mutateAsync(deleteFilialId);
+                      setDeleteFilialId(null);
+                    }
+                  }}
+                >
+                  Remover
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </main>
       </div>
     </div>

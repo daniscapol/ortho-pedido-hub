@@ -21,12 +21,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Plus, MoreHorizontal, Bell } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useProfile } from "@/hooks/useProfile";
-import { useClinicas, useCreateClinica, useUpdateClinica, type Clinica } from "@/hooks/useClinicas";
+import { useClinicas, useCreateClinica, useUpdateClinica, useDeleteClinica, type Clinica } from "@/hooks/useClinicas";
 import { ClinicaForm } from "@/components/forms/ClinicaForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";

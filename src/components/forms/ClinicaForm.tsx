@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,10 +23,23 @@ interface ClinicaFormProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: ClinicaFormData) => Promise<void>;
   isLoading?: boolean;
+  initialData?: Partial<ClinicaFormData> | null;
 }
 
-export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading }: ClinicaFormProps) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ClinicaFormData>();
+export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialData }: ClinicaFormProps) => {
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ClinicaFormData>({
+    defaultValues: {
+      ...initialData,
+    }
+  });
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        ...initialData,
+      } as ClinicaFormData);
+    }
+  }, [open, initialData, reset]);
 
   const handleFormSubmit = async (data: ClinicaFormData) => {
     await onSubmit(data);
@@ -38,7 +51,7 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading }: Clinica
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nova Clínica</DialogTitle>
+          <DialogTitle>{initialData ? "Editar Clínica" : "Nova Clínica"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -158,7 +171,7 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading }: Clinica
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Criando..." : "Criar Clínica"}
+              {isLoading ? (initialData ? "Salvando..." : "Criando...") : (initialData ? "Salvar Alterações" : "Criar Clínica")}
             </Button>
           </div>
         </form>
