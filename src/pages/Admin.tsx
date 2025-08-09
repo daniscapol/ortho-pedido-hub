@@ -35,6 +35,8 @@ interface User {
   email: string | null;
   created_at: string;
   updated_at: string;
+  email_confirmed_at?: string | null;
+  email_verified?: boolean;
 }
 
 const Admin = () => {
@@ -132,17 +134,13 @@ const Admin = () => {
     </Card>
   );
 
-  // Buscar todos os usuários
+// Buscar todos os usuários (com status de verificação)
   const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await supabase.functions.invoke('admin-list-users');
       if (error) throw error;
-      return data as User[];
+      return (data?.users || []) as User[];
     },
     enabled: profile?.role_extended === 'admin_master',
   });
@@ -287,6 +285,30 @@ const Admin = () => {
       });
     },
   });
+
+  // Mutation para confirmar email (liberar acesso)
+  const confirmEmail = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.functions.invoke('admin-confirm-email', {
+        body: { userId },
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+      toast({
+        title: 'Acesso liberado',
+        description: 'Email marcado como verificado com sucesso.',
+      })
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error?.message || 'Não foi possível liberar o acesso.',
+        variant: 'destructive',
+      })
+    },
+  })
 
   // Mutation para deletar usuário
   const deleteUser = useMutation({
@@ -654,6 +676,7 @@ const Admin = () => {
                      <TableRow>
                         <TableHead>Nome</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Verificação</TableHead>
                         <TableHead>Função</TableHead>
                         <TableHead>Criado em</TableHead>
                         <TableHead>Ações</TableHead>
@@ -665,20 +688,25 @@ const Admin = () => {
                          <TableCell className="font-medium">
                            {user.name || 'Nome não informado'}
                          </TableCell>
-                         <TableCell className="text-sm text-muted-foreground">
-                           {user.email || 'Email não informado'}
-                         </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {user.email || 'Email não informado'}
+                          </TableCell>
                           <TableCell>
-                            <Badge variant={
-                              user.role_extended === 'admin_master' ? 'default' : 
-                              user.role_extended === 'admin_filial' ? 'default' : 
-                              user.role_extended === 'admin_clinica' ? 'default' : 'secondary'
-                            }>
-                              {user.role_extended === 'admin_master' ? 'Admin Master' :
-                               user.role_extended === 'admin_filial' ? 'Admin Filial' :
-                               user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
+                            <Badge variant={user.email_verified ? 'default' : 'secondary'}>
+                              {user.email_verified ? 'Verificado' : 'Não verificado'}
                             </Badge>
-                         </TableCell>
+                          </TableCell>
+                           <TableCell>
+                             <Badge variant={
+                               user.role_extended === 'admin_master' ? 'default' : 
+                               user.role_extended === 'admin_filial' ? 'default' : 
+                               user.role_extended === 'admin_clinica' ? 'default' : 'secondary'
+                             }>
+                               {user.role_extended === 'admin_master' ? 'Admin Master' :
+                                user.role_extended === 'admin_filial' ? 'Admin Filial' :
+                                user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
+                             </Badge>
+                          </TableCell>
                         <TableCell>
                           {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                         </TableCell>
@@ -711,6 +739,18 @@ const Admin = () => {
                               >
                                 <Mail className="h-4 w-4" />
                               </Button>
+
+                              {!user.email_verified && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => confirmEmail.mutate(user.id)}
+                                  disabled={confirmEmail.isPending}
+                                  title="Marcar email como verificado"
+                                >
+                                  Liberar acesso
+                                </Button>
+                              )}
                               
                               {user.id !== profile?.id && (
                                 <AlertDialog>
