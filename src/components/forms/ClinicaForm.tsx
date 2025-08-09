@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface ClinicaFormData {
@@ -16,6 +17,8 @@ interface ClinicaFormData {
   estado: string;
   numero: string;
   complemento?: string;
+  filial_id?: string;
+  ativo?: boolean;
 }
 
 interface ClinicaFormProps {

@@ -53,7 +53,22 @@ const Clinicas = () => {
   );
 
   const handleCreateClinica = async (data: any) => {
-    await createClinica.mutateAsync(data);
+    // Clean up the data to only include fields that exist in the database table
+    const cleanData = {
+      nome_completo: data.nome_completo,
+      cnpj: data.cnpj,
+      email: data.email,
+      telefone: data.telefone,
+      endereco: data.endereco,
+      cep: data.cep,
+      cidade: data.cidade,
+      estado: data.estado,
+      numero: data.numero,
+      complemento: data.complemento,
+      filial_id: data.filial_id,
+      ativo: data.ativo ?? true
+    };
+    await createClinica.mutateAsync(cleanData);
   };
 
   const handleToggleAtivo = async (clinica: Clinica) => {
@@ -255,7 +270,22 @@ const Clinicas = () => {
         }}
         onSubmit={async (data) => {
           if (editingClinica) {
-            await updateClinica.mutateAsync({ id: editingClinica.id, ...data });
+            // Clean up the data to only include fields that exist in the database table
+            const cleanData = {
+              nome_completo: data.nome_completo,
+              cnpj: data.cnpj,
+              email: data.email,
+              telefone: data.telefone,
+              endereco: data.endereco,
+              cep: data.cep,
+              cidade: data.cidade,
+              estado: data.estado,
+              numero: data.numero,
+              complemento: data.complemento,
+              filial_id: data.filial_id,
+              ativo: data.ativo
+            };
+            await updateClinica.mutateAsync({ id: editingClinica.id, ...cleanData });
           }
           setEditingClinica(null);
         }}
