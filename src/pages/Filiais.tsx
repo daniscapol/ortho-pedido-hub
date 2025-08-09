@@ -29,7 +29,7 @@ const Filiais = () => {
   const updateFilial = useUpdateFilial();
   const deleteFilial = useDeleteFilial();
 
-  const canManageFiliais = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_filial';
+  const canManageFiliais = profile?.role_extended === 'admin_master';
   const canCreateFiliais = profile?.role_extended === 'admin_master';
 
   const visibleFiliais = (filiais || []).filter((f) => {
