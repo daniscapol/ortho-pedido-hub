@@ -29,6 +29,8 @@ export const useClinicas = () => {
   return useQuery({
     queryKey: ["clinicas"],
     queryFn: async () => {
+      console.log("🔍 Fetching clinicas...");
+      
       const { data, error } = await supabase
         .from("clinicas")
         .select(`
@@ -37,32 +39,55 @@ export const useClinicas = () => {
         `)
         .order("nome_completo");
       
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Error fetching clinicas:", error);
+        throw error;
+      }
+      
+      console.log("✅ Clinicas data received:", data);
       
       // Para cada clínica, contar quantos dentistas e pacientes estão associados
       const clinicasWithCount = await Promise.all(
         data.map(async (clinica) => {
-          // Contar dentistas da clínica
-          const { data: dentistas } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("clinica_id", clinica.id)
-            .eq("role_extended", "dentist");
-          
-          // Contar pacientes da clínica
-          const { data: pacientes } = await supabase
-            .from("patients")
-            .select("id")
-            .eq("clinica_id", clinica.id);
-          
-          return {
-            ...clinica,
-            qntd_dentistas: dentistas?.length || 0,
-            qntd_pacientes: pacientes?.length || 0
-          };
+          try {
+            // Contar dentistas da clínica
+            const { data: dentistas, error: dentistasError } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("clinica_id", clinica.id)
+              .eq("role_extended", "dentist");
+            
+            if (dentistasError) {
+              console.error("Error fetching dentistas:", dentistasError);
+            }
+            
+            // Contar pacientes da clínica
+            const { data: pacientes, error: pacientesError } = await supabase
+              .from("patients")
+              .select("id")
+              .eq("clinica_id", clinica.id);
+            
+            if (pacientesError) {
+              console.error("Error fetching pacientes:", pacientesError);
+            }
+            
+            return {
+              ...clinica,
+              qntd_dentistas: dentistas?.length || 0,
+              qntd_pacientes: pacientes?.length || 0
+            };
+          } catch (err) {
+            console.error("Error processing clinica:", err);
+            return {
+              ...clinica,
+              qntd_dentistas: 0,
+              qntd_pacientes: 0
+            };
+          }
         })
       );
       
+      console.log("✅ Clinicas with counts:", clinicasWithCount);
       return clinicasWithCount;
     },
   });
