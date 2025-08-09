@@ -99,6 +99,7 @@ export type Database = {
           email: string | null
           endereco: string
           estado: string | null
+          filial_id: string | null
           id: string
           nome_completo: string
           numero: string | null
@@ -115,6 +116,7 @@ export type Database = {
           email?: string | null
           endereco: string
           estado?: string | null
+          filial_id?: string | null
           id?: string
           nome_completo: string
           numero?: string | null
@@ -131,6 +133,7 @@ export type Database = {
           email?: string | null
           endereco?: string
           estado?: string | null
+          filial_id?: string | null
           id?: string
           nome_completo?: string
           numero?: string | null
