@@ -703,8 +703,8 @@ const Admin = () => {
                         <TableHead>Nome</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Verificação</TableHead>
-                        <TableHead>Filial</TableHead>
                         <TableHead>Clínica</TableHead>
+                        <TableHead>Filial</TableHead>
                         <TableHead>Função</TableHead>
                         <TableHead>Criado em</TableHead>
                         <TableHead>Ações</TableHead>
