@@ -20,21 +20,19 @@ export const useFiliais = () => {
     queryKey: ["filiais"],
     queryFn: async () => {
       console.log("🔍 Fetching filiais...");
-      
-      // Using direct SELECT to respect RLS; do not use RPC here
-      
-      // Fallback to original approach
+
+      // Direct SELECT to respect RLS; avoid joins/aggregations
       const { data, error } = await supabase
         .from("filiais")
         .select("*")
         .order("nome_completo");
-      
+
       if (error) {
         console.error("❌ Error fetching basic filiais:", error);
         throw error;
       }
-      
-      // Retornar sem contagens para garantir compatibilidade com RLS e evitar erros
+
+      // Return without counts to avoid column mismatches
       return (data || []).map((f: any) => ({
         ...f,
         qntd_clinicas: 0,
@@ -66,7 +64,7 @@ export const useCreateFilial = () => {
     onError: (error) => {
       toast({
         title: "Erro ao criar filial",
-        description: error.message,
+        description: (error as any)?.message ?? "Erro inesperado",
         variant: "destructive",
       });
     },
@@ -99,7 +97,7 @@ export const useUpdateFilial = () => {
     onError: (error) => {
       toast({
         title: "Erro ao atualizar filial",
-        description: error.message,
+        description: (error as any)?.message ?? "Erro inesperado",
         variant: "destructive",
       });
     },
@@ -129,7 +127,7 @@ export const useDeleteFilial = () => {
     onError: (error) => {
       toast({
         title: "Erro ao remover filial",
-        description: error.message,
+        description: (error as any)?.message ?? "Erro inesperado",
         variant: "destructive",
       });
     },
