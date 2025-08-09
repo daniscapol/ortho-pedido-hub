@@ -37,21 +37,36 @@ export const useFiliais = () => {
       const filiaisWithCount = await Promise.all(
         data.map(async (filial) => {
           // Contar clínicas da filial
-          const { data: clinicas } = await supabase
+          const { data: clinicas, error: clinicasError } = await supabase
             .from("clinicas")
             .select("id")
             .eq("filial_id", filial.id);
           
+          if (clinicasError) {
+            console.error("Error fetching clinicas:", clinicasError);
+          }
+          
           // Contar pacientes das clínicas desta filial
-          const { data: pacientes } = await supabase
-            .from("patients")
-            .select("id")
-            .in("clinica_id", clinicas?.map(c => c.id) || []);
+          const clinicaIds = clinicas?.map(c => c.id) || [];
+          let pacientesCount = 0;
+          
+          if (clinicaIds.length > 0) {
+            const { data: pacientes, error: pacientesError } = await supabase
+              .from("patients")
+              .select("id")
+              .in("clinica_id", clinicaIds);
+            
+            if (pacientesError) {
+              console.error("Error fetching pacientes:", pacientesError);
+            } else {
+              pacientesCount = pacientes?.length || 0;
+            }
+          }
           
           return {
             ...filial,
             qntd_clinicas: clinicas?.length || 0,
-            qntd_pacientes: pacientes?.length || 0
+            qntd_pacientes: pacientesCount
           };
         })
       );
