@@ -183,12 +183,12 @@ const Clinicas = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Building className="h-6 w-6" />
-                  <CardTitle className="text-2xl">Filiais</CardTitle>
+                  <CardTitle className="text-2xl">Clínicas</CardTitle>
                 </div>
                 {(profile?.role_extended === "admin_master" || profile?.role_extended === "admin_filial") && (
                   <Button onClick={() => setShowClinicaForm(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Nova Filial
+                    Nova Clínica
                   </Button>
                 )}
               </div>
@@ -196,7 +196,7 @@ const Clinicas = () => {
                 <div className="relative flex-1 max-w-sm">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar filiais..."
+                    placeholder="Buscar clínicas..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -221,7 +221,7 @@ const Clinicas = () => {
                     <TableRow>
                       <TableHead>Nome</TableHead>
                       <TableHead>CNPJ</TableHead>
-                      <TableHead>Clínica</TableHead>
+                      <TableHead>Filial</TableHead>
                       <TableHead>Telefone</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Dentistas</TableHead>
@@ -360,7 +360,7 @@ const Clinicas = () => {
       <Dialog open={!!viewingClinica} onOpenChange={(open) => { if (!open) setViewingClinica(null); }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Detalhes da Filial</DialogTitle>
+            <DialogTitle>Detalhes da Clínica</DialogTitle>
           </DialogHeader>
           {viewingClinica && (
             <div className="space-y-4">
@@ -382,7 +382,7 @@ const Clinicas = () => {
                   <p className="text-sm">{viewingClinica.telefone}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Clínica</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">Filial</Label>
                   <p className="text-sm">{viewingClinica.filial?.nome_completo || "N/A"}</p>
                 </div>
                 <div>
