@@ -59,16 +59,16 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{initialData ? "Editar Filial" : "Nova Filial"}</DialogTitle>
+          <DialogTitle>{initialData ? "Editar Clínica" : "Nova Clínica"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <Label htmlFor="nome_completo">Nome Completo da Filial *</Label>
+              <Label htmlFor="nome_completo">Nome Completo da Clínica *</Label>
               <Input
                 id="nome_completo"
                 {...register("nome_completo", { required: "Nome completo é obrigatório" })}
-                placeholder="Nome da filial"
+                placeholder="Nome da clínica"
               />
               {errors.nome_completo && (
                 <p className="text-sm text-destructive mt-1">{errors.nome_completo.message}</p>
@@ -111,7 +111,7 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
                     message: "Email inválido"
                   }
                 })}
-                placeholder="contato@filial.com"
+                placeholder="contato@clinica.com"
               />
               {errors.email && (
                 <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
@@ -175,14 +175,14 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
 
             {/* Filial selection - forced for admin_filial, selectable for admin_master */}
             <div className="md:col-span-2">
-              <Label htmlFor="filial_id">Clínica</Label>
+              <Label htmlFor="filial_id">Filial</Label>
               {typeof forceFilialId !== 'undefined' ? (
                 <Select value={forceFilialId ?? 'none'} onValueChange={() => {}} disabled>
                   <SelectTrigger>
-                    <SelectValue placeholder="Clínica vinculada" />
+                    <SelectValue placeholder="Filial vinculada" />
                   </SelectTrigger>
                   <SelectContent>
-                    {forceFilialId === null && <SelectItem value="none">Sem clínica</SelectItem>}
+                    {forceFilialId === null && <SelectItem value="none">Sem filial</SelectItem>}
                     {filiais?.filter(f => f.id === forceFilialId).map((f) => (
                       <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                     ))}
@@ -194,10 +194,10 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
                   onValueChange={(val) => setValue('filial_id', val === 'none' ? undefined : val)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecionar clínica" />
+                    <SelectValue placeholder="Selecionar filial" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sem clínica</SelectItem>
+                    <SelectItem value="none">Sem filial</SelectItem>
                     {filiais?.map((f) => (
                       <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                     ))}
@@ -212,7 +212,7 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? (initialData ? "Salvando..." : "Criando...") : (initialData ? "Salvar Alterações" : "Criar Filial")}
+              {isLoading ? (initialData ? "Salvando..." : "Criando...") : (initialData ? "Salvar Alterações" : "Criar Clínica")}
             </Button>
           </div>
         </form>

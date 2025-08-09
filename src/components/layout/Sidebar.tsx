@@ -61,18 +61,18 @@ const Sidebar = () => {
       permission: "dentistas"
     },
     {
-      icon: Building2,
-      label: "Filiais",
-      path: "/filiais",
-      active: location.pathname === "/filiais",
-      permission: "filiais"
-    },
-    {
       icon: Building,
       label: "Clínicas",
       path: "/clinicas",
       active: location.pathname === "/clinicas",
       permission: "clinicas"
+    },
+    {
+      icon: Building2,
+      label: "Filiais",
+      path: "/filiais",
+      active: location.pathname === "/filiais",
+      permission: "filiais"
     },
     {
       icon: Calendar,

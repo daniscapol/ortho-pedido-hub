@@ -57,16 +57,16 @@ export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading, initialDat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{initialData ? "Editar Clínica" : "Nova Clínica"}</DialogTitle>
+          <DialogTitle>{initialData ? "Editar Filial" : "Nova Filial"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <Label htmlFor="nome_completo">Nome Completo da Clínica *</Label>
+              <Label htmlFor="nome_completo">Nome Completo da Filial *</Label>
               <Input
                 id="nome_completo"
                 {...register("nome_completo", { required: "Nome completo é obrigatório" })}
-                placeholder="Nome da clínica"
+                placeholder="Nome da filial"
               />
               {errors.nome_completo && (
                 <p className="text-sm text-destructive mt-1">{errors.nome_completo.message}</p>
@@ -106,7 +106,7 @@ export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading, initialDat
                     message: "Email inválido"
                   }
                 })}
-                placeholder="clinica@filial.com"
+                placeholder="filial@clinica.com"
               />
               {errors.email && (
                 <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
@@ -175,7 +175,7 @@ export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading, initialDat
                   checked={ativo}
                   onCheckedChange={(checked) => setValue("ativo", checked)}
                 />
-                <Label htmlFor="ativo">Clínica Ativa</Label>
+                <Label htmlFor="ativo">Filial Ativa</Label>
               </div>
             </div>
           </div>
@@ -185,7 +185,7 @@ export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading, initialDat
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? (initialData ? "Salvando..." : "Criando...") : (initialData ? "Salvar Alterações" : "Criar Clínica")}
+              {isLoading ? (initialData ? "Salvando..." : "Criando...") : (initialData ? "Salvar Alterações" : "Criar Filial")}
             </Button>
           </div>
         </form>

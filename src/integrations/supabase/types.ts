@@ -93,51 +93,62 @@ export type Database = {
           ativo: boolean
           cep: string | null
           cidade: string | null
-          cnpj: string | null
+          cnpj: string
           complemento: string | null
           created_at: string
-          email: string | null
-          endereco: string
+          email: string
+          endereco: string | null
           estado: string | null
+          filial_id: string | null
           id: string
           nome_completo: string
           numero: string | null
-          telefone: string | null
+          telefone: string
           updated_at: string
         }
         Insert: {
           ativo?: boolean
           cep?: string | null
           cidade?: string | null
-          cnpj?: string | null
+          cnpj: string
           complemento?: string | null
           created_at?: string
-          email?: string | null
-          endereco: string
+          email: string
+          endereco?: string | null
           estado?: string | null
+          filial_id?: string | null
           id?: string
           nome_completo: string
           numero?: string | null
-          telefone?: string | null
+          telefone: string
           updated_at?: string
         }
         Update: {
           ativo?: boolean
           cep?: string | null
           cidade?: string | null
-          cnpj?: string | null
+          cnpj?: string
           complemento?: string | null
           created_at?: string
-          email?: string | null
-          endereco?: string
+          email?: string
+          endereco?: string | null
           estado?: string | null
+          filial_id?: string | null
           id?: string
           nome_completo?: string
           numero?: string | null
-          telefone?: string | null
+          telefone?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clinicas_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       compatibilidade_produto_material_cor: {
         Row: {
@@ -201,69 +212,51 @@ export type Database = {
           ativo: boolean
           cep: string | null
           cidade: string | null
-          clinica_id: string | null
-          cnpj: string
+          cnpj: string | null
           complemento: string | null
           created_at: string
-          email: string
-          endereco: string | null
+          email: string | null
+          endereco: string
           estado: string | null
           id: string
           nome_completo: string
           numero: string | null
-          telefone: string
+          telefone: string | null
           updated_at: string
         }
         Insert: {
           ativo?: boolean
           cep?: string | null
           cidade?: string | null
-          clinica_id?: string | null
-          cnpj: string
+          cnpj?: string | null
           complemento?: string | null
           created_at?: string
-          email: string
-          endereco?: string | null
+          email?: string | null
+          endereco: string
           estado?: string | null
           id?: string
           nome_completo: string
           numero?: string | null
-          telefone: string
+          telefone?: string | null
           updated_at?: string
         }
         Update: {
           ativo?: boolean
           cep?: string | null
           cidade?: string | null
-          clinica_id?: string | null
-          cnpj?: string
+          cnpj?: string | null
           complemento?: string | null
           created_at?: string
-          email?: string
-          endereco?: string | null
+          email?: string | null
+          endereco?: string
           estado?: string | null
           id?: string
           nome_completo?: string
           numero?: string | null
-          telefone?: string
+          telefone?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "clinicas_filial_id_fkey"
-            columns: ["clinica_id"]
-            isOneToOne: false
-            referencedRelation: "clinicas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "filiais_clinica_id_fkey"
-            columns: ["clinica_id"]
-            isOneToOne: false
-            referencedRelation: "clinicas"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       image_annotations: {
         Row: {
@@ -606,7 +599,7 @@ export type Database = {
             foreignKeyName: "patients_filial_id_fkey"
             columns: ["filial_id"]
             isOneToOne: false
-            referencedRelation: "clinicas"
+            referencedRelation: "filiais"
             referencedColumns: ["id"]
           },
         ]
@@ -858,7 +851,7 @@ export type Database = {
             foreignKeyName: "profiles_clinica_id_fkey"
             columns: ["clinica_id"]
             isOneToOne: false
-            referencedRelation: "filiais"
+            referencedRelation: "clinicas"
             referencedColumns: ["id"]
           },
           {
@@ -872,14 +865,14 @@ export type Database = {
             foreignKeyName: "profiles_filial_id_fkey"
             columns: ["filial_id"]
             isOneToOne: false
-            referencedRelation: "clinicas"
+            referencedRelation: "filiais"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "profiles_filial_padrao_id_fkey"
             columns: ["filial_padrao_id"]
             isOneToOne: false
-            referencedRelation: "clinicas"
+            referencedRelation: "filiais"
             referencedColumns: ["id"]
           },
         ]

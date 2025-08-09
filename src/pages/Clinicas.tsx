@@ -70,10 +70,10 @@ const Clinicas = () => {
       return data
     },
     onSuccess: () => {
-      toast({ title: 'Admin de Filial criado', description: 'Usuário criado e vinculado à filial.' })
+      toast({ title: 'Admin de Clínica criado', description: 'Usuário criado e vinculado à clínica.' })
     },
     onError: (error: any) => {
-      toast({ title: 'Erro', description: error?.message || 'Não foi possível criar o admin de filial.', variant: 'destructive' })
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível criar o admin de clínica.', variant: 'destructive' })
     }
   })
 
@@ -425,11 +425,11 @@ const Clinicas = () => {
       <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Criar Admin da Filial</DialogTitle>
+            <DialogTitle>Criar Admin da Clínica</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Filial</Label>
+              <Label>Clínica</Label>
               <p className="text-sm">{adminTargetClinica?.nome_completo}</p>
             </div>
             <div className="grid gap-2">
@@ -458,9 +458,9 @@ const Clinicas = () => {
       <AlertDialog open={!!deleteClinicaId} onOpenChange={(o) => { if (!o) setDeleteClinicaId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover filial?</AlertDialogTitle>
+            <AlertDialogTitle>Remover clínica?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. A filial será removida permanentemente.
+              Esta ação não pode ser desfeita. A clínica será removida permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
