@@ -31,6 +31,7 @@ import { useFiliais } from "@/hooks/useFiliais";
 interface User {
   id: string;
   role: 'admin' | 'dentist';
+  role_extended: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist';
   name: string | null;
   email: string | null;
   created_at: string;
@@ -47,7 +48,13 @@ const Admin = () => {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("overview");
   const [showCreateUser, setShowCreateUser] = useState(false);
-  const [newUserData, setNewUserData] = useState({ name: '', email: '', password: '', role: 'dentist' as 'admin' | 'dentist' });
+  const [newUserData, setNewUserData] = useState({ 
+    name: '', 
+    email: '', 
+    password: '', 
+    role: 'dentist' as 'admin' | 'dentist',
+    role_extended: 'dentist' as 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist'
+  });
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const updateOrderStatus = useUpdateOrderStatus();
 
@@ -197,14 +204,20 @@ const Admin = () => {
 
   // Mutation para criar novo usuário
   const createUser = useMutation({
-    mutationFn: async ({ name, email, password, role }: { name: string; email: string; password: string; role: 'admin' | 'dentist' }) => {
+    mutationFn: async ({ name, email, password, role, role_extended }: { 
+      name: string; 
+      email: string; 
+      password: string; 
+      role: 'admin' | 'dentist';
+      role_extended: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist'
+    }) => {
       // Criar usuário no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: { name, role }
+          data: { name, role, role_extended }
         }
       });
 
@@ -234,10 +247,16 @@ const Admin = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
         title: "Usuário criado",
-        description: "Novo dentista criado com sucesso! Email de boas-vindas enviado.",
+        description: "Novo usuário criado com sucesso! Email de boas-vindas enviado.",
       });
       setShowCreateUser(false);
-      setNewUserData({ name: '', email: '', password: '', role: 'dentist' });
+      setNewUserData({ 
+        name: '', 
+        email: '', 
+        password: '', 
+        role: 'dentist',
+        role_extended: 'dentist'
+      });
     },
     onError: (error: any) => {
       console.error("Erro ao criar usuário:", error);
@@ -612,6 +631,25 @@ const Admin = () => {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-role-extended">Função Específica</Label>
+                        <Select
+                          value={newUserData.role_extended}
+                          onValueChange={(value: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist') => 
+                            setNewUserData(prev => ({ ...prev, role_extended: value }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a função" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="dentist">Dentista</SelectItem>
+                            <SelectItem value="admin_clinica">Admin de Clínica</SelectItem>
+                            <SelectItem value="admin_filial">Admin de Filial</SelectItem>
+                            <SelectItem value="admin_master">Admin Master</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <div className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => setShowCreateUser(false)}>
                           Cancelar
@@ -641,26 +679,34 @@ const Admin = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Criado em</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users?.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          {user.name || 'Nome não informado'}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {user.email || 'Email não informado'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                            {user.role === 'admin' ? 'Administrador' : 'Dentista'}
-                          </Badge>
+                       <TableHead>Nome</TableHead>
+                       <TableHead>Email</TableHead>
+                       <TableHead>Tipo</TableHead>
+                       <TableHead>Função</TableHead>
+                       <TableHead>Criado em</TableHead>
+                       <TableHead>Ações</TableHead>
+                     </TableRow>
+                   </TableHeader>
+                   <TableBody>
+                     {users?.map((user) => (
+                       <TableRow key={user.id}>
+                         <TableCell className="font-medium">
+                           {user.name || 'Nome não informado'}
+                         </TableCell>
+                         <TableCell className="text-sm text-muted-foreground">
+                           {user.email || 'Email não informado'}
+                         </TableCell>
+                         <TableCell>
+                           <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                             {user.role === 'admin' ? 'Administrador' : 'Dentista'}
+                           </Badge>
+                         </TableCell>
+                         <TableCell>
+                           <Badge variant="outline">
+                             {user.role_extended === 'admin_master' ? 'Admin Master' :
+                              user.role_extended === 'admin_filial' ? 'Admin Filial' :
+                              user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
+                           </Badge>
                         </TableCell>
                         <TableCell>
                           {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
