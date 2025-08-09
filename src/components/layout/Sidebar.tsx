@@ -55,16 +55,16 @@ const Sidebar = () => {
       active: location.pathname === "/pacientes"
     },
     {
-      icon: Building2,
-      label: "Filiais",
-      path: "/filiais",
-      active: location.pathname === "/filiais"
-    },
-    {
       icon: Building,
       label: "Clínicas",
       path: "/clinicas",
       active: location.pathname === "/clinicas"
+    },
+    {
+      icon: Building2,
+      label: "Filiais",
+      path: "/filiais",
+      active: location.pathname === "/filiais"
     },
     {
       icon: Calendar,
