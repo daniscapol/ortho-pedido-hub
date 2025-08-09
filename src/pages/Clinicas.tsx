@@ -59,6 +59,7 @@ const Clinicas = () => {
 
   const handleCreateClinica = async (data: any) => {
     // Clean up the data to only include fields that exist in the database table
+    const filialId = profile?.role_extended === 'admin_filial' ? profile?.filial_id : data.filial_id
     const cleanData = {
       nome_completo: data.nome_completo,
       cnpj: data.cnpj,
@@ -70,7 +71,7 @@ const Clinicas = () => {
       estado: data.estado,
       numero: data.numero,
       complemento: data.complemento,
-      filial_id: data.filial_id,
+      filial_id: filialId ?? null,
       ativo: data.ativo ?? true
     };
     await createClinica.mutateAsync(cleanData);
