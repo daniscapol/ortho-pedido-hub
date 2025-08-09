@@ -99,10 +99,25 @@ export const useCreateFilial = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (filial: { nome_completo: string; endereco: string; telefone: string; email: string; ativo?: boolean }) => {
+    mutationFn: async (filial: { nome_completo: string; endereco: string; telefone: string; email: string; ativo?: boolean; cnpj?: string; cep?: string; cidade?: string; estado?: string; numero?: string; complemento?: string }) => {
+      // Sanitizar payload para evitar colunas inexistentes (ex: clinica_id)
+      const payload = {
+        nome_completo: filial.nome_completo,
+        endereco: filial.endereco,
+        telefone: filial.telefone,
+        email: filial.email,
+        ativo: filial.ativo ?? true,
+        cnpj: filial.cnpj,
+        cep: filial.cep,
+        cidade: filial.cidade,
+        estado: filial.estado,
+        numero: filial.numero,
+        complemento: filial.complemento,
+      }
+
       const { data, error } = await supabase
         .from("filiais")
-        .insert([filial])
+        .insert([payload])
         .select()
         .single();
 
