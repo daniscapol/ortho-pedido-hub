@@ -37,6 +37,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useFiliais } from "@/hooks/useFiliais";
 
 const Clinicas = () => {
   const navigate = useNavigate();
@@ -57,6 +58,7 @@ const Clinicas = () => {
   const updateClinica = useUpdateClinica();
   const deleteClinica = useDeleteClinica();
   const { toast } = useToast();
+  const { data: filiais } = useFiliais();
 
   // Mutation: criar usuário admin_clinica
   const createAdminClinica = useMutation({
@@ -319,6 +321,8 @@ const Clinicas = () => {
         onOpenChange={setShowClinicaForm}
         onSubmit={handleCreateClinica}
         isLoading={createClinica.isPending}
+        filiais={filiais?.map(f => ({ id: f.id, nome_completo: f.nome_completo }))}
+        forceFilialId={profile?.role_extended === 'admin_filial' ? (profile?.filial_id ?? null) : undefined}
       />
 
       {/* Edit Clinica Form */}

@@ -27,10 +27,12 @@ interface ClinicaFormProps {
   onSubmit: (data: ClinicaFormData) => Promise<void>;
   isLoading?: boolean;
   initialData?: Partial<ClinicaFormData> | null;
+  filiais?: { id: string; nome_completo: string }[];
+  forceFilialId?: string | null;
 }
 
-export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialData }: ClinicaFormProps) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ClinicaFormData>({
+export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialData, filiais, forceFilialId }: ClinicaFormProps) => {
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<ClinicaFormData>({
     defaultValues: {
       ...initialData,
     }
@@ -41,8 +43,11 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
       reset({
         ...initialData,
       } as ClinicaFormData);
+      if (typeof forceFilialId !== 'undefined') {
+        setValue('filial_id', forceFilialId ?? undefined);
+      }
     }
-  }, [open, initialData, reset]);
+  }, [open, initialData, forceFilialId, reset, setValue]);
 
   const handleFormSubmit = async (data: ClinicaFormData) => {
     await onSubmit(data);
@@ -166,6 +171,39 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
                 placeholder="SP"
                 maxLength={2}
               />
+            </div>
+
+            {/* Filial selection - forced for admin_filial, selectable for admin_master */}
+            <div className="md:col-span-2">
+              <Label htmlFor="filial_id">Filial</Label>
+              {typeof forceFilialId !== 'undefined' ? (
+                <Select value={forceFilialId ?? 'none'} onValueChange={() => {}} disabled>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filial vinculada" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {forceFilialId === null && <SelectItem value="none">Sem filial</SelectItem>}
+                    {filiais?.filter(f => f.id === forceFilialId).map((f) => (
+                      <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select
+                  value={(watch('filial_id') ?? 'none') as string}
+                  onValueChange={(val) => setValue('filial_id', val === 'none' ? undefined : val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar filial" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem filial</SelectItem>
+                    {filiais?.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
