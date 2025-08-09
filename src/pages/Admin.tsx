@@ -726,19 +726,19 @@ const Admin = () => {
                           </TableCell>
                            <TableCell>
                              <Select
-                                value={user.filial_id ?? 'none'}
+                                value={user.clinica_id ?? 'none'}
                                 onValueChange={(val: string) =>
-                                  updateUserFilial.mutate({ userId: user.id, filialId: val === 'none' ? null : val })
+                                  updateUserClinica.mutate({ userId: user.id, clinicaId: val === 'none' ? null : val })
                                 }
-                                disabled={updateUserFilial.isPending}
+                                disabled={updateUserClinica.isPending}
                               >
                                 <SelectTrigger className="w-52">
-                                  <SelectValue placeholder="Selecionar filial" />
+                                  <SelectValue placeholder="Selecionar clínica" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="none">Sem filial</SelectItem>
-                                  {(filiais || []).filter(f => !user.clinica_id || f.clinica_id === user.clinica_id).map((f) => (
-                                    <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
+                                  <SelectItem value="none">Sem clínica</SelectItem>
+                                  {(clinicas || []).map((c) => (
+                                    <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
