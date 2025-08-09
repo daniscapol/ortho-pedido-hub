@@ -315,66 +315,32 @@ const Admin = () => {
     },
   })
 
-  // Mutation para deletar usuário
+  // Mutation para deletar usuário (também remove do Auth)
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
-      // Primeiro deletar dados relacionados
-      
-      // 1. Deletar notificações do usuário
-      const { error: notifError } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('user_id', userId);
-      
-      if (notifError) throw new Error(`Erro ao deletar notificações: ${notifError.message}`);
-      
-      // 2. Transferir pacientes para null (desassociar do dentista)
-      const { error: patientsError } = await supabase
-        .from('patients')
-        .update({ dentist_id: null })
-        .eq('dentist_id', userId);
-      
-      if (patientsError) throw new Error(`Erro ao transferir pacientes: ${patientsError.message}`);
-      
-      // 3. Verificar se há pedidos - se houver, não permitir deleção
-      const { data: orders, error: ordersCheckError } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('user_id', userId);
-      
-      if (ordersCheckError) throw new Error(`Erro ao verificar pedidos: ${ordersCheckError.message}`);
-      
-      if (orders && orders.length > 0) {
-        throw new Error(`Não é possível deletar usuário que possui ${orders.length} pedido(s) ativo(s). Transfira ou remova os pedidos primeiro.`);
-      }
-      
-      // 4. Finalmente deletar o profile do usuário
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-      
-      if (profileError) throw new Error(`Erro ao deletar perfil: ${profileError.message}`);
+      const { error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { userId },
+      })
+      if (error) throw error
     },
     onSuccess: () => {
-      // Invalidar queries e fazer refetch manual
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      refetchUsers();
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+      refetchUsers()
       toast({
-        title: "Usuário deletado",
-        description: "Usuário removido com sucesso do sistema.",
-      });
-      setUserToDelete(null);
+        title: 'Usuário deletado',
+        description: 'A conta foi removida e o acesso revogado.',
+      })
+      setUserToDelete(null)
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao deletar usuário",
-        description: error.message || "Erro ao deletar usuário. Tente novamente.",
-        variant: "destructive",
-      });
-      setUserToDelete(null);
+        title: 'Erro ao deletar usuário',
+        description: error?.message || 'Erro ao deletar usuário. Tente novamente.',
+        variant: 'destructive',
+      })
+      setUserToDelete(null)
     },
-  });
+  })
 
   // Verificar se o usuário é admin
   if (profileLoading) {
