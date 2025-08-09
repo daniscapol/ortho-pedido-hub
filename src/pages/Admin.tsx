@@ -725,6 +725,25 @@ const Admin = () => {
                             </Badge>
                           </TableCell>
                            <TableCell>
+                               <Select
+                                 value={user.filial_id ?? 'none'}
+                                 onValueChange={(val: string) =>
+                                   updateUserFilial.mutate({ userId: user.id, filialId: val === 'none' ? null : val })
+                                 }
+                                 disabled={updateUserFilial.isPending}
+                               >
+                                 <SelectTrigger className="w-56">
+                                   <SelectValue placeholder="Selecionar filial" />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                   <SelectItem value="none">Sem filial</SelectItem>
+                                   {(filiais || []).filter(f => !user.clinica_id || f.clinica_id === user.clinica_id).map((f) => (
+                                     <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
+                                   ))}
+                                 </SelectContent>
+                               </Select>
+                            </TableCell>
+                            <TableCell>
                              <Select
                                 value={user.clinica_id ?? 'none'}
                                 onValueChange={(val: string) => {
@@ -745,25 +764,6 @@ const Admin = () => {
                                   ))}
                                 </SelectContent>
                               </Select>
-                            </TableCell>
-                            <TableCell>
-                               <Select
-                                 value={user.filial_id ?? 'none'}
-                                 onValueChange={(val: string) =>
-                                   updateUserFilial.mutate({ userId: user.id, filialId: val === 'none' ? null : val })
-                                 }
-                                 disabled={updateUserFilial.isPending}
-                               >
-                                 <SelectTrigger className="w-56">
-                                   <SelectValue placeholder="Selecionar filial" />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                   <SelectItem value="none">Sem filial</SelectItem>
-                                   {(filiais || []).filter(f => !user.clinica_id || f.clinica_id === user.clinica_id).map((f) => (
-                                     <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
-                                   ))}
-                                 </SelectContent>
-                               </Select>
                             </TableCell>
                             <TableCell>
                               <Badge variant={
