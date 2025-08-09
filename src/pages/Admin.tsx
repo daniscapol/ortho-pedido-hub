@@ -37,6 +37,7 @@ interface User {
   updated_at: string;
   email_confirmed_at?: string | null;
   email_verified?: boolean;
+  filial_id?: string | null;
 }
 
 const Admin = () => {
@@ -194,6 +195,31 @@ const Admin = () => {
         title: "Erro",
         description: "Erro ao alterar função do usuário. Tente novamente.",
         variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para alterar filial do usuário
+  const updateUserFilial = useMutation({
+    mutationFn: async ({ userId, filialId }: { userId: string; filialId: string | null }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ filial_id: filialId })
+        .eq('id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: 'Filial atualizada',
+        description: 'O usuário foi associado à filial com sucesso.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar a filial do usuário.',
+        variant: 'destructive',
       });
     },
   });
@@ -648,6 +674,7 @@ const Admin = () => {
                         <TableHead>Nome</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Verificação</TableHead>
+                        <TableHead>Filial</TableHead>
                         <TableHead>Função</TableHead>
                         <TableHead>Criado em</TableHead>
                         <TableHead>Ações</TableHead>
@@ -668,6 +695,25 @@ const Admin = () => {
                             </Badge>
                           </TableCell>
                            <TableCell>
+                             <Select
+                               value={user.filial_id ?? 'none'}
+                               onValueChange={(val: string) =>
+                                 updateUserFilial.mutate({ userId: user.id, filialId: val === 'none' ? null : val })
+                               }
+                               disabled={updateUserFilial.isPending}
+                             >
+                               <SelectTrigger className="w-48">
+                                 <SelectValue placeholder="Selecionar filial" />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="none">Sem filial</SelectItem>
+                                 {filiais?.map((f) => (
+                                   <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
+                                 ))}
+                               </SelectContent>
+                             </Select>
+                           </TableCell>
+                           <TableCell>
                              <Badge variant={
                                user.role_extended === 'admin_master' ? 'default' : 
                                user.role_extended === 'admin_filial' ? 'default' : 
@@ -677,7 +723,7 @@ const Admin = () => {
                                 user.role_extended === 'admin_filial' ? 'Admin Filial' :
                                 user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
                              </Badge>
-                          </TableCell>
+                           </TableCell>
                         <TableCell>
                           {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                         </TableCell>
