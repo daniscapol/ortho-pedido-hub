@@ -100,29 +100,11 @@ export const useCreateFilial = () => {
 
   return useMutation({
     mutationFn: async (filial: { nome_completo: string; endereco: string; telefone: string; email: string; ativo?: boolean; cnpj?: string; cep?: string; cidade?: string; estado?: string; numero?: string; complemento?: string }) => {
-      // Sanitizar payload para evitar colunas inexistentes (ex: clinica_id)
-      const payload = {
-        nome_completo: filial.nome_completo,
-        endereco: filial.endereco,
-        telefone: filial.telefone,
-        email: filial.email,
-        ativo: filial.ativo ?? true,
-        cnpj: filial.cnpj,
-        cep: filial.cep,
-        cidade: filial.cidade,
-        estado: filial.estado,
-        numero: filial.numero,
-        complemento: filial.complemento,
-      }
-
-      const { data, error } = await supabase
-        .from("filiais")
-        .insert([payload])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const { data, error } = await supabase.functions.invoke('admin-create-filial', {
+        body: filial,
+      })
+      if (error) throw error
+      return (data as any)?.filial
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["filiais"] });
