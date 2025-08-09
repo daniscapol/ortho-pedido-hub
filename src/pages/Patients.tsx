@@ -347,7 +347,7 @@ const Patients = () => {
                          <TableHead>CPF</TableHead>
                          <TableHead>Telefone</TableHead>
                          <TableHead>Email</TableHead>
-                         <TableHead>Dentista</TableHead>
+                         <TableHead>Dentista Responsável</TableHead>
                          <TableHead>Data de Cadastro</TableHead>
                          <TableHead className="w-[100px]">Ações</TableHead>
                        </TableRow>
