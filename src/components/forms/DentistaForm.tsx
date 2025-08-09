@@ -163,28 +163,6 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
               </Select>
             </div>
 
-            {canCreateAdmin && (
-              <div className="md:col-span-2">
-                <Label htmlFor="role_extended">Tipo de Usuário</Label>
-                <Select
-                  value={roleExtended}
-                  onValueChange={(value: any) => {
-                    setValue("role_extended", value);
-                    setValue("role", value === 'dentist' ? 'dentist' : 'admin');
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dentist">Dentista</SelectItem>
-                    <SelectItem value="admin_filial">Administrador de Filial</SelectItem>
-                    <SelectItem value="admin_clinica">Administrador de Clínica</SelectItem>
-                    <SelectItem value="admin_master">Administrador Master</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="md:col-span-2">
               <Label htmlFor="endereco">Endereço</Label>
