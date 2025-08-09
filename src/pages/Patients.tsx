@@ -254,19 +254,23 @@ const Patients = () => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Dentista Responsável</FormLabel>
-                            {profile?.role === 'dentist' && !editingPatient ? (
-                              <Select value={profile?.id || ''} onValueChange={() => {}}>
+                            {profile?.role === 'dentist' ? (
+                              <Select value={field.value || profile?.id || ''} onValueChange={() => {}}>
                                 <FormControl>
                                   <SelectTrigger disabled>
                                     <SelectValue placeholder="Dentista" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {profile?.id && (
-                                    <SelectItem value={profile.id}>
+                                  {(field.value || profile?.id) && (
+                                    <SelectItem value={(field.value || profile?.id) as string}>
                                       <div className="flex items-center gap-2">
                                         <UserCheck className="h-4 w-4" />
-                                        {profile?.name || profile?.email}
+                                        {dentists?.find(d => d.id === (field.value || profile?.id))?.nome_completo 
+                                          || dentists?.find(d => d.id === (field.value || profile?.id))?.email 
+                                          || profile?.name 
+                                          || profile?.email 
+                                          || 'Dentista'}
                                       </div>
                                     </SelectItem>
                                   )}
