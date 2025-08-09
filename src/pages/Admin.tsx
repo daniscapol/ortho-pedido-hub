@@ -70,7 +70,7 @@ const Admin = () => {
   const FiliaisSection = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Gerenciamento de Filiais</CardTitle>
+        <CardTitle>Gerenciamento de Clínicas</CardTitle>
       </CardHeader>
       <CardContent>
         {filiaisLoading ? (
@@ -91,7 +91,7 @@ const Admin = () => {
                 <TableHead>Endereço</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Clínicas</TableHead>
+                <TableHead>Filiais</TableHead>
                 <TableHead>Pacientes</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Criado em</TableHead>
@@ -114,7 +114,7 @@ const Admin = () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {filial.qntd_clinicas || 0} clínicas
+                      {filial.qntd_clinicas || 0} filiais
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -215,8 +215,8 @@ const Admin = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: 'Filial atualizada',
-        description: 'O usuário foi associado à filial com sucesso.',
+        title: 'Clínica atualizada',
+        description: 'O usuário foi associado à clínica com sucesso.',
       });
     },
     onError: () => {
@@ -240,8 +240,8 @@ const Admin = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: 'Clínica atualizada',
-        description: 'O usuário foi associado à clínica com sucesso.',
+        title: 'Filial atualizada',
+        description: 'O usuário foi associado à filial com sucesso.',
       });
     },
     onError: () => {
@@ -594,7 +594,7 @@ const Admin = () => {
             className="flex items-center gap-2"
           >
             <Building2 className="h-4 w-4" />
-            Filiais
+            Clínicas
           </Button>
         </div>
 
@@ -665,8 +665,8 @@ const Admin = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="dentist">Dentista</SelectItem>
-                            <SelectItem value="admin_clinica">Admin de Clínica</SelectItem>
-                            <SelectItem value="admin_filial">Admin de Filial</SelectItem>
+                            <SelectItem value="admin_clinica">Admin de Filial</SelectItem>
+                            <SelectItem value="admin_filial">Admin de Clínica</SelectItem>
                             <SelectItem value="admin_master">Admin Master</SelectItem>
                           </SelectContent>
                         </Select>
@@ -703,8 +703,8 @@ const Admin = () => {
                         <TableHead>Nome</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Verificação</TableHead>
-                        <TableHead>Filial</TableHead>
                         <TableHead>Clínica</TableHead>
+                        <TableHead>Filial</TableHead>
                         <TableHead>Função</TableHead>
                         <TableHead>Criado em</TableHead>
                         <TableHead>Ações</TableHead>
@@ -733,10 +733,10 @@ const Admin = () => {
                                disabled={updateUserFilial.isPending}
                              >
                                 <SelectTrigger className="w-52">
-                                 <SelectValue placeholder="Selecionar filial" />
+                                 <SelectValue placeholder="Selecionar clínica" />
                                </SelectTrigger>
                                <SelectContent>
-                                 <SelectItem value="none">Sem filial</SelectItem>
+                                 <SelectItem value="none">Sem clínica</SelectItem>
                                  {filiais?.map((f) => (
                                    <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                                  ))}
@@ -752,10 +752,10 @@ const Admin = () => {
                                 disabled={updateUserClinica.isPending}
                               >
                                 <SelectTrigger className="w-56">
-                                  <SelectValue placeholder="Selecionar clínica" />
+                                  <SelectValue placeholder="Selecionar filial" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="none">Sem clínica</SelectItem>
+                                  <SelectItem value="none">Sem filial</SelectItem>
                                   {(clinicas || []).filter(c => !user.filial_id || c.filial_id === user.filial_id).map((c) => (
                                     <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
                                   ))}
@@ -769,8 +769,8 @@ const Admin = () => {
                                user.role_extended === 'admin_clinica' ? 'default' : 'secondary'
                              }>
                                {user.role_extended === 'admin_master' ? 'Admin Master' :
-                                user.role_extended === 'admin_filial' ? 'Admin Filial' :
-                                user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
+                                user.role_extended === 'admin_filial' ? 'Admin Clínica' : 
+                                user.role_extended === 'admin_clinica' ? 'Admin Filial' : 'Dentista'}
                              </Badge>
                            </TableCell>
                         <TableCell>
@@ -790,8 +790,8 @@ const Admin = () => {
                                  </SelectTrigger>
                                  <SelectContent>
                                    <SelectItem value="dentist">Dentista</SelectItem>
-                                   <SelectItem value="admin_clinica">Admin Clínica</SelectItem>
-                                   <SelectItem value="admin_filial">Admin Filial</SelectItem>
+                                    <SelectItem value="admin_clinica">Admin Filial</SelectItem>
+                                    <SelectItem value="admin_filial">Admin Clínica</SelectItem>
                                    <SelectItem value="admin_master">Admin Master</SelectItem>
                                  </SelectContent>
                                </Select>
