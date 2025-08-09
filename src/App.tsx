@@ -7,6 +7,7 @@ import { SupportChat } from "@/components/chat/SupportChat";
 import { useSupportChat } from "@/hooks/useSupportChat";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleProtectedRoute from "@/components/auth/RoleProtectedRoute";
 import Index from "./pages/Index";
 import Pedidos from "./pages/Pedidos";
 import NewOrder from "./pages/NewOrder";
@@ -51,14 +52,38 @@ const App = () => {
                     <Route path="/novo-pedido-avancado" element={<NewOrderAdvanced />} />
                     <Route path="/pedido/:id" element={<OrderDetails />} />
                     <Route path="/perfil" element={<Profile />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/admin/suporte" element={<SupportAdmin />} />
-                    <Route path="/dentistas" element={<Dentistas />} />
-                    <Route path="/dentistas/:id" element={<DentistDetails />} />
+                    <Route path="/admin" element={
+                      <RoleProtectedRoute requiredPermission="admin">
+                        <Admin />
+                      </RoleProtectedRoute>
+                    } />
+                    <Route path="/admin/suporte" element={
+                      <RoleProtectedRoute requiredPermission="supportAdmin">
+                        <SupportAdmin />
+                      </RoleProtectedRoute>
+                    } />
+                    <Route path="/dentistas" element={
+                      <RoleProtectedRoute requiredPermission="dentistas">
+                        <Dentistas />
+                      </RoleProtectedRoute>
+                    } />
+                    <Route path="/dentistas/:id" element={
+                      <RoleProtectedRoute requiredPermission="dentistas">
+                        <DentistDetails />
+                      </RoleProtectedRoute>
+                    } />
                     <Route path="/pacientes" element={<Patients />} />
                     <Route path="/agenda" element={<Agenda />} />
-                    <Route path="/filiais" element={<Filiais />} />
-                    <Route path="/clinicas" element={<Clinicas />} />
+                    <Route path="/filiais" element={
+                      <RoleProtectedRoute requiredPermission="filiais">
+                        <Filiais />
+                      </RoleProtectedRoute>
+                    } />
+                    <Route path="/clinicas" element={
+                      <RoleProtectedRoute requiredPermission="clinicas">
+                        <Clinicas />
+                      </RoleProtectedRoute>
+                    } />
                     <Route path="/contato" element={<Contato />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

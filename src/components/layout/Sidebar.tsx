@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, LayoutGrid, Users, Building2, Building, Calendar, Phone, Shield } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { usePermissions } from "@/hooks/usePermissions";
 
 // Ícone customizado de dente
 const ToothIcon = ({ className, ...props }: { className?: string }) => (
@@ -28,57 +29,69 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: profile } = useProfile();
+  const { canAccess } = usePermissions();
 
-  const menuItems = [
+  const allMenuItems = [
     {
       icon: Home,
-      label: "Home",
+      label: "Dashboard",
       path: "/",
-      active: location.pathname === "/"
+      active: location.pathname === "/",
+      permission: "home"
     },
     {
       icon: LayoutGrid,
       label: "Pedidos",
       path: "/pedidos",
-      active: location.pathname === "/pedidos"
+      active: location.pathname === "/pedidos",
+      permission: "pedidos"
     },
     {
       icon: Users,
       label: "Dentistas",
       path: "/dentistas",
-      active: location.pathname === "/dentistas"
+      active: location.pathname === "/dentistas",
+      permission: "dentistas"
     },
     {
       icon: ToothIcon,
       label: "Pacientes",
       path: "/pacientes",
-      active: location.pathname === "/pacientes"
+      active: location.pathname === "/pacientes",
+      permission: "pacientes"
     },
     {
       icon: Building,
       label: "Clínicas",
       path: "/clinicas",
-      active: location.pathname === "/clinicas"
+      active: location.pathname === "/clinicas",
+      permission: "clinicas"
     },
     {
       icon: Building2,
       label: "Filiais",
       path: "/filiais",
-      active: location.pathname === "/filiais"
+      active: location.pathname === "/filiais",
+      permission: "filiais"
     },
     {
       icon: Calendar,
       label: "Agenda",
       path: "/agenda",
-      active: location.pathname === "/agenda"
+      active: location.pathname === "/agenda",
+      permission: "agenda"
     },
     {
       icon: Phone,
       label: "Contato",
       path: "/contato",
-      active: location.pathname === "/contato"
+      active: location.pathname === "/contato",
+      permission: "contato"
     }
   ];
+
+  // Filter menu items based on user permissions
+  const menuItems = allMenuItems.filter(item => canAccess(item.permission));
 
   return (
     <aside className="w-48 bg-slate-800 border-r border-slate-700 h-screen">
@@ -120,8 +133,8 @@ const Sidebar = () => {
           })}
         </nav>
 
-        {/* Seção Admin - apenas para administradores */}
-        {profile?.role === 'admin' && (
+        {/* Admin Button - só aparece para super admin */}
+        {canAccess("admin") && (
           <div className="mt-6 pt-4 border-t border-slate-600">
             <Button
               variant={location.pathname === "/admin" ? "secondary" : "ghost"}
