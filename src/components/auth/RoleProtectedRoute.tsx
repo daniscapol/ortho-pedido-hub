@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { usePermissions } from "@/hooks/usePermissions";
 
 interface RoleProtectedRouteProps {
@@ -7,6 +8,7 @@ interface RoleProtectedRouteProps {
 }
 
 const RoleProtectedRoute = ({ children, requiredPermission, fallback }: RoleProtectedRouteProps) => {
+  const navigate = useNavigate();
   const { canAccess, userRole } = usePermissions();
 
   if (!canAccess(requiredPermission)) {
@@ -23,10 +25,10 @@ const RoleProtectedRoute = ({ children, requiredPermission, fallback }: RoleProt
           </p>
           <div className="pt-4">
             <button 
-              onClick={() => window.history.back()} 
+              onClick={() => navigate("/")} 
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
             >
-              Voltar
+              Ir para Home
             </button>
           </div>
         </div>
