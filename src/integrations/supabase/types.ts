@@ -551,15 +551,12 @@ export type Database = {
           cpf: string
           created_at: string
           dentist_id: string | null
-          email: string
-          email_contato: string | null
+          email_contato: string
           filial_id: string | null
           id: string
-          name: string
           nome_completo: string
           observacoes: string | null
-          phone: string
-          telefone_contato: string | null
+          telefone_contato: string
           updated_at: string
         }
         Insert: {
@@ -568,15 +565,12 @@ export type Database = {
           cpf: string
           created_at?: string
           dentist_id?: string | null
-          email: string
-          email_contato?: string | null
+          email_contato: string
           filial_id?: string | null
           id?: string
-          name: string
           nome_completo: string
           observacoes?: string | null
-          phone: string
-          telefone_contato?: string | null
+          telefone_contato: string
           updated_at?: string
         }
         Update: {
@@ -585,15 +579,12 @@ export type Database = {
           cpf?: string
           created_at?: string
           dentist_id?: string | null
-          email?: string
-          email_contato?: string | null
+          email_contato?: string
           filial_id?: string | null
           id?: string
-          name?: string
           nome_completo?: string
           observacoes?: string | null
-          phone?: string
-          telefone_contato?: string | null
+          telefone_contato?: string
           updated_at?: string
         }
         Relationships: [
