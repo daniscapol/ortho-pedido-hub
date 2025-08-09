@@ -19,13 +19,14 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users } from "lucide-react";
+import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2 } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
 import { MateriaisManager } from "@/components/admin/MateriaisManager";
 import { CoresManager } from "@/components/admin/CoresManager";
 import { CompatibilidadeManager } from "@/components/admin/CompatibilidadeManager";
+import { useFiliais } from "@/hooks/useFiliais";
 
 interface User {
   id: string;
@@ -49,6 +50,70 @@ const Admin = () => {
   const [newUserData, setNewUserData] = useState({ name: '', email: '', password: '', role: 'dentist' as 'admin' | 'dentist' });
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const updateOrderStatus = useUpdateOrderStatus();
+
+  // Hook para filiais
+  const { data: filiais, isLoading: filiaisLoading } = useFiliais();
+
+  // Componente interno para seção de filiais
+  const FiliaisSection = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Gerenciamento de Filiais</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {filiaisLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center space-x-4">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-8 w-24" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Endereço</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Criado em</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filiais?.map((filial) => (
+                <TableRow key={filial.id}>
+                  <TableCell className="font-medium">
+                    {filial.nome_completo}
+                  </TableCell>
+                  <TableCell>
+                    {filial.endereco}
+                  </TableCell>
+                  <TableCell>
+                    {filial.telefone}
+                  </TableCell>
+                  <TableCell>
+                    {filial.email}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={filial.ativo ? 'default' : 'secondary'}>
+                      {filial.ativo ? 'Ativa' : 'Inativa'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(filial.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
 
   // Buscar todos os usuários
   const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
@@ -457,6 +522,14 @@ const Admin = () => {
             <Link className="h-4 w-4" />
             Compatibilidades
           </Button>
+          <Button 
+            variant={activeTab === "filiais" ? "default" : "outline"}
+            onClick={() => setActiveTab("filiais")}
+            className="flex items-center gap-2"
+          >
+            <Building2 className="h-4 w-4" />
+            Filiais
+          </Button>
         </div>
 
         {activeTab === "users" ? (
@@ -661,6 +734,8 @@ const Admin = () => {
           <CoresManager />
         ) : activeTab === "compatibilidades" ? (
           <CompatibilidadeManager />
+        ) : activeTab === "filiais" ? (
+          <FiliaisSection />
         ) : (
           <div className="space-y-6">
             {/* Estatísticas dos Pedidos */}

@@ -4,8 +4,10 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface Filial {
   id: string;
-  nome: string;
-  endereco_entrega: string;
+  nome_completo: string;
+  endereco: string;
+  telefone: string;
+  email: string;
   ativo: boolean;
   created_at: string;
   updated_at: string;
@@ -19,7 +21,7 @@ export const useFiliais = () => {
       const { data, error } = await supabase
         .from("filiais")
         .select("*")
-        .order("nome");
+        .order("nome_completo");
       
       if (error) throw error;
       
