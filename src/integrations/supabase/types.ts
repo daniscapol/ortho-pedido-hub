@@ -1077,6 +1077,27 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_filiais_with_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          nome_completo: string
+          endereco: string
+          telefone: string
+          email: string
+          ativo: boolean
+          created_at: string
+          updated_at: string
+          cep: string
+          cidade: string
+          estado: string
+          numero: string
+          complemento: string
+          cnpj: string
+          qntd_clinicas: number
+          qntd_pacientes: number
+        }[]
+      }
       get_or_create_conversation: {
         Args: { p_dentist_id: string; p_dentist_name: string }
         Returns: string
