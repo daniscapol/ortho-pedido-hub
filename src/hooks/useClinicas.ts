@@ -31,37 +31,7 @@ export const useClinicas = () => {
     queryFn: async () => {
       console.log("🔍 Fetching clinicas...");
 
-      // Try optimized RPC first
-      const { data: rpcData, error: rpcError } = await supabase.rpc('get_clinicas_with_counts');
-
-      if (!rpcError && rpcData) {
-        console.log("✅ Clinicas data received (RPC):", rpcData);
-        // Map RPC response to expected shape
-        return rpcData.map((c: any) => ({
-          id: c.id,
-          nome_completo: c.nome_completo,
-          cnpj: c.cnpj,
-          endereco: c.endereco,
-          telefone: c.telefone,
-          email: c.email,
-          cep: c.cep,
-          cidade: c.cidade,
-          estado: c.estado,
-          numero: c.numero,
-          complemento: c.complemento,
-          ativo: c.ativo,
-          filial_id: c.filial_id,
-          created_at: c.created_at,
-          updated_at: c.updated_at,
-          qntd_dentistas: Number(c.qntd_dentistas) || 0,
-          qntd_pacientes: Number(c.qntd_pacientes) || 0,
-          filial: { nome_completo: c.filial_nome || null }
-        }));
-      }
-
-      console.warn("⚠️ RPC failed, falling back to manual approach:", rpcError);
-
-      // Fallback to manual approach without implicit FK relationship
+      // Direct SELECT to respect RLS (avoid RPC with SECURITY DEFINER)
       const { data, error } = await supabase
         .from("clinicas")
         .select("*")

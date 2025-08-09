@@ -50,8 +50,15 @@ const Clinicas = () => {
   const deleteClinica = useDeleteClinica();
 
   const canManageClinicas = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_filial';
+
+  const visibleClinicas = (clinicas || []).filter((c) => {
+    if (profile?.role_extended === 'admin_master') return true
+    if (profile?.role_extended === 'admin_filial') return c.filial_id === profile?.filial_id
+    if (profile?.role_extended === 'admin_clinica') return c.id === profile?.clinica_id
+    return false
+  })
   
-  const filteredClinicas = clinicas?.filter(clinica =>
+  const filteredClinicas = visibleClinicas.filter(clinica =>
     clinica.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     clinica.cnpj.includes(searchTerm) ||
     clinica.email.toLowerCase().includes(searchTerm.toLowerCase())
