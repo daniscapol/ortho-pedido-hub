@@ -511,7 +511,7 @@ const Admin = () => {
         <Header />
         
         <main className="flex-1 p-6">
-          <div className="container mx-auto max-w-7xl">
+          <div className="container mx-auto max-w-none">
             <div className="flex items-center gap-4 mb-8">
               <Button variant="outline" onClick={() => navigate("/")}>
                 ← Voltar
