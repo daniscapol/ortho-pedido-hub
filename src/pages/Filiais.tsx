@@ -32,9 +32,16 @@ const Filiais = () => {
   const canManageFiliais = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_filial';
   const canCreateFiliais = profile?.role_extended === 'admin_master';
 
-  const filteredFiliais = filiais?.filter(filial =>
+  const visibleFiliais = (filiais || []).filter((f) => {
+    if (profile?.role_extended === 'admin_master') return true
+    if (profile?.role_extended === 'admin_filial' || profile?.role_extended === 'admin_clinica') return f.id === profile?.filial_id
+    return false
+  })
+
+  const filteredFiliais = visibleFiliais.filter(filial =>
     filial.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
 
   const handleCreateFilial = async (data: any) => {
     await createFilial.mutateAsync(data);
