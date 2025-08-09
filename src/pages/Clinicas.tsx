@@ -35,11 +35,16 @@ import { ptBR } from "date-fns/locale";
 const Clinicas = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showClinicaForm, setShowClinicaForm] = useState(false);
+  const [editingClinica, setEditingClinica] = useState<Clinica | null>(null);
+  const [deleteClinicaId, setDeleteClinicaId] = useState<string | null>(null);
   
   const { data: clinicas, isLoading } = useClinicas();
   const { data: profile } = useProfile();
   const createClinica = useCreateClinica();
   const updateClinica = useUpdateClinica();
+  const deleteClinica = useDeleteClinica();
+
+  const canManageClinicas = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_filial';
   
   const filteredClinicas = clinicas?.filter(clinica =>
     clinica.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -209,21 +214,21 @@ const Clinicas = () => {
                           {format(new Date(clinica.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                         </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                Ver detalhes
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                Editar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                              Ver detalhes
+                            </Button>
+                            {canManageClinicas && (
+                              <>
+                                <Button variant="outline" size="sm" onClick={() => setEditingClinica(clinica)}>
+                                  Editar
+                                </Button>
+                                <Button variant="destructive" size="sm" onClick={() => setDeleteClinicaId(clinica.id)} disabled={deleteClinica.isPending}>
+                                  Remover
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -241,6 +246,47 @@ const Clinicas = () => {
         onSubmit={handleCreateClinica}
         isLoading={createClinica.isPending}
       />
+
+      {/* Edit Clinica Form */}
+      <ClinicaForm
+        open={!!editingClinica}
+        onOpenChange={(open) => {
+          if (!open) setEditingClinica(null);
+        }}
+        onSubmit={async (data) => {
+          if (editingClinica) {
+            await updateClinica.mutateAsync({ id: editingClinica.id, ...data });
+          }
+          setEditingClinica(null);
+        }}
+        isLoading={updateClinica.isPending}
+        initialData={editingClinica || undefined}
+      />
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteClinicaId} onOpenChange={(o) => { if (!o) setDeleteClinicaId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover clínica?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A clínica será removida permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (deleteClinicaId) {
+                  await deleteClinica.mutateAsync(deleteClinicaId);
+                  setDeleteClinicaId(null);
+                }
+              }}
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
