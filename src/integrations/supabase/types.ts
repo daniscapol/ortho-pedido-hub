@@ -99,6 +99,7 @@ export type Database = {
           email: string
           endereco: string | null
           estado: string | null
+          filial_id: string | null
           id: string
           nome_completo: string
           numero: string | null
@@ -115,6 +116,7 @@ export type Database = {
           email: string
           endereco?: string | null
           estado?: string | null
+          filial_id?: string | null
           id?: string
           nome_completo: string
           numero?: string | null
@@ -131,13 +133,22 @@ export type Database = {
           email?: string
           endereco?: string | null
           estado?: string | null
+          filial_id?: string | null
           id?: string
           nome_completo?: string
           numero?: string | null
           telefone?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clinicas_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       compatibilidade_produto_material_cor: {
         Row: {
@@ -201,7 +212,6 @@ export type Database = {
           ativo: boolean
           cep: string | null
           cidade: string | null
-          clinica_id: string | null
           cnpj: string | null
           complemento: string | null
           created_at: string
@@ -218,7 +228,6 @@ export type Database = {
           ativo?: boolean
           cep?: string | null
           cidade?: string | null
-          clinica_id?: string | null
           cnpj?: string | null
           complemento?: string | null
           created_at?: string
@@ -235,7 +244,6 @@ export type Database = {
           ativo?: boolean
           cep?: string | null
           cidade?: string | null
-          clinica_id?: string | null
           cnpj?: string | null
           complemento?: string | null
           created_at?: string
@@ -248,15 +256,7 @@ export type Database = {
           telefone?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "filiais_clinica_id_fkey"
-            columns: ["clinica_id"]
-            isOneToOne: false
-            referencedRelation: "clinicas"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       image_annotations: {
         Row: {
