@@ -52,7 +52,7 @@ const OrderRow = ({ order }: { order: any }) => {
         {order.id.slice(-8)}
       </td>
       <td className="py-3 px-2 text-sm text-foreground">
-        {order.patients?.name || 'N/A'}
+        {order.patients?.nome_completo || 'N/A'}
       </td>
       <td className="py-3 px-2 text-sm text-foreground">{order.dentist}</td>
       <td className="py-3 px-2 text-sm text-foreground">

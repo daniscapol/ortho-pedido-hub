@@ -19,10 +19,10 @@ export interface Order {
   updated_at: string
   user_id: string
   patients?: {
-    name: string
+    nome_completo: string
     cpf: string
-    phone: string
-    email: string
+    telefone_contato: string
+    email_contato: string
   }
   order_images?: Array<{
     id: string
@@ -40,10 +40,10 @@ export const useOrders = () => {
         .select(`
           *,
           patients (
-            name,
+            nome_completo,
             cpf,
-            phone,
-            email
+            telefone_contato,
+            email_contato
           ),
           order_images (
             id,
@@ -139,10 +139,10 @@ export const useOrdersForAdmin = () => {
         .select(`
           *,
           patients (
-            name,
+            nome_completo,
             cpf,
-            phone,
-            email
+            telefone_contato,
+            email_contato
           ),
           order_images (
             id,
@@ -169,10 +169,10 @@ export const usePatientOrders = (patientId?: string) => {
         .select(`
           *,
           patients (
-            name,
+            nome_completo,
             cpf,
-            phone,
-            email
+            telefone_contato,
+            email_contato
           ),
           order_images (
             id,

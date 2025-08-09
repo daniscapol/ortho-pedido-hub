@@ -55,7 +55,7 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-left">
-            {order.patients?.name}
+            {order.patients?.nome_completo}
           </DialogTitle>
           <div className="flex items-center gap-2 mt-2">
             <Badge variant="outline" className="text-slate-600">
@@ -80,8 +80,8 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
             <h3 className="font-semibold text-foreground">Informações do Dentista</h3>
             <div className="space-y-1 text-sm">
               <p><strong>Dentista:</strong> <span className="text-muted-foreground">{order.dentist}</span></p>
-              <p><strong>E-mail:</strong> <span className="text-muted-foreground">{order.patients?.email}</span></p>
-              <p><strong>Telefone:</strong> <span className="text-muted-foreground">{order.patients?.phone}</span></p>
+              <p><strong>E-mail:</strong> <span className="text-muted-foreground">{order.patients?.email_contato}</span></p>
+              <p><strong>Telefone:</strong> <span className="text-muted-foreground">{order.patients?.telefone_contato}</span></p>
             </div>
           </div>
 
@@ -196,10 +196,10 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
           <div className="space-y-2">
             <h3 className="font-semibold text-foreground">Informações do Paciente</h3>
             <div className="space-y-1 text-sm">
-              <p><strong>Nome:</strong> <span className="text-muted-foreground">{order.patients?.name}</span></p>
+              <p><strong>Nome:</strong> <span className="text-muted-foreground">{order.patients?.nome_completo}</span></p>
               <p><strong>CPF:</strong> <span className="text-muted-foreground">{order.patients?.cpf}</span></p>
-              <p><strong>Telefone:</strong> <span className="text-muted-foreground">{order.patients?.phone}</span></p>
-              <p><strong>E-mail:</strong> <span className="text-muted-foreground">{order.patients?.email}</span></p>
+              <p><strong>Telefone:</strong> <span className="text-muted-foreground">{order.patients?.telefone_contato}</span></p>
+              <p><strong>E-mail:</strong> <span className="text-muted-foreground">{order.patients?.email_contato}</span></p>
             </div>
           </div>
         </div>

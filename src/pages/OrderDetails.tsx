@@ -263,15 +263,15 @@ const OrderDetails = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="font-medium">{order.patients?.name}</p>
+                  <p className="font-medium">{order.patients?.nome_completo}</p>
                   <p className="text-sm text-muted-foreground">CPF: {order.patients?.cpf}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Tel: {order.patients?.phone}
+                    Tel: {order.patients?.telefone_contato}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Email: {order.patients?.email}
+                    Email: {order.patients?.email_contato}
                   </p>
                 </div>
               </div>

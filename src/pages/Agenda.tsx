@@ -136,7 +136,7 @@ const Agenda = () => {
         const searchLower = searchTerm.toLowerCase()
         return (
           order.dentist.toLowerCase().includes(searchLower) ||
-          order.patients?.name.toLowerCase().includes(searchLower)
+          order.patients?.nome_completo.toLowerCase().includes(searchLower)
         )
       }
       
@@ -589,7 +589,7 @@ const Agenda = () => {
                                       </div>
                                       {order.patients && (
                                         <div className="text-xs text-gray-500 truncate">
-                                          {order.patients.name}
+                                           {order.patients.nome_completo}
                                         </div>
                                       )}
                                       <div className="flex flex-col gap-1">
@@ -647,7 +647,7 @@ const Agenda = () => {
                                       <div className="font-medium">{order.prosthesis_type}</div>
                                       <div className="text-sm text-gray-600">
                                         <div>Dr(a). {order.dentist}</div>
-                                        {order.patients && <div>{order.patients.name}</div>}
+                                        {order.patients && <div>{order.patients.nome_completo}</div>}
                                       </div>
                                       <div className="flex gap-2">
                                         <Badge className={getStatusColor(order.status)}>
@@ -831,7 +831,7 @@ const Agenda = () => {
                                 <div className="space-y-1">
                                   <div className="font-medium">{order.prosthesis_type}</div>
                                   <div className="text-sm text-gray-600">
-                                    {order.dentist} • {order.patients?.name}
+                                    {order.dentist} • {order.patients?.nome_completo}
                                   </div>
                                   <div className="text-xs text-gray-500">
                                     Prazo: {format(parseISO(order.deadline), "dd/MM/yyyy")}

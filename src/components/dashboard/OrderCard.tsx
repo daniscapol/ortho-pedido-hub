@@ -50,7 +50,7 @@ const OrderCard = ({ order, onClick }: OrderCardProps) => {
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-semibold text-foreground">
-              {order.patients?.name}
+              {order.patients?.nome_completo}
             </h3>
             <p className="text-sm text-muted-foreground">#{order.id.slice(0, 8)}</p>
           </div>

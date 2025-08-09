@@ -83,7 +83,7 @@ const DentistDetails = () => {
     
     if (searchQuery.trim()) {
       return orders.filter(order => 
-        order.patients?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.patients?.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.prosthesis_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.id.toLowerCase().includes(searchQuery.toLowerCase())
       );

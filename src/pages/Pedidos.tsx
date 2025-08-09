@@ -176,7 +176,7 @@ const Pedidos = () => {
     // Aplicar filtro de busca
     if (searchQuery.trim()) {
       filtered = filtered.filter(order => 
-        order.patients?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.patients?.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.dentist.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.prosthesis_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -217,7 +217,7 @@ const Pedidos = () => {
     const excelData = filteredOrders.map(order => ({
       'ID do Pedido': order.id,
       'Data de Criação': format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
-      'Paciente': order.patients?.name || 'N/A',
+      'Paciente': order.patients?.nome_completo || 'N/A',
       'CPF do Paciente': order.patients?.cpf || 'N/A',
       'Dentista': order.dentist,
       'Tipo de Prótese': order.prosthesis_type,
@@ -673,7 +673,7 @@ const Pedidos = () => {
                                   {format(new Date(order.created_at), 'dd/MM/yy', { locale: ptBR })}
                                 </TableCell>
                                 <TableCell className="font-medium">
-                                  {order.patients?.name || 'N/A'}
+                                  {order.patients?.nome_completo || 'N/A'}
                                 </TableCell>
                                 <TableCell>{order.dentist}</TableCell>
                                 <TableCell>{order.prosthesis_type}</TableCell>
@@ -733,7 +733,7 @@ const Pedidos = () => {
                             </CardHeader>
                             <CardContent>
                               <div className="space-y-2">
-                                <div className="font-medium">{order.patients?.name || 'N/A'}</div>
+                                <div className="font-medium">{order.patients?.nome_completo || 'N/A'}</div>
                                 <div className="text-sm text-muted-foreground">Dentista: {order.dentist}</div>
                                 <div className="text-sm text-muted-foreground">Tipo: {order.prosthesis_type}</div>
                                 <div className="text-sm text-muted-foreground">
@@ -768,7 +768,7 @@ const Pedidos = () => {
                                 {statusOrders.map((order) => (
                                   <Card key={order.id} className="p-3 cursor-pointer hover:shadow-sm" onClick={() => navigate(`/pedido/${order.id}`)}>
                                     <div className="space-y-2">
-                                      <div className="font-medium text-sm">{order.patients?.name}</div>
+                                      <div className="font-medium text-sm">{order.patients?.nome_completo}</div>
                                       <div className="text-xs text-muted-foreground">{order.dentist}</div>
                                       <div className="text-xs text-muted-foreground">{order.prosthesis_type}</div>
                                       <div className="flex justify-between items-center">

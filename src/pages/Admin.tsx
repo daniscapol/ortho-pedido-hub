@@ -361,7 +361,7 @@ const Admin = () => {
   // Filtrar pedidos
   const filteredOrders = orders?.filter((order) => {
     const matchesSearch = 
-      order.patients?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.patients?.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.dentist.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.prosthesis_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id.includes(searchTerm);
@@ -858,7 +858,7 @@ const Admin = () => {
                           #{order.id.slice(-8)}
                         </TableCell>
                         <TableCell className="font-medium">
-                          {order.patients?.name}
+                          {order.patients?.nome_completo}
                         </TableCell>
                         <TableCell>{order.dentist}</TableCell>
                         <TableCell>{order.prosthesis_type}</TableCell>

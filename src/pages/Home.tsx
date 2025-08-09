@@ -58,7 +58,7 @@ const Home = () => {
     // Aplicar filtro de busca
     if (searchQuery.trim()) {
       filtered = filtered.filter(order => 
-        order.patients?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.patients?.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.dentist.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.prosthesis_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -78,10 +78,10 @@ const Home = () => {
       'ID do Pedido': order.id,
       'Data de Criação': new Date(order.created_at).toLocaleDateString('pt-BR'),
       'Data de Atualização': new Date(order.updated_at).toLocaleDateString('pt-BR'),
-      'Paciente': order.patients?.name || 'N/A',
+      'Paciente': order.patients?.nome_completo || 'N/A',
       'CPF do Paciente': order.patients?.cpf || 'N/A',
-      'Email do Paciente': order.patients?.email || 'N/A',
-      'Telefone do Paciente': order.patients?.phone || 'N/A',
+      'Email do Paciente': order.patients?.email_contato || 'N/A',
+      'Telefone do Paciente': order.patients?.telefone_contato || 'N/A',
       'Dentista': order.dentist,
       'Tipo de Prótese': order.prosthesis_type,
       'Material': order.material || 'N/A',

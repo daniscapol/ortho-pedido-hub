@@ -86,7 +86,7 @@ const OrdersListModal = ({ isOpen, onClose, orders, title, onOrderClick }: Order
                     <div className="space-y-1 flex-1">
                       <div className="font-medium">{order.prosthesis_type}</div>
                       <div className="text-sm text-gray-600">
-                        Dr(a). {order.dentist} • {order.patients?.name}
+                        Dr(a). {order.dentist} • {order.patients?.nome_completo}
                       </div>
                       <div className="text-xs text-gray-500">
                         Prazo: {format(parseISO(order.deadline), "dd/MM/yyyy", { locale: ptBR })}

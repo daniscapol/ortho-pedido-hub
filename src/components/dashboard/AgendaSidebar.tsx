@@ -108,7 +108,7 @@ const AgendaSidebar = () => {
                   {dayOrders.slice(0, 2).map((order) => (
                     <div key={order.id} className="text-xs">
                       <div className="truncate text-foreground font-medium">
-                        {order.patients?.name}
+                        {order.patients?.nome_completo}
                       </div>
                       <Badge 
                         variant="outline" 
