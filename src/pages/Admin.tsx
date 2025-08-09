@@ -215,8 +215,8 @@ const Admin = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: 'Clínica atualizada',
-        description: 'O usuário foi associado à clínica com sucesso.',
+        title: 'Filial atualizada',
+        description: 'O usuário foi associado à filial com sucesso.',
       });
     },
     onError: () => {
@@ -240,8 +240,8 @@ const Admin = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: 'Filial atualizada',
-        description: 'O usuário foi associado à filial com sucesso.',
+        title: 'Clínica atualizada',
+        description: 'O usuário foi associado à clínica com sucesso.',
       });
     },
     onError: () => {
@@ -726,41 +726,41 @@ const Admin = () => {
                           </TableCell>
                            <TableCell>
                              <Select
-                               value={user.filial_id ?? 'none'}
-                               onValueChange={(val: string) =>
-                                 updateUserFilial.mutate({ userId: user.id, filialId: val === 'none' ? null : val })
-                               }
-                               disabled={updateUserFilial.isPending}
-                             >
-                                <SelectTrigger className="w-52">
-                                 <SelectValue placeholder="Selecionar clínica" />
-                               </SelectTrigger>
-                               <SelectContent>
-                                 <SelectItem value="none">Sem clínica</SelectItem>
-                                 {filiais?.map((f) => (
-                                   <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
-                                 ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell>
-                              <Select
                                 value={user.clinica_id ?? 'none'}
                                 onValueChange={(val: string) =>
                                   updateUserClinica.mutate({ userId: user.id, clinicaId: val === 'none' ? null : val })
                                 }
                                 disabled={updateUserClinica.isPending}
                               >
-                                <SelectTrigger className="w-56">
-                                  <SelectValue placeholder="Selecionar filial" />
+                                <SelectTrigger className="w-52">
+                                  <SelectValue placeholder="Selecionar clínica" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="none">Sem filial</SelectItem>
-                                  {(clinicas || []).filter(c => !user.filial_id || c.filial_id === user.filial_id).map((c) => (
+                                  <SelectItem value="none">Sem clínica</SelectItem>
+                                  {(clinicas || []).map((c) => (
                                     <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
+                            </TableCell>
+                            <TableCell>
+                               <Select
+                                 value={user.filial_id ?? 'none'}
+                                 onValueChange={(val: string) =>
+                                   updateUserFilial.mutate({ userId: user.id, filialId: val === 'none' ? null : val })
+                                 }
+                                 disabled={updateUserFilial.isPending}
+                               >
+                                 <SelectTrigger className="w-56">
+                                   <SelectValue placeholder="Selecionar filial" />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                   <SelectItem value="none">Sem filial</SelectItem>
+                                   {(filiais || []).filter(f => !user.clinica_id || f.clinica_id === user.clinica_id).map((f) => (
+                                     <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
+                                   ))}
+                                 </SelectContent>
+                               </Select>
                             </TableCell>
                             <TableCell>
                               <Badge variant={
