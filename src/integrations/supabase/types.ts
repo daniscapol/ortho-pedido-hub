@@ -256,6 +256,13 @@ export type Database = {
             referencedRelation: "clinicas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "filiais_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
         ]
       }
       image_annotations: {
