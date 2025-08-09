@@ -264,9 +264,11 @@ const Admin = () => {
       if (error.message === "User already registered") {
         errorMessage = "Este email já está cadastrado";
       } else if (error.message?.includes("email_address_invalid") || error.message?.includes("Email address") && error.message?.includes("is invalid")) {
-        errorMessage = "Email inválido. Verifique se o endereço de email está correto e use um domínio válido";
+        errorMessage = "Email inválido. Use um email real com domínio válido (ex: joao@empresa.com). Evite emails de teste ou domínios não reconhecidos.";
       } else if (error.message?.includes("Invalid email")) {
-        errorMessage = "Formato de email inválido";
+        errorMessage = "Formato de email inválido - use um email real";
+      } else if (error.code === "email_address_invalid") {
+        errorMessage = "Email rejeitado pelo sistema. Use um email corporativo válido (ex: usuario@suaempresa.com.br)";
       }
       
       toast({
@@ -591,17 +593,20 @@ const Admin = () => {
                           required
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-email">Email</Label>
-                        <Input
-                          id="new-email"
-                          type="email"
-                          placeholder="email@exemplo.com"
-                          value={newUserData.email}
-                          onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
-                          required
-                        />
-                      </div>
+                       <div className="space-y-2">
+                         <Label htmlFor="new-email">Email</Label>
+                         <Input
+                           id="new-email"
+                           type="email"
+                           placeholder="usuario@empresa.com.br (use um email real)"
+                           value={newUserData.email}
+                           onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
+                           required
+                         />
+                         <p className="text-xs text-muted-foreground">
+                           ⚠️ Use um email corporativo válido. Emails de teste podem ser rejeitados.
+                         </p>
+                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="new-password">Senha</Label>
                         <Input
