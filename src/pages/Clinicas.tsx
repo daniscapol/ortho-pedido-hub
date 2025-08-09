@@ -25,7 +25,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Plus, MoreHorizontal, Bell } from "lucide-react";
+import { Search, Plus, MoreHorizontal, Bell, User, Settings, LogOut } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useProfile } from "@/hooks/useProfile";
@@ -33,8 +33,10 @@ import { useClinicas, useCreateClinica, useUpdateClinica, useDeleteClinica, type
 import { ClinicaForm } from "@/components/forms/ClinicaForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 const Clinicas = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [showClinicaForm, setShowClinicaForm] = useState(false);
   const [editingClinica, setEditingClinica] = useState<Clinica | null>(null);
@@ -83,11 +85,16 @@ const Clinicas = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen bg-background">
+      <div className="min-h-screen bg-background flex">
         <Sidebar />
         <div className="flex-1 flex flex-col">
-          <div className="p-6">
-            <p className="text-lg">Carregando...</p>
+          <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+            <div className="flex-1 flex items-center justify-center px-6">
+              <div className="text-white">Carregando...</div>
+            </div>
+          </header>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">Carregando...</div>
           </div>
         </div>
       </div>
@@ -95,49 +102,46 @@ const Clinicas = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
       <Sidebar />
+      
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="border-b border-border p-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Clínicas</h1>
-            <div className="flex items-center gap-2">
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+          <div className="flex-1 flex items-center justify-end px-6">
+            
+            <div className="flex items-center gap-4">
               <NotificationDropdown />
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        {profile?.name?.charAt(0)?.toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
+                        SB Prótese Odontológica - Admin
+                      </div>
+                    </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {profile?.name || "Usuário"}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {profile?.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Perfil</DropdownMenuItem>
-                  <DropdownMenuItem>Configurações</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>Sair</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => console.log('logout')}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-6 space-y-6">
+        </header>
+        
+        <main className="flex-1 p-6">
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -255,7 +259,7 @@ const Clinicas = () => {
               )}
             </CardContent>
           </Card>
-        </div>
+        </main>
       </div>
 
       <ClinicaForm
