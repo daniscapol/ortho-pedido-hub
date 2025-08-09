@@ -1073,6 +1073,29 @@ export type Database = {
         }
         Returns: string
       }
+      get_clinicas_with_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          nome_completo: string
+          cnpj: string
+          endereco: string
+          telefone: string
+          email: string
+          cep: string
+          cidade: string
+          estado: string
+          numero: string
+          complemento: string
+          ativo: boolean
+          filial_id: string
+          created_at: string
+          updated_at: string
+          filial_nome: string
+          qntd_dentistas: number
+          qntd_pacientes: number
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]

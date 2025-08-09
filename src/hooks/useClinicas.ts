@@ -30,65 +30,99 @@ export const useClinicas = () => {
     queryKey: ["clinicas"],
     queryFn: async () => {
       console.log("🔍 Fetching clinicas...");
-      
+
+      // Try optimized RPC first
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_clinicas_with_counts');
+
+      if (!rpcError && rpcData) {
+        console.log("✅ Clinicas data received (RPC):", rpcData);
+        // Map RPC response to expected shape
+        return rpcData.map((c: any) => ({
+          id: c.id,
+          nome_completo: c.nome_completo,
+          cnpj: c.cnpj,
+          endereco: c.endereco,
+          telefone: c.telefone,
+          email: c.email,
+          cep: c.cep,
+          cidade: c.cidade,
+          estado: c.estado,
+          numero: c.numero,
+          complemento: c.complemento,
+          ativo: c.ativo,
+          filial_id: c.filial_id,
+          created_at: c.created_at,
+          updated_at: c.updated_at,
+          qntd_dentistas: Number(c.qntd_dentistas) || 0,
+          qntd_pacientes: Number(c.qntd_pacientes) || 0,
+          filial: { nome_completo: c.filial_nome || null }
+        }));
+      }
+
+      console.warn("⚠️ RPC failed, falling back to manual approach:", rpcError);
+
+      // Fallback to manual approach without implicit FK relationship
       const { data, error } = await supabase
         .from("clinicas")
-        .select(`
-          *,
-          filial:filiais(nome_completo)
-        `)
+        .select("*")
         .order("nome_completo");
-      
+
       if (error) {
         console.error("❌ Error fetching clinicas:", error);
         throw error;
       }
-      
+
       console.log("✅ Clinicas data received:", data);
-      
-      // Para cada clínica, contar quantos dentistas e pacientes estão associados
-      const clinicasWithCount = await Promise.all(
+
+      const clinicasWithExtras = await Promise.all(
         data.map(async (clinica) => {
           try {
-            // Contar dentistas da clínica
+            // Fetch filial name
+            let filialNome: string | null = null;
+            if (clinica.filial_id) {
+              const { data: filialRow, error: filialError } = await supabase
+                .from('filiais')
+                .select('nome_completo')
+                .eq('id', clinica.filial_id)
+                .maybeSingle();
+              if (!filialError) filialNome = filialRow?.nome_completo ?? null;
+            }
+
+            // Count dentists
             const { data: dentistas, error: dentistasError } = await supabase
               .from("profiles")
               .select("id")
               .eq("clinica_id", clinica.id)
               .eq("role_extended", "dentist");
-            
-            if (dentistasError) {
-              console.error("Error fetching dentistas:", dentistasError);
-            }
-            
-            // Contar pacientes da clínica
+            if (dentistasError) console.error("Error fetching dentistas:", dentistasError);
+
+            // Count patients
             const { data: pacientes, error: pacientesError } = await supabase
               .from("patients")
               .select("id")
               .eq("clinica_id", clinica.id);
-            
-            if (pacientesError) {
-              console.error("Error fetching pacientes:", pacientesError);
-            }
-            
+            if (pacientesError) console.error("Error fetching pacientes:", pacientesError);
+
             return {
               ...clinica,
               qntd_dentistas: dentistas?.length || 0,
-              qntd_pacientes: pacientes?.length || 0
+              qntd_pacientes: pacientes?.length || 0,
+              filial: { nome_completo: filialNome }
             };
           } catch (err) {
             console.error("Error processing clinica:", err);
             return {
               ...clinica,
               qntd_dentistas: 0,
-              qntd_pacientes: 0
+              qntd_pacientes: 0,
+              filial: { nome_completo: null }
             };
           }
         })
       );
-      
-      console.log("✅ Clinicas with counts:", clinicasWithCount);
-      return clinicasWithCount;
+
+      console.log("✅ Clinicas with counts (fallback):", clinicasWithExtras);
+      return clinicasWithExtras;
     },
   });
 };
