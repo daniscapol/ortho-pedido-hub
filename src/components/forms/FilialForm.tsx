@@ -9,14 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 interface FilialFormData {
   nome_completo: string;
   endereco: string;
+  telefone: string;
+  email: string;
   cep?: string;
   cidade?: string;
   estado?: string;
   numero?: string;
   complemento?: string;
   cnpj?: string;
-  telefone?: string;
-  email?: string;
   ativo: boolean;
 }
 
@@ -72,20 +72,24 @@ export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading }: FilialFo
             </div>
 
             <div>
-              <Label htmlFor="telefone">Telefone</Label>
+              <Label htmlFor="telefone">Telefone *</Label>
               <Input
                 id="telefone"
-                {...register("telefone")}
+                {...register("telefone", { required: "Telefone é obrigatório" })}
                 placeholder="(11) 99999-9999"
               />
+              {errors.telefone && (
+                <p className="text-sm text-destructive mt-1">{errors.telefone.message}</p>
+              )}
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
                 {...register("email", { 
+                  required: "Email é obrigatório",
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     message: "Email inválido"

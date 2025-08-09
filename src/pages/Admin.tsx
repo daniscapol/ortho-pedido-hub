@@ -79,6 +79,8 @@ const Admin = () => {
                 <TableHead>Endereço</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Clínicas</TableHead>
+                <TableHead>Pacientes</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Criado em</TableHead>
               </TableRow>
@@ -97,6 +99,16 @@ const Admin = () => {
                   </TableCell>
                   <TableCell>
                     {filial.email}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {filial.qntd_clinicas || 0} clínicas
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {filial.qntd_pacientes || 0} pacientes
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={filial.ativo ? 'default' : 'secondary'}>

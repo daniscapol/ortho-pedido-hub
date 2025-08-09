@@ -11,6 +11,7 @@ export interface Filial {
   ativo: boolean;
   created_at: string;
   updated_at: string;
+  qntd_clinicas?: number;
   qntd_pacientes?: number;
 }
 
@@ -25,16 +26,25 @@ export const useFiliais = () => {
       
       if (error) throw error;
       
-      // Para cada filial, contar quantos pacientes estão associados
+      // Para cada filial, contar quantas clínicas e pacientes estão associados
       const filiaisWithCount = await Promise.all(
         data.map(async (filial) => {
-          // Por enquanto, vamos simular a contagem de pacientes
-          // Em uma implementação real, você associaria pacientes às filiais
-          const qntd_pacientes = 25; // Valor fixo por enquanto
+          // Contar clínicas da filial
+          const { data: clinicas } = await supabase
+            .from("clinicas")
+            .select("id")
+            .eq("filial_id", filial.id);
+          
+          // Contar pacientes das clínicas desta filial
+          const { data: pacientes } = await supabase
+            .from("patients")
+            .select("id")
+            .in("clinica_id", clinicas?.map(c => c.id) || []);
           
           return {
             ...filial,
-            qntd_pacientes
+            qntd_clinicas: clinicas?.length || 0,
+            qntd_pacientes: pacientes?.length || 0
           };
         })
       );
@@ -49,7 +59,7 @@ export const useCreateFilial = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (filial: { nome: string; endereco_entrega: string; ativo?: boolean }) => {
+    mutationFn: async (filial: { nome_completo: string; endereco: string; telefone: string; email: string; ativo?: boolean }) => {
       const { data, error } = await supabase
         .from("filiais")
         .insert([filial])
