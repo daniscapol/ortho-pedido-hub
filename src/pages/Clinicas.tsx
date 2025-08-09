@@ -25,7 +25,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Plus, MoreHorizontal, Bell, User, Settings, LogOut } from "lucide-react";
+import { Search, Plus, MoreHorizontal, Bell, User, Settings, LogOut, Building } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useProfile } from "@/hooks/useProfile";
@@ -145,7 +145,10 @@ const Clinicas = () => {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle>Lista de Clínicas</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Building className="h-6 w-6" />
+                  <CardTitle className="text-2xl">Clínicas</CardTitle>
+                </div>
                 {(profile?.role === "admin" || profile?.role_extended === "admin_master" || profile?.role_extended === "admin_filial") && (
                   <Button onClick={() => setShowClinicaForm(true)}>
                     <Plus className="h-4 w-4 mr-2" />
