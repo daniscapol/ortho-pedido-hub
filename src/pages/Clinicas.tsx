@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Plus, MoreHorizontal, Bell } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
@@ -37,6 +39,7 @@ const Clinicas = () => {
   const [showClinicaForm, setShowClinicaForm] = useState(false);
   const [editingClinica, setEditingClinica] = useState<Clinica | null>(null);
   const [deleteClinicaId, setDeleteClinicaId] = useState<string | null>(null);
+  const [viewingClinica, setViewingClinica] = useState<Clinica | null>(null);
   
   const { data: clinicas, isLoading } = useClinicas();
   const { data: profile } = useProfile();
@@ -230,7 +233,7 @@ const Clinicas = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700" onClick={() => setViewingClinica(clinica)}>
                               Ver detalhes
                             </Button>
                             {canManageClinicas && (
@@ -292,6 +295,72 @@ const Clinicas = () => {
         isLoading={updateClinica.isPending}
         initialData={editingClinica || undefined}
       />
+
+      {/* View Clinic Details */}
+      <Dialog open={!!viewingClinica} onOpenChange={(open) => { if (!open) setViewingClinica(null); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Clínica</DialogTitle>
+          </DialogHeader>
+          {viewingClinica && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Nome Completo</Label>
+                  <p className="text-sm">{viewingClinica.nome_completo}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">CNPJ</Label>
+                  <p className="text-sm">{viewingClinica.cnpj}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                  <p className="text-sm">{viewingClinica.email}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Telefone</Label>
+                  <p className="text-sm">{viewingClinica.telefone}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Filial</Label>
+                  <p className="text-sm">{viewingClinica.filial?.nome_completo || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                  <Badge variant={viewingClinica.ativo ? 'default' : 'secondary'}>
+                    {viewingClinica.ativo ? 'Ativa' : 'Inativa'}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Endereço Completo</Label>
+                <p className="text-sm">
+                  {viewingClinica.endereco}
+                  {viewingClinica.numero && `, ${viewingClinica.numero}`}
+                  {viewingClinica.complemento && `, ${viewingClinica.complemento}`}
+                  {viewingClinica.cidade && ` - ${viewingClinica.cidade}`}
+                  {viewingClinica.estado && `, ${viewingClinica.estado}`}
+                  {viewingClinica.cep && ` - CEP: ${viewingClinica.cep}`}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Dentistas</Label>
+                  <p className="text-sm">{viewingClinica.qntd_dentistas || 0} dentistas</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Pacientes</Label>
+                  <p className="text-sm">{viewingClinica.qntd_pacientes || 0} pacientes</p>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Criado em</Label>
+                <p className="text-sm">{format(new Date(viewingClinica.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteClinicaId} onOpenChange={(o) => { if (!o) setDeleteClinicaId(null); }}>
