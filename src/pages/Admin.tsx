@@ -30,7 +30,6 @@ import { useFiliais } from "@/hooks/useFiliais";
 
 interface User {
   id: string;
-  role: 'admin' | 'dentist';
   role_extended: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist';
   name: string | null;
   email: string | null;
@@ -52,7 +51,6 @@ const Admin = () => {
     name: '', 
     email: '', 
     password: '', 
-    role: 'dentist' as 'admin' | 'dentist',
     role_extended: 'dentist' as 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist'
   });
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
@@ -146,7 +144,7 @@ const Admin = () => {
       if (error) throw error;
       return data as User[];
     },
-    enabled: profile?.role === 'admin',
+    enabled: profile?.role_extended === 'admin_master',
   });
 
   // Buscar todos os pedidos para admin
@@ -173,15 +171,15 @@ const Admin = () => {
 
       return stats;
     },
-    enabled: profile?.role === 'admin',
+    enabled: profile?.role_extended === 'admin_master',
   });
 
   // Mutation para alterar role do usuário
   const updateUserRole = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: 'admin' | 'dentist' }) => {
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist' }) => {
       const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole })
+        .update({ role_extended: newRole })
         .eq('id', userId);
 
       if (error) throw error;
@@ -189,14 +187,14 @@ const Admin = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: "Role atualizado",
-        description: "O tipo de usuário foi alterado com sucesso!",
+        title: "Função atualizada",
+        description: "A função do usuário foi alterada com sucesso!",
       });
     },
     onError: () => {
       toast({
         title: "Erro",
-        description: "Erro ao alterar tipo de usuário. Tente novamente.",
+        description: "Erro ao alterar função do usuário. Tente novamente.",
         variant: "destructive",
       });
     },
@@ -204,13 +202,15 @@ const Admin = () => {
 
   // Mutation para criar novo usuário
   const createUser = useMutation({
-    mutationFn: async ({ name, email, password, role, role_extended }: { 
+    mutationFn: async ({ name, email, password, role_extended }: { 
       name: string; 
       email: string; 
       password: string; 
-      role: 'admin' | 'dentist';
       role_extended: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist'
     }) => {
+      // Determinar role básico baseado no role_extended
+      const role = role_extended === 'dentist' ? 'dentist' : 'admin';
+      
       // Criar usuário no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -254,7 +254,6 @@ const Admin = () => {
         name: '', 
         email: '', 
         password: '', 
-        role: 'dentist',
         role_extended: 'dentist'
       });
     },
@@ -403,13 +402,13 @@ const Admin = () => {
     );
   }
 
-  const handleRoleChange = (userId: string, newRole: 'admin' | 'dentist') => {
+  const handleRoleChange = (userId: string, newRole: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist') => {
     updateUserRole.mutate({ userId, newRole });
   };
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserData.name || !newUserData.email || !newUserData.password || !newUserData.role) {
+    if (!newUserData.name || !newUserData.email || !newUserData.password || !newUserData.role_extended) {
       toast({
         title: "Erro",
         description: "Todos os campos são obrigatórios",
@@ -615,24 +614,7 @@ const Admin = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="new-role">Tipo de Usuário</Label>
-                        <Select
-                          value={newUserData.role}
-                          onValueChange={(value: 'admin' | 'dentist') => 
-                            setNewUserData(prev => ({ ...prev, role: value }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="dentist">Dentista</SelectItem>
-                            <SelectItem value="admin">Administrador</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-role-extended">Função Específica</Label>
+                        <Label htmlFor="new-role-extended">Função</Label>
                         <Select
                           value={newUserData.role_extended}
                           onValueChange={(value: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist') => 
@@ -678,14 +660,13 @@ const Admin = () => {
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                       <TableHead>Nome</TableHead>
-                       <TableHead>Email</TableHead>
-                       <TableHead>Tipo</TableHead>
-                       <TableHead>Função</TableHead>
-                       <TableHead>Criado em</TableHead>
-                       <TableHead>Ações</TableHead>
-                     </TableRow>
+                     <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Função</TableHead>
+                        <TableHead>Criado em</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
                    </TableHeader>
                    <TableBody>
                      {users?.map((user) => (
@@ -696,38 +677,39 @@ const Admin = () => {
                          <TableCell className="text-sm text-muted-foreground">
                            {user.email || 'Email não informado'}
                          </TableCell>
-                         <TableCell>
-                           <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                             {user.role === 'admin' ? 'Administrador' : 'Dentista'}
-                           </Badge>
+                          <TableCell>
+                            <Badge variant={
+                              user.role_extended === 'admin_master' ? 'default' : 
+                              user.role_extended === 'admin_filial' ? 'default' : 
+                              user.role_extended === 'admin_clinica' ? 'default' : 'secondary'
+                            }>
+                              {user.role_extended === 'admin_master' ? 'Admin Master' :
+                               user.role_extended === 'admin_filial' ? 'Admin Filial' :
+                               user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
+                            </Badge>
                          </TableCell>
-                         <TableCell>
-                           <Badge variant="outline">
-                             {user.role_extended === 'admin_master' ? 'Admin Master' :
-                              user.role_extended === 'admin_filial' ? 'Admin Filial' :
-                              user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
-                           </Badge>
-                        </TableCell>
                         <TableCell>
                           {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                         </TableCell>
                          <TableCell>
-                           <div className="flex items-center gap-2">
-                              <Select
-                                value={user.role}
-                                onValueChange={(newRole: 'admin' | 'dentist') => 
-                                  handleRoleChange(user.id, newRole)
-                                }
-                                disabled={user.id === profile?.id || updateUserRole.isPending}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="dentist">Dentista</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                </SelectContent>
-                              </Select>
+                            <div className="flex items-center gap-2">
+                               <Select
+                                 value={user.role_extended}
+                                 onValueChange={(newRole: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist') => 
+                                   handleRoleChange(user.id, newRole)
+                                 }
+                                 disabled={user.id === profile?.id || updateUserRole.isPending}
+                               >
+                                 <SelectTrigger className="w-40">
+                                   <SelectValue />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                   <SelectItem value="dentist">Dentista</SelectItem>
+                                   <SelectItem value="admin_clinica">Admin Clínica</SelectItem>
+                                   <SelectItem value="admin_filial">Admin Filial</SelectItem>
+                                   <SelectItem value="admin_master">Admin Master</SelectItem>
+                                 </SelectContent>
+                               </Select>
                               
                               <Button
                                 variant="outline"
