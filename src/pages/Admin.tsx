@@ -727,10 +727,13 @@ const Admin = () => {
                            <TableCell>
                              <Select
                                 value={user.clinica_id ?? 'none'}
-                                onValueChange={(val: string) =>
-                                  updateUserClinica.mutate({ userId: user.id, clinicaId: val === 'none' ? null : val })
-                                }
-                                disabled={updateUserClinica.isPending}
+                                onValueChange={(val: string) => {
+                                  const newClinicaId = val === 'none' ? null : val;
+                                  updateUserClinica.mutate({ userId: user.id, clinicaId: newClinicaId });
+                                  // Ao mudar a clínica, zera a filial para evitar vínculo inconsistente
+                                  updateUserFilial.mutate({ userId: user.id, filialId: null });
+                                }}
+                                disabled={updateUserClinica.isPending || updateUserFilial.isPending}
                               >
                                 <SelectTrigger className="w-52">
                                   <SelectValue placeholder="Selecionar clínica" />
