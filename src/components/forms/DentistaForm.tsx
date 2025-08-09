@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,20 +33,27 @@ interface DentistaFormProps {
   isLoading?: boolean;
   canCreateAdmin?: boolean;
   clinics?: { id: string; nome_completo: string }[];
+  forceClinicaId?: string | null;
 }
 
-export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreateAdmin, clinics }: DentistaFormProps) => {
+export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreateAdmin, clinics, forceClinicaId }: DentistaFormProps) => {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<DentistaFormData>({
     defaultValues: {
       role: 'dentist',
       role_extended: 'dentist',
       ativo: true,
-      clinica_id: null,
+      clinica_id: forceClinicaId ?? null,
     }
   });
 
   const ativo = watch("ativo");
   const roleExtended = watch("role_extended");
+
+  useEffect(() => {
+    if (forceClinicaId !== undefined) {
+      setValue('clinica_id', forceClinicaId ?? null);
+    }
+  }, [forceClinicaId, setValue]);
 
   const handleFormSubmit = async (data: DentistaFormData) => {
     await onSubmit(data);
@@ -147,20 +154,33 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
 
             <div className="md:col-span-2">
               <Label htmlFor="clinica_id">Clínica</Label>
-              <Select
-                value={watch('clinica_id') ?? 'none'}
-                onValueChange={(val) => setValue('clinica_id', val === 'none' ? null : val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar clínica" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sem clínica</SelectItem>
-                  {clinics?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {forceClinicaId ? (
+                <Select value={forceClinicaId ?? ''} onValueChange={() => {}} disabled>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Clínica vinculada" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clinics?.filter(c => c.id === forceClinicaId).map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select
+                  value={watch('clinica_id') ?? 'none'}
+                  onValueChange={(val) => setValue('clinica_id', val === 'none' ? null : val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar clínica" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem clínica</SelectItem>
+                    {clinics?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
 

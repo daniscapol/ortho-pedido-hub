@@ -209,6 +209,7 @@ const createDentist = useMutation({
                     onSubmit={handleCreateDentist}
                     isLoading={createDentist.isPending}
                     canCreateAdmin={profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica'}
+                    forceClinicaId={profile?.role_extended === 'admin_clinica' ? (profile?.clinica_id ?? null) : undefined}
                     clinics={clinicas?.map(c => ({ id: c.id, nome_completo: c.nome_completo }))}
                   />
                 </>
