@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -62,6 +62,13 @@ const Patients = () => {
       dentist_id: "",
     },
   })
+
+  // Preseleciona o dentista atual para criação de paciente por dentistas
+  useEffect(() => {
+    if (isNewPatientOpen && !editingPatient && profile?.role === 'dentist' && profile?.id) {
+      form.setValue('dentist_id', profile.id)
+    }
+  }, [isNewPatientOpen, editingPatient, profile, form])
 
   const onSubmit = async (data: PatientFormData) => {
     try {
@@ -247,23 +254,43 @@ const Patients = () => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Dentista Responsável</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione um dentista" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {dentists?.map((dentist) => (
-                                  <SelectItem key={dentist.id} value={dentist.id}>
-                                    <div className="flex items-center gap-2">
-                                      <UserCheck className="h-4 w-4" />
-                                      {dentist.nome_completo || dentist.email}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            {profile?.role === 'dentist' && !editingPatient ? (
+                              <Select value={profile?.id || ''} onValueChange={() => {}}>
+                                <FormControl>
+                                  <SelectTrigger disabled>
+                                    <SelectValue placeholder="Dentista" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {profile?.id && (
+                                    <SelectItem value={profile.id}>
+                                      <div className="flex items-center gap-2">
+                                        <UserCheck className="h-4 w-4" />
+                                        {profile?.name || profile?.email}
+                                      </div>
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione um dentista" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {dentists?.map((dentist) => (
+                                    <SelectItem key={dentist.id} value={dentist.id}>
+                                      <div className="flex items-center gap-2">
+                                        <UserCheck className="h-4 w-4" />
+                                        {dentist.nome_completo || dentist.email}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}
