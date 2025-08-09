@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserCheck } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 
-const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient | null) => void }) => {
+const PatientSearch = ({ onPatientSelect, autoSelectAfterCreate = true }: { onPatientSelect: (patient: Patient | null) => void, autoSelectAfterCreate?: boolean }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewForm, setShowNewForm] = useState(false);
   const [newPatient, setNewPatient] = useState({
@@ -45,7 +45,9 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
         dentist_id: newPatient.dentist_id || (profile?.role === 'dentist' ? profile.id : '')
       });
       
-      onPatientSelect(result);
+      if (autoSelectAfterCreate) {
+        onPatientSelect(result);
+      }
       setShowNewForm(false);
       setNewPatient({ name: "", cpf: "", phone: "", email: "", dentist_id: "" });
     } catch (error) {
