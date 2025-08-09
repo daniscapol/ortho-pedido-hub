@@ -19,12 +19,19 @@ export const useFiliais = () => {
   return useQuery({
     queryKey: ["filiais"],
     queryFn: async () => {
+      console.log("🔍 Fetching filiais...");
+      
       const { data, error } = await supabase
         .from("filiais")
         .select("*")
         .order("nome_completo");
       
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Error fetching filiais:", error);
+        throw error;
+      }
+      
+      console.log("✅ Filiais data received:", data);
       
       // Para cada filial, contar quantas clínicas e pacientes estão associados
       const filiaisWithCount = await Promise.all(
@@ -49,6 +56,7 @@ export const useFiliais = () => {
         })
       );
       
+      console.log("✅ Filiais with counts:", filiaisWithCount);
       return filiaisWithCount;
     },
   });
