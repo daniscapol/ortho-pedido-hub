@@ -20,6 +20,7 @@ import DentistDetails from "./pages/DentistDetails";
 import Patients from "./pages/Patients";
 import Agenda from "./pages/Agenda";
 import Filiais from "./pages/Filiais";
+import Clinicas from "./pages/Clinicas";
 import Contato from "./pages/Contato";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -57,6 +58,7 @@ const App = () => {
                     <Route path="/pacientes" element={<Patients />} />
                     <Route path="/agenda" element={<Agenda />} />
                     <Route path="/filiais" element={<Filiais />} />
+                    <Route path="/clinicas" element={<Clinicas />} />
                     <Route path="/contato" element={<Contato />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

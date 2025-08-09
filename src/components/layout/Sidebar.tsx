@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, LayoutGrid, Users, Building2, Calendar, Phone, Shield } from "lucide-react";
+import { Home, LayoutGrid, Users, Building2, Building, Calendar, Phone, Shield } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 
 // Ícone customizado de dente
@@ -59,6 +59,12 @@ const Sidebar = () => {
       label: "Filiais",
       path: "/filiais",
       active: location.pathname === "/filiais"
+    },
+    {
+      icon: Building,
+      label: "Clínicas",
+      path: "/clinicas",
+      active: location.pathname === "/clinicas"
     },
     {
       icon: Calendar,
