@@ -21,15 +21,7 @@ export const useFiliais = () => {
     queryFn: async () => {
       console.log("🔍 Fetching filiais...");
       
-      // Try using the RPC function first
-      const { data: rpcData, error: rpcError } = await supabase.rpc('get_filiais_with_counts');
-      
-      if (!rpcError && rpcData) {
-        console.log("✅ Filiais data received (RPC):", rpcData);
-        return rpcData as Filial[];
-      }
-      
-      console.warn("⚠️ RPC failed, falling back to manual approach:", rpcError);
+      // Using direct SELECT to respect RLS; do not use RPC here
       
       // Fallback to original approach
       const { data, error } = await supabase
