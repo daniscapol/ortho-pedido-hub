@@ -254,9 +254,9 @@ const NewOrderForm = () => {
           <CardContent>
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="font-medium">{selectedPatient.name}</h3>
+                <h3 className="font-medium">{selectedPatient.nome_completo}</h3>
                 <p className="text-sm text-muted-foreground">CPF: {selectedPatient.cpf}</p>
-                <p className="text-sm text-muted-foreground">Tel: {selectedPatient.phone}</p>
+                <p className="text-sm text-muted-foreground">Tel: {selectedPatient.telefone_contato}</p>
               </div>
               <Button variant="outline" onClick={() => setSelectedPatient(null)}>
                 Trocar Paciente

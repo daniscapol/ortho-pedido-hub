@@ -156,11 +156,11 @@ const NewOrderAdvanced = () => {
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="font-medium">{selectedPatient.name}</p>
+                        <p className="font-medium">{selectedPatient.nome_completo}</p>
                         <p className="text-sm text-muted-foreground">CPF: {selectedPatient.cpf}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Tel: {selectedPatient.phone}</p>
+                        <p className="text-sm text-muted-foreground">Tel: {selectedPatient.telefone_contato}</p>
                         <Badge variant="outline">Paciente selecionado</Badge>
                       </div>
                     </div>
@@ -300,7 +300,7 @@ const NewOrderAdvanced = () => {
                 <div className="border-t border-border pt-4">
                   <h3 className="font-medium mb-2">Resumo do Pedido</h3>
                   <div className="space-y-1 text-sm text-muted-foreground">
-                    <p><strong>Paciente:</strong> {selectedPatient?.name}</p>
+                    <p><strong>Paciente:</strong> {selectedPatient?.nome_completo}</p>
                     <p><strong>Tipo:</strong> {orderData.prosthesisType}</p>
                     <p><strong>Dentes:</strong> {selectedTeeth.join(", ")}</p>
                     <p><strong>Imagens:</strong> {images.length} arquivo(s)</p>

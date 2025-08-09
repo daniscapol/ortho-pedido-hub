@@ -4,12 +4,11 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Plus, Search, Edit, User, FileText, Clock, CheckCircle, UserCheck, Settings, LogOut } from "lucide-react"
+import { Plus, Search, Edit, User, FileText, CheckCircle, UserCheck, Settings, LogOut } from "lucide-react"
 import { usePatients, useCreatePatient, useUpdatePatient, useDentistsForPatients, Patient } from "@/hooks/usePatients"
 import { useOrders, usePatientOrders } from "@/hooks/useOrders"
 import { useToast } from "@/hooks/use-toast"
@@ -24,10 +23,10 @@ import { useNavigate } from "react-router-dom"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 const patientSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  nome_completo: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   cpf: z.string().min(11, "CPF deve ter 11 dígitos"),
-  phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
-  email: z.string().email("Email inválido"),
+  telefone_contato: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
+  email_contato: z.string().email("Email inválido"),
   dentist_id: z.string().min(1, "Dentista é obrigatório"),
 })
 
@@ -56,10 +55,10 @@ const Patients = () => {
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
-      name: "",
+      nome_completo: "",
       cpf: "",
-      phone: "",
-      email: "",
+      telefone_contato: "",
+      email_contato: "",
       dentist_id: "",
     },
   })
@@ -69,18 +68,18 @@ const Patients = () => {
       if (editingPatient) {
         await updatePatient.mutateAsync({
           id: editingPatient.id,
-          name: data.name,
+          nome_completo: data.nome_completo,
           cpf: data.cpf,
-          phone: data.phone,
-          email: data.email,
+          telefone_contato: data.telefone_contato,
+          email_contato: data.email_contato,
           dentist_id: data.dentist_id,
         })
       } else {
         await createPatient.mutateAsync({
-          name: data.name,
+          nome_completo: data.nome_completo,
           cpf: data.cpf,
-          phone: data.phone,
-          email: data.email,
+          telefone_contato: data.telefone_contato,
+          email_contato: data.email_contato,
           dentist_id: data.dentist_id,
         })
       }
@@ -98,10 +97,10 @@ const Patients = () => {
 
   const handleEdit = (patient: Patient) => {
     setEditingPatient(patient)
-    form.setValue("name", patient.name)
+    form.setValue("nome_completo", patient.nome_completo)
     form.setValue("cpf", patient.cpf)
-    form.setValue("phone", patient.phone)
-    form.setValue("email", patient.email)
+    form.setValue("telefone_contato", patient.telefone_contato)
+    form.setValue("email_contato", patient.email_contato)
     form.setValue("dentist_id", patient.dentist_id || "")
     setIsNewPatientOpen(true)
   }
@@ -192,10 +191,10 @@ const Patients = () => {
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                       <FormField
                         control={form.control}
-                        name="name"
+                        name="nome_completo"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nome</FormLabel>
+                            <FormLabel>Nome Completo</FormLabel>
                             <FormControl>
                               <Input placeholder="Nome completo" {...field} />
                             </FormControl>
@@ -218,7 +217,7 @@ const Patients = () => {
                       />
                       <FormField
                         control={form.control}
-                        name="phone"
+                        name="telefone_contato"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Telefone</FormLabel>
@@ -231,7 +230,7 @@ const Patients = () => {
                       />
                       <FormField
                         control={form.control}
-                        name="email"
+                        name="email_contato"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Email</FormLabel>
@@ -259,7 +258,7 @@ const Patients = () => {
                                   <SelectItem key={dentist.id} value={dentist.id}>
                                     <div className="flex items-center gap-2">
                                       <UserCheck className="h-4 w-4" />
-                                      {dentist.name || dentist.email}
+                                      {dentist.nome_completo || dentist.email}
                                     </div>
                                   </SelectItem>
                                 ))}
@@ -334,18 +333,18 @@ const Patients = () => {
                                  onClick={() => setSelectedPatientHistory(patient)}
                                  className="text-left hover:text-blue-600 hover:underline transition-colors"
                                >
-                                 {patient.name}
+                                 {patient.nome_completo}
                                </button>
                              </div>
                            </TableCell>
                            <TableCell>{patient.cpf}</TableCell>
-                           <TableCell>{patient.phone}</TableCell>
-                           <TableCell>{patient.email}</TableCell>
+                           <TableCell>{patient.telefone_contato}</TableCell>
+                           <TableCell>{patient.email_contato}</TableCell>
                            <TableCell>
                              {patient.dentist ? (
                                <div className="flex items-center gap-2">
                                  <UserCheck className="h-4 w-4 text-blue-600" />
-                                 <span>{patient.dentist.name || patient.dentist.email}</span>
+                                 <span>{patient.dentist.nome_completo || patient.dentist.email}</span>
                                </div>
                              ) : (
                                <span className="text-muted-foreground">Não atribuído</span>
@@ -401,88 +400,113 @@ const Patients = () => {
 
             {/* Modal de Histórico do Paciente */}
             <Dialog open={!!selectedPatientHistory} onOpenChange={() => setSelectedPatientHistory(null)}>
-              <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Histórico do Paciente</DialogTitle>
                   <DialogDescription>
-                    {selectedPatientHistory && (
-                      <div className="space-y-2">
-                        <p><strong>Nome:</strong> {selectedPatientHistory.name}</p>
-                        <p><strong>CPF:</strong> {selectedPatientHistory.cpf}</p>
-                        <p><strong>Telefone:</strong> {selectedPatientHistory.phone}</p>
-                        <p><strong>Email:</strong> {selectedPatientHistory.email}</p>
-                      </div>
-                    )}
+                    Pedidos e informações de {selectedPatientHistory?.nome_completo}
                   </DialogDescription>
                 </DialogHeader>
                 
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center">
-                    <FileText className="w-5 h-5 mr-2" />
-                    Pedidos do Paciente
-                  </h3>
-                  
-                  {patientOrders && patientOrders.length > 0 ? (
-                    <div className="space-y-4">
-                      {patientOrders.map((order) => (
-                        <Card key={order.id} className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-2">
-                                <h4 className="font-semibold">{order.prosthesis_type}</h4>
-                                <Badge variant={getStatusBadge(order.status).variant}>
-                                  {getStatusBadge(order.status).label}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                <strong>Dentista:</strong> {order.dentist}
-                              </p>
-                              {order.material && (
-                                <p className="text-sm text-muted-foreground">
-                                  <strong>Material:</strong> {order.material}
-                                </p>
-                              )}
-                              {order.color && (
-                                <p className="text-sm text-muted-foreground">
-                                  <strong>Cor:</strong> {order.color}
-                                </p>
-                              )}
-                              <p className="text-sm text-muted-foreground">
-                                <strong>Prioridade:</strong> {order.priority}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                <strong>Prazo:</strong> {format(new Date(order.deadline), "dd/MM/yyyy")}
-                              </p>
-                              {order.observations && (
-                                <p className="text-sm text-muted-foreground">
-                                  <strong>Observações:</strong> {order.observations}
-                                </p>
-                              )}
-                            </div>
-                            <div className="text-right text-sm text-muted-foreground">
-                              <p>Criado em</p>
-                              <p>{format(new Date(order.created_at), "dd/MM/yyyy HH:mm")}</p>
-                            </div>
+                {selectedPatientHistory && (
+                  <div className="space-y-6">
+                    {/* Informações do Paciente */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Informações Pessoais</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Nome</p>
+                            <p className="font-medium">{selectedPatientHistory.nome_completo}</p>
                           </div>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Nenhum pedido encontrado</h3>
-                      <p className="text-muted-foreground">
-                        Este paciente ainda não possui pedidos registrados.
-                      </p>
-                    </div>
-                  )}
-                </div>
-                
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setSelectedPatientHistory(null)}>
-                    Fechar
-                  </Button>
-                </DialogFooter>
+                          <div>
+                            <p className="text-sm text-muted-foreground">CPF</p>
+                            <p className="font-medium">{selectedPatientHistory.cpf}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Telefone</p>
+                            <p className="font-medium">{selectedPatientHistory.telefone_contato}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Email</p>
+                            <p className="font-medium">{selectedPatientHistory.email_contato}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Dentista Responsável</p>
+                            <p className="font-medium">
+                              {selectedPatientHistory.dentist?.nome_completo || 'Não atribuído'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Data de Cadastro</p>
+                            <p className="font-medium">
+                              {format(new Date(selectedPatientHistory.created_at), "dd/MM/yyyy 'às' HH:mm")}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Histórico de Pedidos */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Histórico de Pedidos</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {patientOrders && patientOrders.length > 0 ? (
+                          <div className="space-y-4">
+                            {patientOrders.map((order) => (
+                              <div 
+                                key={order.id} 
+                                className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-medium">Pedido #{order.id.slice(0, 8)}</h4>
+                                      <Badge {...getStatusBadge(order.status)}>
+                                        {getStatusBadge(order.status).label}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      <strong>Tipo:</strong> {order.prosthesis_type}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      <strong>Material:</strong> {order.material || 'Não especificado'}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      <strong>Dentes:</strong> {order.selected_teeth?.join(', ') || 'Não especificado'}
+                                    </p>
+                                    {order.observations && (
+                                      <p className="text-sm text-muted-foreground">
+                                        <strong>Observações:</strong> {order.observations}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="text-right space-y-1">
+                                    <p className="text-sm text-muted-foreground">
+                                      {format(new Date(order.created_at), "dd/MM/yyyy")}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      <strong>Prazo:</strong> {format(new Date(order.deadline), "dd/MM/yyyy")}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground">Nenhum pedido encontrado para este paciente.</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </DialogContent>
             </Dialog>
           </div>

@@ -38,10 +38,10 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
   const handleCreatePatient = async () => {
     try {
       const result = await createPatient.mutateAsync({
-        name: newPatient.name,
+        nome_completo: newPatient.name,
         cpf: newPatient.cpf,
-        phone: newPatient.phone,
-        email: newPatient.email,
+        telefone_contato: newPatient.phone,
+        email_contato: newPatient.email,
         dentist_id: newPatient.dentist_id || (profile?.role === 'dentist' ? profile.id : '')
       });
       
@@ -112,10 +112,10 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
                   <SelectContent>
                     {dentists?.map((dentist) => (
                       <SelectItem key={dentist.id} value={dentist.id}>
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="h-4 w-4" />
-                          {dentist.name || dentist.email}
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-4 w-4" />
+                        {dentist.nome_completo || dentist.email}
+                      </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -191,10 +191,10 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-medium text-foreground">{patient.name}</h4>
+                          <h4 className="font-medium text-foreground">{patient.nome_completo}</h4>
                           <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
-                          <p className="text-sm text-muted-foreground">Tel: {patient.phone}</p>
-                          <p className="text-sm text-muted-foreground">Email: {patient.email}</p>
+                          <p className="text-sm text-muted-foreground">Tel: {patient.telefone_contato}</p>
+                          <p className="text-sm text-muted-foreground">Email: {patient.email_contato}</p>
                         </div>
                         <div className="text-right">
                           <Badge variant="outline">
@@ -254,10 +254,10 @@ const PatientSearch = ({ onPatientSelect }: { onPatientSelect: (patient: Patient
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-medium text-foreground">{patient.name}</h4>
+                          <h4 className="font-medium text-foreground">{patient.nome_completo}</h4>
                           <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
-                          <p className="text-sm text-muted-foreground">Tel: {patient.phone}</p>
-                          <p className="text-sm text-muted-foreground">Email: {patient.email}</p>
+                          <p className="text-sm text-muted-foreground">Tel: {patient.telefone_contato}</p>
+                          <p className="text-sm text-muted-foreground">Email: {patient.email_contato}</p>
                         </div>
                         <div className="text-right">
                           <Badge variant="outline">

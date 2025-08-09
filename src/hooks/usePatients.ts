@@ -4,14 +4,18 @@ import { useToast } from '@/hooks/use-toast'
 
 export interface Patient {
   id: string
-  name: string
+  nome_completo: string
   cpf: string
-  phone: string
-  email: string
+  telefone_contato: string
+  email_contato: string
   dentist_id?: string
+  clinica_id?: string
+  filial_id?: string
+  ativo?: boolean
+  observacoes?: string
   dentist?: {
     id: string
-    name: string | null
+    nome_completo: string | null
     email: string | null
   }
   created_at: string
@@ -28,14 +32,14 @@ export const usePatients = (searchTerm?: string) => {
           *,
           dentist:dentist_id (
             id,
-            name,
+            nome_completo,
             email
           )
         `)
-        .order('name')
+        .order('nome_completo')
 
       if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%`)
+        query = query.or(`nome_completo.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%`)
       }
 
       const { data, error } = await query
@@ -59,7 +63,7 @@ export const useCreatePatient = () => {
           *,
           dentist:dentist_id (
             id,
-            name,
+            nome_completo,
             email
           )
         `)
@@ -99,7 +103,7 @@ export const useUpdatePatient = () => {
           *,
           dentist:dentist_id (
             id,
-            name,
+            nome_completo,
             email
           )
         `)
@@ -132,9 +136,9 @@ export const useDentistsForPatients = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, email')
+        .select('id, nome_completo, email')
         .eq('role', 'dentist')
-        .order('name')
+        .order('nome_completo')
 
       if (error) throw error
       return data
