@@ -736,7 +736,7 @@ const Admin = () => {
                                    <SelectValue placeholder="Selecionar filial" />
                                  </SelectTrigger>
                                  <SelectContent>
-                                   <SelectItem value="none">Sem filial</SelectItem>
+                                   <SelectItem value="none">Sem clínica</SelectItem>
                                    {(filiais || []).filter(f => !user.clinica_id || f.clinica_id === user.clinica_id).map((f) => (
                                      <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                                    ))}
@@ -758,7 +758,7 @@ const Admin = () => {
                                   <SelectValue placeholder="Selecionar clínica" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="none">Sem clínica</SelectItem>
+                                   <SelectItem value="none">Sem filial</SelectItem>
                                   {(clinicas || []).map((c) => (
                                     <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
                                   ))}
