@@ -208,37 +208,23 @@ const Admin = () => {
       password: string; 
       role_extended: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist'
     }) => {
-      // Determinar role básico baseado no role_extended
-      const role = role_extended === 'dentist' ? 'dentist' : 'admin';
-      
-      // Criar usuário no Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: { name, role, role_extended }
-        }
-      });
+      // Criar usuário via Edge Function com Service Role
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: { name, email, password, role_extended },
+      })
 
       if (error) throw error;
 
-      // Enviar email de boas-vindas personalizado
+      // Enviar email de boas-vindas (convite) – não bloqueia criação em caso de erro
       try {
         const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
-          body: {
-            name,
-            email,
-            temporaryPassword: password
-          }
-        });
-
+          body: { name, email, temporaryPassword: password },
+        })
         if (emailError) {
-          console.error('Erro ao enviar email de boas-vindas:', emailError);
-          // Não falha a criação do usuário se o email falhar
+          console.error('Erro ao enviar email de boas-vindas:', emailError)
         }
       } catch (emailError) {
-        console.error('Erro ao enviar email de boas-vindas:', emailError);
+        console.error('Erro ao enviar email de boas-vindas:', emailError)
       }
 
       return data;
