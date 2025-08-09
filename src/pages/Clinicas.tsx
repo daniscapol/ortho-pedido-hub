@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Plus, MoreHorizontal, Bell, User, Settings, LogOut, Building } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
@@ -34,6 +34,9 @@ import { ClinicaForm } from "@/components/forms/ClinicaForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 const Clinicas = () => {
   const navigate = useNavigate();
@@ -48,6 +51,24 @@ const Clinicas = () => {
   const createClinica = useCreateClinica();
   const updateClinica = useUpdateClinica();
   const deleteClinica = useDeleteClinica();
+  const { toast } = useToast();
+
+  // Mutation: criar usuário admin_clinica
+  const createAdminClinica = useMutation({
+    mutationFn: async ({ clinicaId, name, email, password }: { clinicaId: string; name: string; email: string; password: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-create-admin-clinica', {
+        body: { name, email, password, clinica_id: clinicaId },
+      })
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      toast({ title: 'Admin de Clínica criado', description: 'Usuário criado e vinculado à clínica.' })
+    },
+    onError: (error: any) => {
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível criar o admin de clínica.', variant: 'destructive' })
+    }
+  })
 
   const canManageClinicas = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_filial';
 
