@@ -20,6 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { DentistaForm } from "@/components/forms/DentistaForm";
+import { useClinicas } from "@/hooks/useClinicas";
 
 interface DentistCardProps {
   dentist: Dentist;
@@ -72,53 +73,33 @@ const Dentistas = () => {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: clinicas } = useClinicas();
 
-  // Mutation para criar novo dentista
-  const createDentist = useMutation({
-    mutationFn: async (data: any) => {
-      const { nome_completo, email, password, role, role_extended, ...profileData } = data;
-      
-      const { data: authData, error } = await supabase.auth.signUp({
+// Mutation para criar novo dentista via Edge Function
+const createDentist = useMutation({
+  mutationFn: async (data: any) => {
+    const { nome_completo, email, password, clinica_id } = data;
+    const { data: resp, error } = await supabase.functions.invoke('admin-create-dentist', {
+      body: {
+        name: nome_completo,
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: { 
-            nome_completo, 
-            role: role || 'dentist',
-            role_extended: role_extended || 'dentist'
-          }
-        }
-      });
-
-      if (error) throw error;
-      return authData;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dentists'] });
-      toast({
-        title: "Dentista criado",
-        description: "Novo dentista criado com sucesso!",
-      });
-      setShowCreateUser(false);
-    },
-    onError: (error: any) => {
-      console.error("Erro ao criar dentista:", error);
-      let errorMessage = "Erro ao criar dentista. Tente novamente.";
-      
-      if (error.message === "User already registered") {
-        errorMessage = "Este email já está cadastrado";
-      } else if (error.message?.includes("email_address_invalid")) {
-        errorMessage = "Email inválido. Verifique o endereço de email.";
-      }
-      
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    },
-  });
+        clinica_id: clinica_id || null,
+      },
+    })
+    if (error) throw error;
+    return resp;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['dentists'] });
+    toast({ title: 'Dentista criado', description: 'Novo dentista criado e vinculado com sucesso.' });
+    setShowCreateUser(false);
+  },
+  onError: (error: any) => {
+    console.error('Erro ao criar dentista:', error);
+    toast({ title: 'Erro', description: error?.message || 'Erro ao criar dentista.', variant: 'destructive' });
+  },
+});
 
   const handleLogout = async () => {
     await signOut();
@@ -228,6 +209,7 @@ const Dentistas = () => {
                     onSubmit={handleCreateDentist}
                     isLoading={createDentist.isPending}
                     canCreateAdmin={profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica'}
+                    clinics={clinicas?.map(c => ({ id: c.id, nome_completo: c.nome_completo }))}
                   />
                 </>
               )}

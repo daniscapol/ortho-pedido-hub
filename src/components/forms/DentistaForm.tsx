@@ -20,6 +20,7 @@ interface DentistaFormData {
   estado?: string;
   numero?: string;
   complemento?: string;
+  clinica_id?: string | null;
   role: 'admin' | 'dentist';
   role_extended: 'admin_master' | 'admin_clinica' | 'admin_filial' | 'dentist';
   ativo: boolean;
@@ -31,14 +32,16 @@ interface DentistaFormProps {
   onSubmit: (data: DentistaFormData) => Promise<void>;
   isLoading?: boolean;
   canCreateAdmin?: boolean;
+  clinics?: { id: string; nome_completo: string }[];
 }
 
-export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreateAdmin }: DentistaFormProps) => {
+export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreateAdmin, clinics }: DentistaFormProps) => {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<DentistaFormData>({
     defaultValues: {
       role: 'dentist',
       role_extended: 'dentist',
-      ativo: true
+      ativo: true,
+      clinica_id: null,
     }
   });
 
@@ -140,6 +143,24 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
                 {...register("telefone")}
                 placeholder="(11) 99999-9999"
               />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label htmlFor="clinica_id">Clínica</Label>
+              <Select
+                value={watch('clinica_id') ?? 'none'}
+                onValueChange={(val) => setValue('clinica_id', val === 'none' ? null : val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar clínica" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem clínica</SelectItem>
+                  {clinics?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {canCreateAdmin && (

@@ -27,6 +27,7 @@ import { MateriaisManager } from "@/components/admin/MateriaisManager";
 import { CoresManager } from "@/components/admin/CoresManager";
 import { CompatibilidadeManager } from "@/components/admin/CompatibilidadeManager";
 import { useFiliais } from "@/hooks/useFiliais";
+import { useClinicas } from "@/hooks/useClinicas";
 
 interface User {
   id: string;
@@ -38,6 +39,7 @@ interface User {
   email_confirmed_at?: string | null;
   email_verified?: boolean;
   filial_id?: string | null;
+  clinica_id?: string | null;
 }
 
 const Admin = () => {
@@ -61,6 +63,8 @@ const Admin = () => {
 
   // Hook para filiais
   const { data: filiais, isLoading: filiaisLoading } = useFiliais();
+  // Hook para clínicas
+  const { data: clinicas } = useClinicas();
 
   // Componente interno para seção de filiais
   const FiliaisSection = () => (
@@ -219,6 +223,31 @@ const Admin = () => {
       toast({
         title: 'Erro',
         description: 'Não foi possível atualizar a filial do usuário.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Mutation para alterar clínica do usuário
+  const updateUserClinica = useMutation({
+    mutationFn: async ({ userId, clinicaId }: { userId: string; clinicaId: string | null }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ clinica_id: clinicaId })
+        .eq('id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: 'Clínica atualizada',
+        description: 'O usuário foi associado à clínica com sucesso.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar a clínica do usuário.',
         variant: 'destructive',
       });
     },
@@ -675,6 +704,7 @@ const Admin = () => {
                         <TableHead>Email</TableHead>
                         <TableHead>Verificação</TableHead>
                         <TableHead>Filial</TableHead>
+                        <TableHead>Clínica</TableHead>
                         <TableHead>Função</TableHead>
                         <TableHead>Criado em</TableHead>
                         <TableHead>Ações</TableHead>
@@ -702,7 +732,7 @@ const Admin = () => {
                                }
                                disabled={updateUserFilial.isPending}
                              >
-                               <SelectTrigger className="w-48">
+                                <SelectTrigger className="w-52">
                                  <SelectValue placeholder="Selecionar filial" />
                                </SelectTrigger>
                                <SelectContent>
@@ -710,11 +740,30 @@ const Admin = () => {
                                  {filiais?.map((f) => (
                                    <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                                  ))}
-                               </SelectContent>
-                             </Select>
-                           </TableCell>
-                           <TableCell>
-                             <Badge variant={
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>
+                              <Select
+                                value={user.clinica_id ?? 'none'}
+                                onValueChange={(val: string) =>
+                                  updateUserClinica.mutate({ userId: user.id, clinicaId: val === 'none' ? null : val })
+                                }
+                                disabled={updateUserClinica.isPending}
+                              >
+                                <SelectTrigger className="w-56">
+                                  <SelectValue placeholder="Selecionar clínica" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">Sem clínica</SelectItem>
+                                  {(clinicas || []).filter(c => !user.filial_id || c.filial_id === user.filial_id).map((c) => (
+                                    <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={
                                user.role_extended === 'admin_master' ? 'default' : 
                                user.role_extended === 'admin_filial' ? 'default' : 
                                user.role_extended === 'admin_clinica' ? 'default' : 'secondary'

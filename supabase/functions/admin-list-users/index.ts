@@ -46,7 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Fetch profiles
     const { data: profiles, error: profilesErr } = await supabaseAdmin
       .from('profiles')
-      .select('id, name, email, role_extended, filial_id, created_at, updated_at')
+      .select('id, name, email, role_extended, filial_id, clinica_id, created_at, updated_at')
       .order('created_at', { ascending: false })
 
     if (profilesErr) throw profilesErr
