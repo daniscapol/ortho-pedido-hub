@@ -34,12 +34,54 @@ export const useFiliais = () => {
         throw error;
       }
       
-      // Retornar sem contagens para garantir compatibilidade com RLS e evitar erros
-      return (data || []).map((f: any) => ({
-        ...f,
-        qntd_clinicas: 0,
-        qntd_pacientes: 0,
-      }));
+      console.log("✅ Filiais data received (fallback):", data);
+      
+      // Para cada filial, contar quantas clínicas e pacientes estão associados
+      const filiaisWithCount = await Promise.all(
+        data.map(async (filial) => {
+          try {
+            // Contar clínicas da filial
+            const { data: clinicas, error: clinicasError } = await supabase
+              .from("clinicas")
+              .select("id")
+              .eq("filial_id", filial.id);
+            
+            if (clinicasError) {
+              console.error("Error fetching clinicas:", clinicasError);
+              return { ...filial, qntd_clinicas: 0, qntd_pacientes: 0 };
+            }
+            
+            // Contar pacientes das clínicas desta filial
+            const clinicaIds = clinicas?.map(c => c.id) || [];
+            let pacientesCount = 0;
+            
+            if (clinicaIds.length > 0) {
+              const { data: pacientes, error: pacientesError } = await supabase
+                .from("patients")
+                .select("id")
+                .in("clinica_id", clinicaIds);
+              
+              if (pacientesError) {
+                console.error("Error fetching pacientes:", pacientesError);
+              } else {
+                pacientesCount = pacientes?.length || 0;
+              }
+            }
+            
+            return {
+              ...filial,
+              qntd_clinicas: clinicas?.length || 0,
+              qntd_pacientes: pacientesCount
+            };
+          } catch (err) {
+            console.error("Error processing filial:", err);
+            return { ...filial, qntd_clinicas: 0, qntd_pacientes: 0 };
+          }
+        })
+      );
+      
+      console.log("✅ Filiais with counts (fallback):", filiaisWithCount);
+      return filiaisWithCount;
     },
   });
 };
