@@ -153,11 +153,11 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="clinica_id">Clínica</Label>
+              <Label htmlFor="clinica_id">Filial</Label>
               {forceClinicaId ? (
                 <Select value={forceClinicaId ?? ''} onValueChange={() => {}} disabled>
                   <SelectTrigger>
-                    <SelectValue placeholder="Clínica vinculada" />
+                    <SelectValue placeholder="Filial vinculada" />
                   </SelectTrigger>
                   <SelectContent>
                     {clinics?.filter(c => c.id === forceClinicaId).map((c) => (
@@ -171,10 +171,10 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
                   onValueChange={(val) => setValue('clinica_id', val === 'none' ? null : val)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecionar clínica" />
+                    <SelectValue placeholder="Selecionar filial" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sem clínica</SelectItem>
+                    <SelectItem value="none">Sem filial</SelectItem>
                     {clinics?.map((c) => (
                       <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
                     ))}

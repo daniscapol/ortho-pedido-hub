@@ -70,10 +70,10 @@ const Clinicas = () => {
       return data
     },
     onSuccess: () => {
-      toast({ title: 'Admin de Clínica criado', description: 'Usuário criado e vinculado à clínica.' })
+      toast({ title: 'Admin de Filial criado', description: 'Usuário criado e vinculado à filial.' })
     },
     onError: (error: any) => {
-      toast({ title: 'Erro', description: error?.message || 'Não foi possível criar o admin de clínica.', variant: 'destructive' })
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível criar o admin de filial.', variant: 'destructive' })
     }
   })
 
@@ -183,12 +183,12 @@ const Clinicas = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Building className="h-6 w-6" />
-                  <CardTitle className="text-2xl">Clínicas</CardTitle>
+                  <CardTitle className="text-2xl">Filiais</CardTitle>
                 </div>
                 {(profile?.role_extended === "admin_master" || profile?.role_extended === "admin_filial") && (
                   <Button onClick={() => setShowClinicaForm(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Nova Clínica
+                    Nova Filial
                   </Button>
                 )}
               </div>
@@ -196,7 +196,7 @@ const Clinicas = () => {
                 <div className="relative flex-1 max-w-sm">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar clínicas..."
+                    placeholder="Buscar filiais..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -221,7 +221,7 @@ const Clinicas = () => {
                     <TableRow>
                       <TableHead>Nome</TableHead>
                       <TableHead>CNPJ</TableHead>
-                      <TableHead>Filial</TableHead>
+                      <TableHead>Clínica</TableHead>
                       <TableHead>Telefone</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Dentistas</TableHead>
@@ -360,7 +360,7 @@ const Clinicas = () => {
       <Dialog open={!!viewingClinica} onOpenChange={(open) => { if (!open) setViewingClinica(null); }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Detalhes da Clínica</DialogTitle>
+            <DialogTitle>Detalhes da Filial</DialogTitle>
           </DialogHeader>
           {viewingClinica && (
             <div className="space-y-4">
@@ -382,7 +382,7 @@ const Clinicas = () => {
                   <p className="text-sm">{viewingClinica.telefone}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Filial</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">Clínica</Label>
                   <p className="text-sm">{viewingClinica.filial?.nome_completo || "N/A"}</p>
                 </div>
                 <div>
@@ -425,11 +425,11 @@ const Clinicas = () => {
       <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Criar Admin da Clínica</DialogTitle>
+            <DialogTitle>Criar Admin da Filial</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Clínica</Label>
+              <Label>Filial</Label>
               <p className="text-sm">{adminTargetClinica?.nome_completo}</p>
             </div>
             <div className="grid gap-2">
@@ -458,9 +458,9 @@ const Clinicas = () => {
       <AlertDialog open={!!deleteClinicaId} onOpenChange={(o) => { if (!o) setDeleteClinicaId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover clínica?</AlertDialogTitle>
+            <AlertDialogTitle>Remover filial?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. A clínica será removida permanentemente.
+              Esta ação não pode ser desfeita. A filial será removida permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

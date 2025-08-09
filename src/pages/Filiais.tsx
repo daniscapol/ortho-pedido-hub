@@ -122,7 +122,7 @@ const Filiais = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-6 w-6" />
-                  <CardTitle className="text-2xl">Filiais</CardTitle>
+                  <CardTitle className="text-2xl">Clínicas</CardTitle>
                 </div>
                 {canCreateFiliais && (
                   <>
@@ -131,7 +131,7 @@ const Filiais = () => {
                       className="bg-slate-700 hover:bg-slate-800"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Nova Filial
+                      Nova Clínica
                     </Button>
                     <FilialForm
                       open={isNewFilialOpen}
@@ -156,7 +156,7 @@ const Filiais = () => {
                 
                 {filteredFiliais.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground">
-                    {searchTerm ? "Nenhuma filial encontrada." : "Nenhuma filial cadastrada."}
+                    {searchTerm ? "Nenhuma clínica encontrada." : "Nenhuma clínica cadastrada."}
                   </div>
                 ) : (
                   filteredFiliais.map((filial) => (
@@ -230,9 +230,9 @@ const Filiais = () => {
           <AlertDialog open={!!deleteFilialId} onOpenChange={(o) => { if (!o) setDeleteFilialId(null); }}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Remover filial?</AlertDialogTitle>
+                <AlertDialogTitle>Remover clínica?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Esta ação não pode ser desfeita. A filial será removida permanentemente.
+                  Esta ação não pode ser desfeita. A clínica será removida permanentemente.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

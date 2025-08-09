@@ -62,14 +62,14 @@ const Sidebar = () => {
     },
     {
       icon: Building,
-      label: "Clínicas",
+      label: "Filiais",
       path: "/clinicas",
       active: location.pathname === "/clinicas",
       permission: "clinicas"
     },
     {
       icon: Building2,
-      label: "Filiais",
+      label: "Clínicas",
       path: "/filiais",
       active: location.pathname === "/filiais",
       permission: "filiais"
