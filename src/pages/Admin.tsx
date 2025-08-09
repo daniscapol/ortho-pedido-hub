@@ -206,10 +206,9 @@ const Admin = () => {
   // Mutation para alterar filial do usuário
   const updateUserFilial = useMutation({
     mutationFn: async ({ userId, filialId }: { userId: string; filialId: string | null }) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ filial_id: filialId })
-        .eq('id', userId);
+      const { error } = await supabase.functions.invoke('admin-update-user-links', {
+        body: { userId, filialId },
+      })
       if (error) throw error;
     },
     onSuccess: () => {
@@ -219,10 +218,10 @@ const Admin = () => {
         description: 'O usuário foi associado à filial com sucesso.',
       });
     },
-    onError: () => {
+    onError: (err: any) => {
       toast({
         title: 'Erro',
-        description: 'Não foi possível atualizar a filial do usuário.',
+        description: err?.message || 'Não foi possível atualizar a filial do usuário.',
         variant: 'destructive',
       });
     },
@@ -231,10 +230,9 @@ const Admin = () => {
   // Mutation para alterar clínica do usuário
   const updateUserClinica = useMutation({
     mutationFn: async ({ userId, clinicaId }: { userId: string; clinicaId: string | null }) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ clinica_id: clinicaId })
-        .eq('id', userId);
+      const { error } = await supabase.functions.invoke('admin-update-user-links', {
+        body: { userId, clinicaId },
+      })
       if (error) throw error;
     },
     onSuccess: () => {
@@ -244,10 +242,10 @@ const Admin = () => {
         description: 'O usuário foi associado à clínica com sucesso.',
       });
     },
-    onError: () => {
+    onError: (err: any) => {
       toast({
         title: 'Erro',
-        description: 'Não foi possível atualizar a clínica do usuário.',
+        description: err?.message || 'Não foi possível atualizar a clínica do usuário.',
         variant: 'destructive',
       });
     },
