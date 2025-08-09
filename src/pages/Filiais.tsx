@@ -170,14 +170,22 @@ const Filiais = () => {
                       </div>
                       <div className="text-center">{filial.qntd_pacientes}</div>
                       <div className="flex items-center gap-2">
-                        <Switch
-                          checked={filial.ativo}
-                          onCheckedChange={() => handleToggleAtivo(filial)}
-                          disabled={updateFilial.isPending}
-                        />
-                        <span className={filial.ativo ? "text-green-600" : "text-red-600"}>
-                          {filial.ativo ? "Sim" : "Não"}
-                        </span>
+                        {canManageFiliais ? (
+                          <>
+                            <Switch
+                              checked={filial.ativo}
+                              onCheckedChange={() => handleToggleAtivo(filial)}
+                              disabled={updateFilial.isPending}
+                            />
+                            <span className={filial.ativo ? "text-green-600" : "text-red-600"}>
+                              {filial.ativo ? "Sim" : "Não"}
+                            </span>
+                          </>
+                        ) : (
+                          <span className={filial.ativo ? "text-green-600" : "text-red-600"}>
+                            {filial.ativo ? "Sim" : "Não"}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 justify-end">
                         <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
