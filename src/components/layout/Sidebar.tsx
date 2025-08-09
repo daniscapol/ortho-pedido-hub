@@ -47,18 +47,18 @@ const Sidebar = () => {
       permission: "pedidos"
     },
     {
-      icon: Users,
-      label: "Dentistas",
-      path: "/dentistas",
-      active: location.pathname === "/dentistas",
-      permission: "dentistas"
-    },
-    {
       icon: ToothIcon,
       label: "Pacientes",
       path: "/pacientes",
       active: location.pathname === "/pacientes",
       permission: "pacientes"
+    },
+    {
+      icon: Users,
+      label: "Dentistas",
+      path: "/dentistas",
+      active: location.pathname === "/dentistas",
+      permission: "dentistas"
     },
     {
       icon: Building,
