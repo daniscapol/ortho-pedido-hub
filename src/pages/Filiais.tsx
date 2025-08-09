@@ -30,6 +30,7 @@ const Filiais = () => {
   const deleteFilial = useDeleteFilial();
 
   const canManageFiliais = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_filial';
+  const canCreateFiliais = profile?.role_extended === 'admin_master';
 
   const filteredFiliais = filiais?.filter(filial =>
     filial.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -116,9 +117,7 @@ const Filiais = () => {
                   <Building2 className="h-6 w-6" />
                   <CardTitle className="text-2xl">Filiais</CardTitle>
                 </div>
-                {/* Apenas admins podem criar filiais */}
-                {(profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
-                  profile?.role_extended === 'admin_clinica') && (
+                {canCreateFiliais && (
                   <>
                     <Button 
                       onClick={() => setIsNewFilialOpen(true)}
