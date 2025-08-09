@@ -294,8 +294,13 @@ const Admin = () => {
       })
       if (error) throw error
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    onSuccess: async (_, userId) => {
+      // Atualiza cache otimisticamente e refaz busca em seguida
+      queryClient.setQueryData<User[] | undefined>(['admin-users'], (old) => {
+        if (!old) return old
+        return old.map(u => u.id === (userId as unknown as string) ? { ...u, email_verified: true, email_confirmed_at: new Date().toISOString() } : u)
+      })
+      await refetchUsers()
       toast({
         title: 'Acesso liberado',
         description: 'Email marcado como verificado com sucesso.',
