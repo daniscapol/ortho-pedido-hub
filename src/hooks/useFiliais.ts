@@ -17,62 +17,78 @@ export interface Filial {
 
 export const useFiliais = () => {
   return useQuery({
-    queryKey: ["filiais"],
+    queryKey: ["filiais", Date.now()], // Add timestamp to break cache
     queryFn: async () => {
       console.log("🔍 Fetching filiais...");
       
-      const { data, error } = await supabase
-        .from("filiais")
-        .select("*")
-        .order("nome_completo");
+      // Use a single optimized query with joins
+      const { data, error } = await supabase.rpc('get_filiais_with_counts');
       
       if (error) {
-        console.error("❌ Error fetching filiais:", error);
-        throw error;
+        console.error("❌ Error fetching filiais with RPC:", error);
+        // Fallback to original approach
+        const { data: basicData, error: basicError } = await supabase
+          .from("filiais")
+          .select("*")
+          .order("nome_completo");
+        
+        if (basicError) {
+          console.error("❌ Error fetching basic filiais:", basicError);
+          throw basicError;
+        }
+        
+        console.log("✅ Filiais data received (fallback):", basicData);
+        
+        // Para cada filial, contar quantas clínicas e pacientes estão associados
+        const filiaisWithCount = await Promise.all(
+          basicData.map(async (filial) => {
+            try {
+              // Contar clínicas da filial
+              const { data: clinicas, error: clinicasError } = await supabase
+                .from("clinicas")
+                .select("id")
+                .eq("filial_id", filial.id);
+              
+              if (clinicasError) {
+                console.error("Error fetching clinicas:", clinicasError);
+                return { ...filial, qntd_clinicas: 0, qntd_pacientes: 0 };
+              }
+              
+              // Contar pacientes das clínicas desta filial
+              const clinicaIds = clinicas?.map(c => c.id) || [];
+              let pacientesCount = 0;
+              
+              if (clinicaIds.length > 0) {
+                const { data: pacientes, error: pacientesError } = await supabase
+                  .from("patients")
+                  .select("id")
+                  .in("clinica_id", clinicaIds);
+                
+                if (pacientesError) {
+                  console.error("Error fetching pacientes:", pacientesError);
+                } else {
+                  pacientesCount = pacientes?.length || 0;
+                }
+              }
+              
+              return {
+                ...filial,
+                qntd_clinicas: clinicas?.length || 0,
+                qntd_pacientes: pacientesCount
+              };
+            } catch (err) {
+              console.error("Error processing filial:", err);
+              return { ...filial, qntd_clinicas: 0, qntd_pacientes: 0 };
+            }
+          })
+        );
+        
+        console.log("✅ Filiais with counts (fallback):", filiaisWithCount);
+        return filiaisWithCount;
       }
       
-      console.log("✅ Filiais data received:", data);
-      
-      // Para cada filial, contar quantas clínicas e pacientes estão associados
-      const filiaisWithCount = await Promise.all(
-        data.map(async (filial) => {
-          // Contar clínicas da filial
-          const { data: clinicas, error: clinicasError } = await supabase
-            .from("clinicas")
-            .select("id")
-            .eq("filial_id", filial.id);
-          
-          if (clinicasError) {
-            console.error("Error fetching clinicas:", clinicasError);
-          }
-          
-          // Contar pacientes das clínicas desta filial
-          const clinicaIds = clinicas?.map(c => c.id) || [];
-          let pacientesCount = 0;
-          
-          if (clinicaIds.length > 0) {
-            const { data: pacientes, error: pacientesError } = await supabase
-              .from("patients")
-              .select("id")
-              .in("clinica_id", clinicaIds);
-            
-            if (pacientesError) {
-              console.error("Error fetching pacientes:", pacientesError);
-            } else {
-              pacientesCount = pacientes?.length || 0;
-            }
-          }
-          
-          return {
-            ...filial,
-            qntd_clinicas: clinicas?.length || 0,
-            qntd_pacientes: pacientesCount
-          };
-        })
-      );
-      
-      console.log("✅ Filiais with counts:", filiaisWithCount);
-      return filiaisWithCount;
+      console.log("✅ Filiais data received (RPC):", data);
+      return data;
     },
   });
 };
