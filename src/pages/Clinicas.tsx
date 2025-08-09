@@ -183,7 +183,7 @@ const Clinicas = () => {
                   <Building className="h-6 w-6" />
                   <CardTitle className="text-2xl">Clínicas</CardTitle>
                 </div>
-                {(profile?.role === "admin" || profile?.role_extended === "admin_master" || profile?.role_extended === "admin_filial") && (
+                {(profile?.role_extended === "admin_master" || profile?.role_extended === "admin_filial") && (
                   <Button onClick={() => setShowClinicaForm(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Nova Clínica
@@ -257,18 +257,20 @@ const Clinicas = () => {
                             {clinica.qntd_pacientes || 0} pacientes
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={clinica.ativo}
-                              onCheckedChange={() => handleToggleAtivo(clinica)}
-                              disabled={updateClinica.isPending}
-                            />
-                            <Badge variant={clinica.ativo ? 'default' : 'secondary'}>
-                              {clinica.ativo ? 'Ativa' : 'Inativa'}
-                            </Badge>
-                          </div>
-                        </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              {canManageClinicas && (
+                                <Switch
+                                  checked={clinica.ativo}
+                                  onCheckedChange={() => handleToggleAtivo(clinica)}
+                                  disabled={updateClinica.isPending}
+                                />
+                              )}
+                              <Badge variant={clinica.ativo ? 'default' : 'secondary'}>
+                                {clinica.ativo ? 'Ativa' : 'Inativa'}
+                              </Badge>
+                            </div>
+                          </TableCell>
                         <TableCell>
                           {format(new Date(clinica.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                         </TableCell>
