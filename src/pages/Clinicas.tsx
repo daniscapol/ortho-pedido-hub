@@ -45,6 +45,11 @@ const Clinicas = () => {
   const [editingClinica, setEditingClinica] = useState<Clinica | null>(null);
   const [deleteClinicaId, setDeleteClinicaId] = useState<string | null>(null);
   const [viewingClinica, setViewingClinica] = useState<Clinica | null>(null);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [adminTargetClinica, setAdminTargetClinica] = useState<Clinica | null>(null);
+  const [adminName, setAdminName] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   
   const { data: clinicas, isLoading } = useClinicas();
   const { data: profile } = useProfile();
@@ -277,6 +282,19 @@ const Clinicas = () => {
                                 <Button variant="outline" size="sm" onClick={() => setEditingClinica(clinica)}>
                                   Editar
                                 </Button>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => {
+                                    setAdminTargetClinica(clinica);
+                                    setAdminName("");
+                                    setAdminEmail("");
+                                    setAdminPassword("");
+                                    setAdminDialogOpen(true);
+                                  }}
+                                >
+                                  Criar Admin
+                                </Button>
                                 <Button variant="destructive" size="sm" onClick={() => setDeleteClinicaId(clinica.id)} disabled={deleteClinica.isPending}>
                                   Remover
                                 </Button>
@@ -395,6 +413,38 @@ const Clinicas = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Admin da Clínica</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Clínica</Label>
+              <p className="text-sm">{adminTargetClinica?.nome_completo}</p>
+            </div>
+            <div className="grid gap-2">
+              <Label>Nome</Label>
+              <Input value={adminName} onChange={(e) => setAdminName(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label>Email</Label>
+              <Input type="email" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label>Senha</Label>
+              <Input type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAdminDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={async () => { if (!adminTargetClinica) return; await createAdminClinica.mutateAsync({ clinicaId: adminTargetClinica.id, name: adminName, email: adminEmail, password: adminPassword }); setAdminDialogOpen(false); }}>
+                {createAdminClinica.isPending ? 'Criando...' : 'Criar'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
