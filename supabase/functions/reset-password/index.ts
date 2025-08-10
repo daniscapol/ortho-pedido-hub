@@ -61,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: 'https://ortho-pedido-hub.lovable.app/reset-password'
+        redirectTo: `${req.headers.get('origin') || 'https://22baa630-0ae0-424e-9c60-e79c86da4254.lovableproject.com'}/reset-password`
       }
     });
     
