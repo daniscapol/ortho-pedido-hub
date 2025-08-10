@@ -664,7 +664,7 @@ const Admin = () => {
                           <SelectContent>
                             <SelectItem value="dentist">Dentista</SelectItem>
                             <SelectItem value="admin_clinica">Admin de Clínica</SelectItem>
-                            <SelectItem value="admin_filial">Admin de Filial</SelectItem>
+                            <SelectItem value="admin_filial">Admin de Matriz</SelectItem>
                             <SelectItem value="admin_master">Admin Master</SelectItem>
                           </SelectContent>
                         </Select>
@@ -767,7 +767,7 @@ const Admin = () => {
                                user.role_extended === 'admin_clinica' ? 'default' : 'secondary'
                              }>
                                {user.role_extended === 'admin_master' ? 'Admin Master' :
-                                user.role_extended === 'admin_filial' ? 'Admin Filial' :
+                                user.role_extended === 'admin_filial' ? 'Admin Matriz' :
                                 user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
                              </Badge>
                            </TableCell>
@@ -789,7 +789,7 @@ const Admin = () => {
                                  <SelectContent>
                                    <SelectItem value="dentist">Dentista</SelectItem>
                                    <SelectItem value="admin_clinica">Admin Clínica</SelectItem>
-                                   <SelectItem value="admin_filial">Admin Filial</SelectItem>
+                                   <SelectItem value="admin_filial">Admin Matriz</SelectItem>
                                    <SelectItem value="admin_master">Admin Master</SelectItem>
                                  </SelectContent>
                                </Select>

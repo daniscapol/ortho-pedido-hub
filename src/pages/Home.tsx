@@ -145,7 +145,7 @@ const Home = () => {
                     <div className="text-left">
                       <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
                       <div className="text-xs text-slate-300">
-                        SB Prótese Odontológica - {profile?.role === 'admin' ? 'Filial Zone Sul' : 'Dentista'}
+                        SB Prótese Odontológica - {profile?.role === 'admin' ? 'Matriz Zone Sul' : 'Dentista'}
                       </div>
                     </div>
                   </Button>
