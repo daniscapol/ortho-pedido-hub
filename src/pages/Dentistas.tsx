@@ -261,30 +261,6 @@ const deleteUser = useMutation({
   }
 });
 
-// Mutation para limpar usuários órfãos
-const cleanupOrphanedUser = useMutation({
-  mutationFn: async (email: string) => {
-    const { data, error } = await supabase.functions.invoke('admin-cleanup-orphaned-users', {
-      body: { email }
-    });
-    if (error) throw error;
-    return data;
-  },
-  onSuccess: (data) => {
-    toast({ 
-      title: 'Usuário órfão removido', 
-      description: data?.message || 'Usuário órfão removido com sucesso. Agora você pode criar o dentista.'
-    });
-  },
-  onError: (error: any) => {
-    toast({ 
-      title: 'Erro', 
-      description: error?.message || 'Erro ao remover usuário órfão.',
-      variant: 'destructive' 
-    });
-  }
-});
-
   const handleLogout = async () => {
     await signOut();
   };
@@ -414,14 +390,6 @@ const cleanupOrphanedUser = useMutation({
                   >
                     <UserPlus className="h-4 w-4" />
                     Novo Dentista
-                  </Button>
-                  <Button 
-                    onClick={() => cleanupOrphanedUser.mutate('siridani2@hotmail.com')}
-                    variant="outline"
-                    disabled={cleanupOrphanedUser.isPending}
-                    className="flex items-center gap-2"
-                  >
-                    {cleanupOrphanedUser.isPending ? 'Limpando...' : 'Limpar siridani2'}
                   </Button>
                   <DentistaForm
                     open={showCreateUser}
