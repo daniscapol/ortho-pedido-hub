@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SupportChat } from "@/components/chat/SupportChat";
 import { useSupportChat } from "@/hooks/useSupportChat";
 import { AuthProvider } from "@/components/auth/AuthProvider";
@@ -20,7 +20,7 @@ import Dentistas from "./pages/Dentistas";
 import DentistDetails from "./pages/DentistDetails";
 import Patients from "./pages/Patients";
 import Agenda from "./pages/Agenda";
-import Filiais from "./pages/Filiais";
+import Matrizes from "./pages/Matrizes";
 import Clinicas from "./pages/Clinicas";
 import Contato from "./pages/Contato";
 import ResetPassword from "./pages/ResetPassword";
@@ -74,11 +74,12 @@ const App = () => {
                     } />
                     <Route path="/pacientes" element={<Patients />} />
                     <Route path="/agenda" element={<Agenda />} />
-                    <Route path="/filiais" element={
+                    <Route path="/matrizes" element={
                       <RoleProtectedRoute requiredPermission="filiais">
-                        <Filiais />
+                        <Matrizes />
                       </RoleProtectedRoute>
                     } />
+                    <Route path="/filiais" element={<Navigate to="/matrizes" replace />} />
                     <Route path="/clinicas" element={
                       <RoleProtectedRoute requiredPermission="clinicas">
                         <Clinicas />

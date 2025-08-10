@@ -70,8 +70,8 @@ const Sidebar = () => {
     {
       icon: Building2,
       label: "Matrizes",
-      path: "/filiais",
-      active: location.pathname === "/filiais",
+      path: "/matrizes",
+      active: location.pathname === "/matrizes",
       permission: "filiais"
     },
     {
