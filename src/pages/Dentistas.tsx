@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone, UserPlus, Edit } from "lucide-react";
+import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone, UserPlus, Edit, MoreHorizontal, Trash2, Key } from "lucide-react";
 import { useDentists, useUpdateDentist, Dentist } from "@/hooks/useDentists";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -26,10 +26,13 @@ interface DentistCardProps {
   dentist: Dentist;
   onClick: () => void;
   onEdit: (dentist: Dentist) => void;
+  onChangePassword: (dentist: Dentist) => void;
+  onResetPassword: (email: string) => void;
+  onDelete: (dentist: Dentist) => void;
   canEdit: boolean;
 }
 
-const DentistCard = ({ dentist, onClick, onEdit, canEdit }: DentistCardProps) => {
+const DentistCard = ({ dentist, onClick, onEdit, onChangePassword, onResetPassword, onDelete, canEdit }: DentistCardProps) => {
   return (
     <Card className="hover:shadow-md transition-shadow relative">
       <CardHeader className="pb-3">
@@ -48,17 +51,40 @@ const DentistCard = ({ dentist, onClick, onEdit, canEdit }: DentistCardProps) =>
               {dentist._count?.orders || 0} pedidos
             </Badge>
             {canEdit && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(dentist);
-                }}
-                className="h-8 w-8 p-0"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-8 p-0"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit(dentist)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Editar Dentista
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onChangePassword(dentist)}>
+                    <Key className="mr-2 h-4 w-4" />
+                    Alterar Senha
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onResetPassword(dentist.email)}>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Enviar Redefinição
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => onDelete(dentist)} 
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir Dentista
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
@@ -89,6 +115,9 @@ const Dentistas = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [editingDentist, setEditingDentist] = useState<Dentist | null>(null);
+  const [userPasswordDialog, setUserPasswordDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
+  const [newPassword, setNewPassword] = useState("");
+  const [deleteUserDialog, setDeleteUserDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: clinicas } = useClinicas();
@@ -147,6 +176,61 @@ const updateDentist = useMutation({
     console.error('Erro ao atualizar dentista:', error);
     toast({ title: 'Erro', description: error?.message || 'Erro ao atualizar dentista.', variant: 'destructive' });
   },
+});
+
+// Mutation para alterar senha
+const changeUserPassword = useMutation({
+  mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
+    const { data, error } = await supabase.functions.invoke('admin-change-password', {
+      body: { userId, newPassword },
+    });
+    if (error) throw error;
+    return data;
+  },
+  onSuccess: () => {
+    toast({ title: 'Senha alterada', description: 'A senha do dentista foi alterada com sucesso.' });
+    setUserPasswordDialog({ open: false, user: null });
+    setNewPassword("");
+  },
+  onError: (error: any) => {
+    toast({ title: 'Erro', description: error?.message || 'Não foi possível alterar a senha.', variant: 'destructive' });
+  }
+});
+
+// Mutation para enviar redefinição de senha
+const resetUserPassword = useMutation({
+  mutationFn: async (email: string) => {
+    const { data, error } = await supabase.functions.invoke('reset-password', {
+      body: { email },
+    });
+    if (error) throw error;
+    return data;
+  },
+  onSuccess: () => {
+    toast({ title: 'Email enviado', description: 'Um email de redefinição de senha foi enviado para o dentista.' });
+  },
+  onError: (error: any) => {
+    toast({ title: 'Erro', description: error?.message || 'Não foi possível enviar o email de redefinição.', variant: 'destructive' });
+  }
+});
+
+// Mutation para deletar usuário
+const deleteUser = useMutation({
+  mutationFn: async (userId: string) => {
+    const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+      body: { userId },
+    });
+    if (error) throw error;
+    return data;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['dentists'] });
+    toast({ title: 'Dentista removido', description: 'O dentista foi removido do sistema com sucesso.' });
+    setDeleteUserDialog({ open: false, user: null });
+  },
+  onError: (error: any) => {
+    toast({ title: 'Erro', description: error?.message || 'Não foi possível remover o dentista.', variant: 'destructive' });
+  }
 });
 
   const handleLogout = async () => {
@@ -354,6 +438,9 @@ const updateDentist = useMutation({
                   dentist={dentist} 
                   onClick={() => handleDentistClick(dentist)}
                   onEdit={handleEditDentist}
+                  onChangePassword={(dentist) => setUserPasswordDialog({ open: true, user: dentist })}
+                  onResetPassword={(email) => resetUserPassword.mutate(email)}
+                  onDelete={(dentist) => setDeleteUserDialog({ open: true, user: dentist })}
                   canEdit={profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
                           profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_matriz'}
                 />
@@ -374,6 +461,84 @@ const updateDentist = useMutation({
             )}
           </div>
         </main>
+
+        {/* Change Password Dialog */}
+        <Dialog open={userPasswordDialog.open} onOpenChange={(open) => setUserPasswordDialog({ open, user: open ? userPasswordDialog.user : null })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Alterar Senha do Dentista</DialogTitle>
+            </DialogHeader>
+            {userPasswordDialog.user && (
+              <div className="space-y-4">
+                <div>
+                  <Label>Dentista</Label>
+                  <p className="text-sm">{userPasswordDialog.user.name || userPasswordDialog.user.nome_completo} ({userPasswordDialog.user.email})</p>
+                </div>
+                <div>
+                  <Label htmlFor="newPassword">Nova Senha</Label>
+                  <Input 
+                    id="newPassword"
+                    type="password" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Digite a nova senha" 
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => { setUserPasswordDialog({ open: false, user: null }); setNewPassword(""); }}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      if (newPassword.length >= 6) {
+                        changeUserPassword.mutate({
+                          userId: userPasswordDialog.user!.id,
+                          newPassword
+                        });
+                      }
+                    }}
+                    disabled={changeUserPassword.isPending || newPassword.length < 6}
+                  >
+                    {changeUserPassword.isPending ? 'Alterando...' : 'Alterar Senha'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete User Dialog */}
+        <Dialog open={deleteUserDialog.open} onOpenChange={(open) => setDeleteUserDialog({ open, user: open ? deleteUserDialog.user : null })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Excluir Dentista</DialogTitle>
+            </DialogHeader>
+            {deleteUserDialog.user && (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm">
+                    Tem certeza que deseja excluir o dentista <strong>{deleteUserDialog.user.name || deleteUserDialog.user.nome_completo}</strong> ({deleteUserDialog.user.email})?
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Esta ação não pode ser desfeita. O dentista será removido permanentemente do sistema.
+                  </p>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setDeleteUserDialog({ open: false, user: null })}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    onClick={() => deleteUser.mutate(deleteUserDialog.user!.id)}
+                    disabled={deleteUser.isPending}
+                  >
+                    {deleteUser.isPending ? 'Excluindo...' : 'Excluir Dentista'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
