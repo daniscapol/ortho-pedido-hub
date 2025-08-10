@@ -25,7 +25,12 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Plus, MoreHorizontal, Bell, User, Settings, LogOut, Building } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Search, Plus, MoreHorizontal, Bell, User, Settings, LogOut, Building, ChevronDown, Users } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useProfile } from "@/hooks/useProfile";
@@ -51,6 +56,8 @@ const Clinicas = () => {
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  const [expandedClinicas, setExpandedClinicas] = useState<Set<string>>(new Set());
+  const [clinicaUsers, setClinicaUsers] = useState<Record<string, any[]>>({});
   
   const { data: clinicas, isLoading } = useClinicas();
   const { data: profile } = useProfile();
@@ -117,6 +124,32 @@ const { data: matrizes } = useMatrizes();
       id: clinica.id,
       ativo: !clinica.ativo
     });
+  };
+
+  const toggleClinicaExpansion = async (clinicaId: string) => {
+    const newExpanded = new Set(expandedClinicas);
+    if (newExpanded.has(clinicaId)) {
+      newExpanded.delete(clinicaId);
+    } else {
+      newExpanded.add(clinicaId);
+      // Buscar usuários da clínica se ainda não foram carregados
+      if (!clinicaUsers[clinicaId]) {
+        try {
+          const { data: users, error } = await supabase
+            .from('profiles')
+            .select('id, name, nome_completo, email, role_extended, created_at')
+            .eq('clinica_id', clinicaId)
+            .order('created_at', { ascending: false });
+          
+          if (!error && users) {
+            setClinicaUsers(prev => ({ ...prev, [clinicaId]: users }));
+          }
+        } catch (error) {
+          console.error('Erro ao buscar usuários da clínica:', error);
+        }
+      }
+    }
+    setExpandedClinicas(newExpanded);
   };
 
   if (isLoading) {
@@ -219,6 +252,7 @@ const { data: matrizes } = useMatrizes();
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-8"></TableHead>
                       <TableHead>Nome</TableHead>
                       <TableHead>CNPJ</TableHead>
                       <TableHead>Matriz</TableHead>
@@ -233,80 +267,153 @@ const { data: matrizes } = useMatrizes();
                   </TableHeader>
                   <TableBody>
                     {filteredClinicas?.map((clinica) => (
-                      <TableRow key={clinica.id}>
-                        <TableCell className="font-medium">
-                          {clinica.nome_completo}
-                        </TableCell>
-                        <TableCell>
-                          {clinica.cnpj}
-                        </TableCell>
-                        <TableCell>
-                          {clinica.matriz?.nome_completo || "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          {clinica.telefone}
-                        </TableCell>
-                        <TableCell>
-                          {clinica.email}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {clinica.qntd_dentistas || 0} dentistas
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {clinica.qntd_pacientes || 0} pacientes
-                          </Badge>
-                        </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              {canManageClinicas && (
-                                <Switch
-                                  checked={clinica.ativo}
-                                  onCheckedChange={() => handleToggleAtivo(clinica)}
-                                  disabled={updateClinica.isPending}
-                                />
-                              )}
-                              <Badge variant={clinica.ativo ? 'default' : 'secondary'}>
-                                {clinica.ativo ? 'Ativa' : 'Inativa'}
+                      <Collapsible 
+                        key={clinica.id}
+                        open={expandedClinicas.has(clinica.id)}
+                        onOpenChange={() => toggleClinicaExpansion(clinica.id)}
+                        asChild
+                      >
+                        <>
+                          <TableRow>
+                            <TableCell>
+                              <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="p-0 h-6 w-6">
+                                  <ChevronDown 
+                                    className={`h-4 w-4 transition-transform ${
+                                      expandedClinicas.has(clinica.id) ? 'rotate-180' : ''
+                                    }`} 
+                                  />
+                                </Button>
+                              </CollapsibleTrigger>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {clinica.nome_completo}
+                            </TableCell>
+                            <TableCell>
+                              {clinica.cnpj}
+                            </TableCell>
+                            <TableCell>
+                              {clinica.matriz?.nome_completo || "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {clinica.telefone}
+                            </TableCell>
+                            <TableCell>
+                              {clinica.email}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {clinica.qntd_dentistas || 0} dentistas
                               </Badge>
-                            </div>
-                          </TableCell>
-                        <TableCell>
-                          {format(new Date(clinica.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700" onClick={() => setViewingClinica(clinica)}>
-                              Ver detalhes
-                            </Button>
-                            {canManageClinicas && (
-                              <>
-                                <Button variant="outline" size="sm" onClick={() => setEditingClinica(clinica)}>
-                                  Editar
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {clinica.qntd_pacientes || 0} pacientes
+                              </Badge>
+                            </TableCell>
+                              <TableCell>
+                                <div className="flex items-center space-x-2">
+                                  {canManageClinicas && (
+                                    <Switch
+                                      checked={clinica.ativo}
+                                      onCheckedChange={() => handleToggleAtivo(clinica)}
+                                      disabled={updateClinica.isPending}
+                                    />
+                                  )}
+                                  <Badge variant={clinica.ativo ? 'default' : 'secondary'}>
+                                    {clinica.ativo ? 'Ativa' : 'Inativa'}
+                                  </Badge>
+                                </div>
+                              </TableCell>
+                            <TableCell>
+                              {format(new Date(clinica.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700" onClick={() => setViewingClinica(clinica)}>
+                                  Ver detalhes
                                 </Button>
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  onClick={() => {
-                                    setAdminTargetClinica(clinica);
-                                    setAdminName("");
-                                    setAdminEmail("");
-                                    setAdminPassword("");
-                                    setAdminDialogOpen(true);
-                                  }}
-                                >
-                                  Criar Admin
-                                </Button>
-                                <Button variant="destructive" size="sm" onClick={() => setDeleteClinicaId(clinica.id)} disabled={deleteClinica.isPending}>
-                                  Remover
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                                {canManageClinicas && (
+                                  <>
+                                    <Button variant="outline" size="sm" onClick={() => setEditingClinica(clinica)}>
+                                      Editar
+                                    </Button>
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() => {
+                                        setAdminTargetClinica(clinica);
+                                        setAdminName("");
+                                        setAdminEmail("");
+                                        setAdminPassword("");
+                                        setAdminDialogOpen(true);
+                                      }}
+                                    >
+                                      Criar Admin
+                                    </Button>
+                                    <Button variant="destructive" size="sm" onClick={() => setDeleteClinicaId(clinica.id)} disabled={deleteClinica.isPending}>
+                                      Remover
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          <CollapsibleContent asChild>
+                            <TableRow>
+                              <TableCell></TableCell>
+                              <TableCell colSpan={10}>
+                                <div className="p-4 bg-muted/50 rounded-lg">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Users className="h-4 w-4" />
+                                    <h4 className="font-semibold">Usuários da Clínica</h4>
+                                  </div>
+                                  {clinicaUsers[clinica.id] ? (
+                                    clinicaUsers[clinica.id].length > 0 ? (
+                                      <div className="space-y-2">
+                                        {clinicaUsers[clinica.id].map((user) => (
+                                          <div key={user.id} className="flex items-center justify-between p-3 bg-background rounded border">
+                                            <div className="flex items-center gap-3">
+                                              <Avatar className="h-8 w-8">
+                                                <AvatarFallback>
+                                                  {(user.name || user.nome_completo || 'U')[0].toUpperCase()}
+                                                </AvatarFallback>
+                                              </Avatar>
+                                              <div>
+                                                <p className="font-medium text-sm">
+                                                  {user.name || user.nome_completo || 'Nome não informado'}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">{user.email}</p>
+                                              </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <Badge variant="outline" className="text-xs">
+                                                {user.role_extended === 'admin_clinica' ? 'Admin Clínica' :
+                                                 user.role_extended === 'dentist' ? 'Dentista' :
+                                                 user.role_extended}
+                                              </Badge>
+                                              <span className="text-xs text-muted-foreground">
+                                                {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm text-muted-foreground">Nenhum usuário encontrado nesta clínica.</p>
+                                    )
+                                  ) : (
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
+                                      Carregando usuários...
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          </CollapsibleContent>
+                        </>
+                      </Collapsible>
                     ))}
                   </TableBody>
                 </Table>
