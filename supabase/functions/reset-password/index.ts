@@ -18,9 +18,12 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("Reset password function called");
     const { email }: ResetPasswordRequest = await req.json();
+    console.log("Email received:", email);
 
     if (!email) {
+      console.log("Error: No email provided");
       return new Response(
         JSON.stringify({ error: "Email é obrigatório" }),
         {
