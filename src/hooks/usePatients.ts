@@ -243,7 +243,7 @@ export const useDentistsForPatients = () => {
       // Primeiro, verificar se o usuário atual é admin
       const { data: currentProfile } = await supabase
         .from('profiles')
-        .select('role, role_extended, matriz_id, clinica_id')
+        .select('role, role_extended, matriz_id, filial_id, clinica_id')
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single()
 
@@ -259,29 +259,29 @@ export const useDentistsForPatients = () => {
         query = query.eq('role_extended', 'dentist')
       } 
       // Se for admin_matriz (admin matriz), mostrar dentistas da sua matriz
-      else if (currentProfile?.role_extended === 'admin_matriz') {
-        console.log('User is admin_matriz, fetching dentists from their matriz')
-        if (currentProfile?.matriz_id) {
-          // Buscar dentistas que pertencem a clínicas da sua matriz
+      else if (currentProfile?.role_extended === 'admin_matriz' || currentProfile?.role_extended === 'admin_filial') {
+        console.log('User is admin_matriz/admin_filial, fetching dentists from their matriz')
+        if (currentProfile?.matriz_id || currentProfile?.filial_id) {
+          // Buscar dentistas da mesma matriz (matriz_id)
           query = query
             .eq('role_extended', 'dentist')
-            .eq('matriz_id', currentProfile.matriz_id)
+            .eq('matriz_id', currentProfile.matriz_id ?? currentProfile.filial_id)
         } else {
-          // Se não tem matriz_id, não mostra nenhum dentista
-          query = query.eq('id', 'never-match')
+          // Sem matriz definida, retornar vazio
+          return []
         }
       }
       // Se for admin_clinica, mostrar dentistas da sua clínica (que estão na mesma matriz)
       else if (currentProfile?.role_extended === 'admin_clinica') {
         console.log('User is admin_clinica, fetching dentists from their clinica and matriz')
-        if (currentProfile?.clinica_id && currentProfile?.matriz_id) {
+        if (currentProfile?.clinica_id && (currentProfile?.matriz_id || currentProfile?.filial_id)) {
           // Buscar dentistas da mesma matriz (matriz_id) 
           query = query
             .eq('role_extended', 'dentist')
-            .eq('matriz_id', currentProfile.matriz_id)
+            .eq('matriz_id', currentProfile.matriz_id ?? currentProfile.filial_id)
         } else {
-          // Se não tem clinica_id ou matriz_id, não mostra nenhum dentista
-          query = query.eq('id', 'never-match')
+          // Se não tem clinica_id ou matriz_id, retornar vazio
+          return []
         }
       }
       // Se for dentist, mostrar apenas dentistas da mesma matriz
@@ -297,9 +297,9 @@ export const useDentistsForPatients = () => {
           query = query.eq('id', (await supabase.auth.getUser()).data.user?.id)
         }
       }
-      // Se não for nenhum dos casos acima, não mostrar nenhum dentista
+      // Se não for nenhum dos casos acima, retornar vazio
       else {
-        query = query.eq('id', 'never-match')
+        return []
       }
 
       const { data, error } = await query.order('nome_completo', { ascending: true })
