@@ -97,6 +97,44 @@ export const useCreateOrder = () => {
   })
 }
 
+export const useCreateOrderForDentist = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async (orderData: Omit<Order, 'id' | 'created_at' | 'updated_at' | 'patients'> & { user_id?: string }) => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('User not authenticated')
+
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([{
+          ...orderData,
+          user_id: orderData.user_id || user.id, // Use provided user_id or fallback to current user
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      toast({
+        title: "Pedido criado",
+        description: "Pedido criado com sucesso!",
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao criar pedido: " + error.message,
+        variant: "destructive",
+      })
+    },
+  })
+}
+
 export const useUpdateOrderStatus = () => {
   const queryClient = useQueryClient()
   const { toast } = useToast()

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCreateOrder } from "@/hooks/useOrders";
+import { useCreateOrder, useCreateOrderForDentist } from "@/hooks/useOrders";
 import { useCreateOrderItems, type CreateOrderItem } from "@/hooks/useOrderItems";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -14,10 +14,12 @@ import OrderItemForm from "./OrderItemForm";
 import { Patient } from "@/hooks/usePatients";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { useProfile } from "@/hooks/useProfile";
+import { useDentists } from "@/hooks/useDentists";
 import { Camera, Upload } from "lucide-react";
 
 const NewOrderForm = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedDentist, setSelectedDentist] = useState<string>("");
   const [orderItems, setOrderItems] = useState<Array<Omit<CreateOrderItem, 'order_id'>>>([]);
   const [formData, setFormData] = useState({
     observations: "",
@@ -26,11 +28,13 @@ const NewOrderForm = () => {
   });
 
   const createOrder = useCreateOrder();
+  const createOrderForDentist = useCreateOrderForDentist();
   const createOrderItems = useCreateOrderItems();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { uploadImages, isUploading } = useImageUpload();
   const { data: profile } = useProfile();
+  const { data: dentists } = useDentists();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -203,10 +207,27 @@ const NewOrderForm = () => {
     }
 
     try {
-      // Primeiro criar o pedido principal
-      const order = await createOrder.mutateAsync({
+      // Determinar o dentista e user_id corretos
+      let dentistName = profile?.name || "Dentista";
+      let userId = profile?.id;
+      let useCustomUserId = false;
+
+      // Se for admin_matriz e selecionou um dentista, usar o dentista selecionado
+      if (profile?.role_extended === 'admin_matriz' && selectedDentist) {
+        const selectedDentistData = dentists?.find(d => d.id === selectedDentist);
+        if (selectedDentistData) {
+          dentistName = selectedDentistData.name || selectedDentistData.nome_completo || "Dentista";
+          userId = selectedDentistData.id;
+          useCustomUserId = true;
+        }
+      }
+
+      // Usar a função apropriada baseado se é admin_matriz ou não
+      const orderMutation = useCustomUserId ? createOrderForDentist : createOrder;
+      
+      const orderData = {
         patient_id: selectedPatient.id,
-        dentist: profile?.name || "Dentista",
+        dentist: dentistName,
         prosthesis_type: "multiplos", // Indicador de que tem múltiplos produtos
         material: "",
         color: "",
@@ -215,8 +236,12 @@ const NewOrderForm = () => {
         observations: formData.observations,
         delivery_address: formData.deliveryAddress,
         selected_teeth: [], // Vazio, pois cada item tem seus próprios dentes
-        status: "pending"
-      });
+        status: "pending",
+        ...(useCustomUserId && { user_id: userId })
+      };
+
+      // Primeiro criar o pedido principal
+      const order = await orderMutation.mutateAsync(orderData);
 
       // Criar os itens do pedido
       const itemsWithOrderId: CreateOrderItem[] = orderItems.map(item => ({
@@ -283,15 +308,37 @@ const NewOrderForm = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="dentistName">Dentista Responsável</Label>
-                  <Input
-                    id="dentistName"
-                    value={profile?.name || "Carregando..."}
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
+                {/* Seleção de Dentista para admin_matriz */}
+                {profile?.role_extended === 'admin_matriz' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="dentistSelect">Selecionar Dentista</Label>
+                    <Select value={selectedDentist} onValueChange={setSelectedDentist}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o dentista responsável" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dentists?.map((dentist) => (
+                          <SelectItem key={dentist.id} value={dentist.id}>
+                            {dentist.name || dentist.nome_completo} - CRO: {dentist.cro || 'N/A'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Campo de dentista para outros usuários */}
+                {profile?.role_extended !== 'admin_matriz' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="dentistName">Dentista Responsável</Label>
+                    <Input
+                      id="dentistName"
+                      value={profile?.name || "Carregando..."}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="deliveryAddress">Endereço de Entrega (Opcional)</Label>
@@ -379,9 +426,16 @@ const NewOrderForm = () => {
                   <Button 
                     type="submit" 
                     className="flex-1"
-                    disabled={createOrder.isPending || createOrderItems.isPending || isUploading || orderItems.length === 0}
+                    disabled={
+                      createOrder.isPending || 
+                      createOrderForDentist.isPending ||
+                      createOrderItems.isPending || 
+                      isUploading || 
+                      orderItems.length === 0 ||
+                      (profile?.role_extended === 'admin_matriz' && !selectedDentist)
+                    }
                   >
-                    {createOrder.isPending ? "Criando Pedido..." : 
+                    {(createOrder.isPending || createOrderForDentist.isPending) ? "Criando Pedido..." : 
                      createOrderItems.isPending ? "Adicionando Produtos..." :
                      isUploading ? "Enviando Imagens..." : 
                      "Criar Pedido"}
