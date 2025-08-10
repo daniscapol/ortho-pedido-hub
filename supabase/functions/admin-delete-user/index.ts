@@ -41,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
       .maybeSingle()
 
     if (callerErr) throw callerErr
-    if (!callerProfile || callerProfile.role_extended !== 'admin_master') {
+    if (!callerProfile || !['admin_master', 'admin_matriz'].includes(callerProfile.role_extended)) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
     }
 

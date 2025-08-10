@@ -201,7 +201,7 @@ const { data: matrizes } = useMatrizes();
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
       const { data, error } = await supabase.functions.invoke('admin-delete-user', {
-        body: { user_id: userId },
+        body: { userId }, // Corrigido: era user_id, deve ser userId
       });
       if (error) throw error;
       return data;
