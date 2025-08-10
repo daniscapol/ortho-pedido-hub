@@ -183,8 +183,8 @@ const { data: matrizes } = useMatrizes();
 
   const changeUserPassword = useMutation({
     mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
-      const { data, error } = await supabase.functions.invoke('admin-update-user-links', {
-        body: { userId, updates: { password: newPassword } }, // Corrigido: usar userId em vez de user_id
+      const { data, error } = await supabase.functions.invoke('admin-change-password', {
+        body: { userId, newPassword },
       });
       if (error) throw error;
       return data;
