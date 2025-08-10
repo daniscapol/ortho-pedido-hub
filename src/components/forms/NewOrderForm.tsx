@@ -212,8 +212,8 @@ const NewOrderForm = () => {
       let userId = profile?.id;
       let useCustomUserId = false;
 
-      // Se for admin_matriz e selecionou um dentista, usar o dentista selecionado
-      if (profile?.role_extended === 'admin_matriz' && selectedDentist) {
+      // Se for admin_matriz ou admin_clinica e selecionou um dentista, usar o dentista selecionado
+      if ((profile?.role_extended === 'admin_matriz' || profile?.role_extended === 'admin_clinica') && selectedDentist) {
         const selectedDentistData = dentists?.find(d => d.id === selectedDentist);
         if (selectedDentistData) {
           dentistName = selectedDentistData.name || selectedDentistData.nome_completo || "Dentista";
@@ -326,8 +326,8 @@ const NewOrderForm = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Seleção de Dentista para admin_matriz */}
-                {profile?.role_extended === 'admin_matriz' && (
+                {/* Seleção de Dentista para admin_matriz e admin_clinica */}
+                {(profile?.role_extended === 'admin_matriz' || profile?.role_extended === 'admin_clinica') && (
                   <div className="space-y-2">
                     <Label htmlFor="dentistSelect">Selecionar Dentista</Label>
                     <Select value={selectedDentist} onValueChange={setSelectedDentist}>
@@ -346,7 +346,7 @@ const NewOrderForm = () => {
                 )}
 
                 {/* Campo de dentista para outros usuários */}
-                {profile?.role_extended !== 'admin_matriz' && (
+                {profile?.role_extended !== 'admin_matriz' && profile?.role_extended !== 'admin_clinica' && (
                   <div className="space-y-2">
                     <Label htmlFor="dentistName">Dentista Responsável</Label>
                     <Input
@@ -450,7 +450,7 @@ const NewOrderForm = () => {
                       createOrderItems.isPending || 
                       isUploading || 
                       orderItems.length === 0 ||
-                      (profile?.role_extended === 'admin_matriz' && !selectedDentist)
+                      ((profile?.role_extended === 'admin_matriz' || profile?.role_extended === 'admin_clinica') && !selectedDentist)
                     }
                   >
                     {(createOrder.isPending || createOrderForDentist.isPending) ? "Criando Pedido..." : 
