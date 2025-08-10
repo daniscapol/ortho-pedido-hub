@@ -100,6 +100,12 @@ export const useCreatePatient = () => {
       // Default ativo
       if (typeof mutable.ativo === 'undefined') mutable.ativo = true
 
+      // Normalize CPF to digits and max 11 to satisfy DB varchar(14)
+      if (mutable.cpf) {
+        const digits = String(mutable.cpf).replace(/\D/g, '')
+        mutable.cpf = digits.slice(0, 11)
+      }
+
       const insertPayload = {
         nome_completo: mutable.nome_completo,
         cpf: mutable.cpf,
