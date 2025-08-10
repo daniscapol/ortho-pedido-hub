@@ -115,14 +115,7 @@ export const useCreatePatient = () => {
       const { data, error } = await supabase
         .from('patients')
         .insert([insertPayload])
-        .select(`
-          *,
-          dentist:dentist_id (
-            id,
-            nome_completo,
-            email
-          )
-        `)
+        .select('*')
         .single()
 
       if (error) throw error
@@ -205,14 +198,7 @@ export const useUpdatePatient = () => {
         .from('patients')
         .update(updatePayload)
         .eq('id', id)
-        .select(`
-          *,
-          dentist:dentist_id (
-            id,
-            nome_completo,
-            email
-          )
-        `)
+        .select('*')
         .single()
 
       if (error) throw error
