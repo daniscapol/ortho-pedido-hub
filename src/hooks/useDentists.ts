@@ -43,10 +43,42 @@ export const useDentists = () => {
         console.log('User is admin_master, fetching all dentists')
         query = query.eq('role_extended', 'dentist')
       } 
-      // Se for admin de clínica ou matriz, mostrar dentistas da hierarquia
-      else if (currentProfile?.role === 'admin') {
-        console.log('User is admin, fetching dentists')
-        query = query.eq('role', 'dentist')
+      // Se for admin_filial (admin matriz), mostrar dentistas da sua matriz
+      else if (currentProfile?.role_extended === 'admin_filial') {
+        console.log('User is admin_filial, fetching dentists from their matriz')
+        // Buscar dentistas que pertencem a clínicas da sua matriz
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('filial_id')
+          .eq('id', (await supabase.auth.getUser()).data.user?.id)
+          .single()
+        
+        if (userProfile?.filial_id) {
+          query = query
+            .eq('role_extended', 'dentist')
+            .eq('filial_id', userProfile.filial_id)
+        } else {
+          // Se não tem filial_id, não mostra nenhum dentista
+          query = query.eq('id', 'never-match')
+        }
+      }
+      // Se for admin_clinica, mostrar dentistas da sua clínica
+      else if (currentProfile?.role_extended === 'admin_clinica') {
+        console.log('User is admin_clinica, fetching dentists from their clinica')
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('clinica_id')
+          .eq('id', (await supabase.auth.getUser()).data.user?.id)
+          .single()
+        
+        if (userProfile?.clinica_id) {
+          query = query
+            .eq('role_extended', 'dentist')
+            .eq('clinica_id', userProfile.clinica_id)
+        } else {
+          // Se não tem clinica_id, não mostra nenhum dentista
+          query = query.eq('id', 'never-match')
+        }
       }
       // Se não for admin, mostrar apenas o próprio perfil
       else {
