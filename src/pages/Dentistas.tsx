@@ -138,7 +138,35 @@ const createDentist = useMutation({
     console.log('Edge function response:', { resp, error });
     if (error) {
       console.error('Edge function error:', error);
-      throw error;
+      // Se há erro HTTP, tentar pegar a mensagem do response body
+      let errorMessage = 'Erro ao criar dentista.';
+      try {
+        // O erro pode conter informações no response body
+        if (error.message === 'Edge Function returned a non-2xx status code') {
+          // Fazer uma nova requisição para pegar o erro específico do body
+          const response = await fetch(`https://bbtiykafwqkusagnwvcu.supabase.co/functions/v1/admin-create-dentist`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidGl5a2Fmd3FrdXNhZ253dmN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0MDgyODgsImV4cCI6MjA2Njk4NDI4OH0.C7eOTKo2IEls8XV9t6OLTMyP_79ADdc8zqQpltwTk4I',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: nome_completo,
+              email,
+              password,
+              clinica_id: clinica_id || null,
+            })
+          });
+          const responseBody = await response.json();
+          if (responseBody.error) {
+            errorMessage = responseBody.error;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse error response:', e);
+      }
+      throw new Error(errorMessage);
     }
     return resp;
   },
