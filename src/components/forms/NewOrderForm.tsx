@@ -242,6 +242,7 @@ const NewOrderForm = () => {
 
       // Primeiro criar o pedido principal
       const order = await orderMutation.mutateAsync(orderData);
+      console.log('Pedido criado com sucesso:', order);
 
       // Criar os itens do pedido
       const itemsWithOrderId: CreateOrderItem[] = orderItems.map(item => ({
@@ -250,6 +251,7 @@ const NewOrderForm = () => {
       }));
       
       await createOrderItems.mutateAsync(itemsWithOrderId);
+      console.log('Itens do pedido criados com sucesso');
 
       // Depois fazer upload das imagens se houver
       if (formData.images.length > 0) {
@@ -258,11 +260,27 @@ const NewOrderForm = () => {
           annotations: []
         }));
         await uploadImages(annotatedImages, order.id);
+        console.log('Imagens enviadas com sucesso');
       }
 
-      navigate("/");
+      console.log('Redirecionando para home...');
+      toast({
+        title: "Pedido criado com sucesso!",
+        description: "Redirecionando para o dashboard...",
+      });
+      
+      // Usar setTimeout para garantir que o toast seja mostrado antes do redirect
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+
     } catch (error) {
       console.error("Erro ao criar pedido:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao criar pedido: " + (error as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
