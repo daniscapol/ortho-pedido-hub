@@ -25,6 +25,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
@@ -728,6 +729,21 @@ const { data: matrizes } = useMatrizes();
                   onChange={(e) => setEditingUser({...editingUser, email: e.target.value})} 
                 />
               </div>
+              <div className="grid gap-2">
+                <Label>Tipo de Usuário</Label>
+                <Select 
+                  value={editingUser.role_extended || 'dentist'} 
+                  onValueChange={(value) => setEditingUser({...editingUser, role_extended: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dentist">Dentista</SelectItem>
+                    <SelectItem value="admin_clinica">Admin Clínica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setEditingUser(null)}>Cancelar</Button>
                 <Button 
@@ -736,7 +752,8 @@ const { data: matrizes } = useMatrizes();
                       userId: editingUser.id,
                       updates: {
                         name: editingUser.name || editingUser.nome_completo,
-                        email: editingUser.email
+                        email: editingUser.email,
+                        role_extended: editingUser.role_extended
                       }
                     });
                     setEditingUser(null);
