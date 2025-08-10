@@ -20,7 +20,7 @@ export interface Clinica {
   updated_at: string;
   qntd_dentistas?: number;
   qntd_pacientes?: number;
-  filial?: {
+  matriz?: {
     nome_completo: string;
   };
 }
@@ -47,15 +47,15 @@ export const useClinicas = () => {
       const clinicasWithExtras = await Promise.all(
         data.map(async (clinica) => {
           try {
-            // Fetch filial name
-            let filialNome: string | null = null;
+            // Fetch matriz name
+            let matrizNome: string | null = null;
             if (clinica.filial_id) {
-              const { data: filialRow, error: filialError } = await supabase
+              const { data: matrizRow, error: matrizError } = await supabase
                 .from('filiais')
                 .select('nome_completo')
                 .eq('id', clinica.filial_id)
                 .maybeSingle();
-              if (!filialError) filialNome = filialRow?.nome_completo ?? null;
+              if (!matrizError) matrizNome = matrizRow?.nome_completo ?? null;
             }
 
             // Count dentists
@@ -77,7 +77,7 @@ export const useClinicas = () => {
               ...clinica,
               qntd_dentistas: dentistas?.length || 0,
               qntd_pacientes: pacientes?.length || 0,
-              filial: { nome_completo: filialNome }
+              matriz: { nome_completo: matrizNome }
             };
           } catch (err) {
             console.error("Error processing clinica:", err);
@@ -85,7 +85,7 @@ export const useClinicas = () => {
               ...clinica,
               qntd_dentistas: 0,
               qntd_pacientes: 0,
-              filial: { nome_completo: null }
+              matriz: { nome_completo: null }
             };
           }
         })

@@ -44,7 +44,7 @@ const PERMISSIONS: Record<string, Permission> = {
     label: "Clínicas",
     path: "/clinicas"
   },
-  filiais: {
+  matrizes: {
     canAccess: (role) => role === "admin_master" || role === "admin_filial",
     label: "Matrizes",
     path: "/matrizes"

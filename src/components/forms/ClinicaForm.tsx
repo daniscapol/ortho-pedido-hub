@@ -27,11 +27,11 @@ interface ClinicaFormProps {
   onSubmit: (data: ClinicaFormData) => Promise<void>;
   isLoading?: boolean;
   initialData?: Partial<ClinicaFormData> | null;
-  filiais?: { id: string; nome_completo: string }[];
-  forceFilialId?: string | null;
+  matrizes?: { id: string; nome_completo: string }[];
+  forceMatrizId?: string | null;
 }
 
-export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialData, filiais, forceFilialId }: ClinicaFormProps) => {
+export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialData, matrizes, forceMatrizId }: ClinicaFormProps) => {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<ClinicaFormData>({
     defaultValues: {
       ...initialData,
@@ -43,11 +43,11 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
       reset({
         ...initialData,
       } as ClinicaFormData);
-      if (typeof forceFilialId !== 'undefined') {
-        setValue('filial_id', forceFilialId ?? undefined);
+      if (typeof forceMatrizId !== 'undefined') {
+        setValue('filial_id', forceMatrizId ?? undefined);
       }
     }
-  }, [open, initialData, forceFilialId, reset, setValue]);
+  }, [open, initialData, forceMatrizId, reset, setValue]);
 
   const handleFormSubmit = async (data: ClinicaFormData) => {
     await onSubmit(data);
@@ -173,17 +173,17 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
               />
             </div>
 
-            {/* Filial selection - forced for admin_filial, selectable for admin_master */}
+            {/* Matriz selection - forced for admin_filial, selectable for admin_master */}
             <div className="md:col-span-2">
               <Label htmlFor="filial_id">Matriz</Label>
-              {typeof forceFilialId !== 'undefined' ? (
-                <Select value={forceFilialId ?? 'none'} onValueChange={() => {}} disabled>
+              {typeof forceMatrizId !== 'undefined' ? (
+                <Select value={forceMatrizId ?? 'none'} onValueChange={() => {}} disabled>
                   <SelectTrigger>
                     <SelectValue placeholder="Matriz vinculada" />
                   </SelectTrigger>
                   <SelectContent>
-                    {forceFilialId === null && <SelectItem value="none">Sem matriz</SelectItem>}
-                    {filiais?.filter(f => f.id === forceFilialId).map((f) => (
+                    {forceMatrizId === null && <SelectItem value="none">Sem matriz</SelectItem>}
+                    {matrizes?.filter(f => f.id === forceMatrizId).map((f) => (
                       <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                     ))}
                   </SelectContent>
@@ -198,7 +198,7 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Sem matriz</SelectItem>
-                    {filiais?.map((f) => (
+                    {matrizes?.map((f) => (
                       <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                     ))}
                   </SelectContent>

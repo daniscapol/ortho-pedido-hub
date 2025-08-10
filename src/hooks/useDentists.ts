@@ -43,7 +43,7 @@ export const useDentists = () => {
         console.log('User is admin_master, fetching all dentists')
         query = query.eq('role_extended', 'dentist')
       } 
-      // Se for admin de clínica ou filial, mostrar dentistas da hierarquia
+      // Se for admin de clínica ou matriz, mostrar dentistas da hierarquia
       else if (currentProfile?.role === 'admin') {
         console.log('User is admin, fetching dentists')
         query = query.eq('role', 'dentist')

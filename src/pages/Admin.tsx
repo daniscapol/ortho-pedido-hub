@@ -61,19 +61,19 @@ const Admin = () => {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const updateOrderStatus = useUpdateOrderStatus();
 
-  // Hook para filiais
-  const { data: filiais, isLoading: filiaisLoading } = useMatrizes();
+  // Hook para matrizes
+  const { data: matrizes, isLoading: matrizesLoading } = useMatrizes();
   // Hook para clínicas
   const { data: clinicas } = useClinicas();
 
-  // Componente interno para seção de filiais
+  // Componente interno para seção de matrizes
   const FiliaisSection = () => (
     <Card>
       <CardHeader>
         <CardTitle>Gerenciamento de Matrizes</CardTitle>
       </CardHeader>
       <CardContent>
-        {filiaisLoading ? (
+        {matrizesLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
@@ -98,37 +98,37 @@ const Admin = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filiais?.map((filial) => (
-                <TableRow key={filial.id}>
+              {matrizes?.map((matriz) => (
+                <TableRow key={matriz.id}>
                   <TableCell className="font-medium">
-                    {filial.nome_completo}
+                    {matriz.nome_completo}
                   </TableCell>
                   <TableCell>
-                    {filial.endereco}
+                    {matriz.endereco}
                   </TableCell>
                   <TableCell>
-                    {filial.telefone}
+                    {matriz.telefone}
                   </TableCell>
                   <TableCell>
-                    {filial.email}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {filial.qntd_clinicas || 0} clínicas
-                    </Badge>
+                    {matriz.email}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {filial.qntd_pacientes || 0} pacientes
+                      {matriz.qntd_clinicas || 0} clínicas
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={filial.ativo ? 'default' : 'secondary'}>
-                      {filial.ativo ? 'Ativa' : 'Inativa'}
+                    <Badge variant="outline">
+                      {matriz.qntd_pacientes || 0} pacientes
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(filial.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                    <Badge variant={matriz.ativo ? 'default' : 'secondary'}>
+                      {matriz.ativo ? 'Ativa' : 'Inativa'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(matriz.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                   </TableCell>
                 </TableRow>
               ))}
@@ -203,7 +203,7 @@ const Admin = () => {
     },
   });
 
-  // Mutation para alterar filial do usuário
+  // Mutation para alterar matriz do usuário
   const updateUserFilial = useMutation({
     mutationFn: async ({ userId, filialId }: { userId: string; filialId: string | null }) => {
       const { error } = await supabase.functions.invoke('admin-update-user-links', {
@@ -735,9 +735,9 @@ const Admin = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="none">Sem matriz</SelectItem>
-                                 {filiais?.map((f) => (
-                                   <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
-                                 ))}
+                                  {matrizes?.map((f) => (
+                                    <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             </TableCell>
@@ -869,7 +869,7 @@ const Admin = () => {
           <CoresManager />
         ) : activeTab === "compatibilidades" ? (
           <CompatibilidadeManager />
-        ) : activeTab === "filiais" ? (
+        ) : activeTab === "matrizes" ? (
           <FiliaisSection />
         ) : (
           <div className="space-y-6">

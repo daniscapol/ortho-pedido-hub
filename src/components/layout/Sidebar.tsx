@@ -72,7 +72,7 @@ const Sidebar = () => {
       label: "Matrizes",
       path: "/matrizes",
       active: location.pathname === "/matrizes",
-      permission: "filiais"
+      permission: "matrizes"
     },
     {
       icon: Calendar,

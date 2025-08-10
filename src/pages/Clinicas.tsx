@@ -58,7 +58,7 @@ const Clinicas = () => {
   const updateClinica = useUpdateClinica();
   const deleteClinica = useDeleteClinica();
   const { toast } = useToast();
-const { data: filiais } = useMatrizes();
+const { data: matrizes } = useMatrizes();
 
   // Mutation: criar usuário admin_clinica
   const createAdminClinica = useMutation({
@@ -241,7 +241,7 @@ const { data: filiais } = useMatrizes();
                           {clinica.cnpj}
                         </TableCell>
                         <TableCell>
-                          {clinica.filial?.nome_completo || "N/A"}
+                          {clinica.matriz?.nome_completo || "N/A"}
                         </TableCell>
                         <TableCell>
                           {clinica.telefone}
@@ -321,8 +321,8 @@ const { data: filiais } = useMatrizes();
         onOpenChange={setShowClinicaForm}
         onSubmit={handleCreateClinica}
         isLoading={createClinica.isPending}
-        filiais={filiais?.map(f => ({ id: f.id, nome_completo: f.nome_completo }))}
-        forceFilialId={profile?.role_extended === 'admin_filial' ? (profile?.filial_id ?? null) : undefined}
+        matrizes={matrizes?.map(f => ({ id: f.id, nome_completo: f.nome_completo }))}
+        forceMatrizId={profile?.role_extended === 'admin_filial' ? (profile?.filial_id ?? null) : undefined}
       />
 
       {/* Edit Clinica Form */}
@@ -383,7 +383,7 @@ const { data: filiais } = useMatrizes();
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Matriz</Label>
-                  <p className="text-sm">{viewingClinica.filial?.nome_completo || "N/A"}</p>
+                  <p className="text-sm">{viewingClinica.matriz?.nome_completo || "N/A"}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Status</Label>

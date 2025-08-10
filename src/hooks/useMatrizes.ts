@@ -42,9 +42,9 @@ export const useCreateMatriz = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (filial: { nome_completo: string; endereco: string; telefone: string; email: string; ativo?: boolean; cnpj?: string; cep?: string; cidade?: string; estado?: string; numero?: string; complemento?: string }) => {
+    mutationFn: async (matriz: { nome_completo: string; endereco: string; telefone: string; email: string; ativo?: boolean; cnpj?: string; cep?: string; cidade?: string; estado?: string; numero?: string; complemento?: string }) => {
       const { data, error } = await supabase.functions.invoke('admin-create-filial', {
-        body: filial,
+        body: matriz,
       })
       if (error) throw error
       return (data as any)?.filial

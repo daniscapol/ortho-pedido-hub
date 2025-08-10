@@ -19,39 +19,39 @@ import { MatrizForm } from "@/components/forms/MatrizForm";
 const Matrizes = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
-  const [isNewFilialOpen, setIsNewFilialOpen] = useState(false)
-  const [editingFilial, setEditingFilial] = useState<Matriz | null>(null)
-  const [deleteFilialId, setDeleteFilialId] = useState<string | null>(null)
+  const [isNewMatrizOpen, setIsNewMatrizOpen] = useState(false)
+  const [editingMatriz, setEditingMatriz] = useState<Matriz | null>(null)
+  const [deleteMatrizId, setDeleteMatrizId] = useState<string | null>(null)
   
-  const { data: filiais, isLoading } = useMatrizes();
+  const { data: matrizes, isLoading } = useMatrizes();
   const { data: profile } = useProfile();
-  const createFilial = useCreateMatriz();
-  const updateFilial = useUpdateMatriz();
-  const deleteFilial = useDeleteMatriz();
+  const createMatriz = useCreateMatriz();
+  const updateMatriz = useUpdateMatriz();
+  const deleteMatriz = useDeleteMatriz();
 
-  const canManageFiliais = profile?.role_extended === 'admin_master';
-  const canCreateFiliais = profile?.role_extended === 'admin_master';
+  const canManageMatrizes = profile?.role_extended === 'admin_master';
+  const canCreateMatrizes = profile?.role_extended === 'admin_master';
 
-  const visibleFiliais = (filiais || []).filter((f) => {
+  const visibleMatrizes = (matrizes || []).filter((f) => {
     if (profile?.role_extended === 'admin_master') return true
     if (profile?.role_extended === 'admin_filial' || profile?.role_extended === 'admin_clinica') return f.id === profile?.filial_id
     return false
   })
 
-  const filteredFiliais = visibleFiliais.filter(filial =>
-    filial.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMatrizes = visibleMatrizes.filter(matriz =>
+    matriz.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
 
-  const handleCreateFilial = async (data: any) => {
-    await createFilial.mutateAsync(data);
+  const handleCreateMatriz = async (data: any) => {
+    await createMatriz.mutateAsync(data);
   };
 
-  const handleToggleAtivo = async (filial: Matriz) => {
+  const handleToggleAtivo = async (matriz: Matriz) => {
     try {
-      await updateFilial.mutateAsync({
-        id: filial.id,
-        ativo: !filial.ativo
+      await updateMatriz.mutateAsync({
+        id: matriz.id,
+        ativo: !matriz.ativo
       });
     } catch (error) {
       console.error("Erro ao atualizar matriz:", error);
@@ -124,23 +124,23 @@ const Matrizes = () => {
                   <Building2 className="h-6 w-6" />
                   <CardTitle className="text-2xl">Matrizes</CardTitle>
                 </div>
-                {canCreateFiliais && (
-                  <>
-                    <Button 
-                      onClick={() => setIsNewFilialOpen(true)}
-                      className="bg-slate-700 hover:bg-slate-800"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nova Matriz
-                    </Button>
-                    <MatrizForm
-                      open={isNewFilialOpen}
-                      onOpenChange={setIsNewFilialOpen}
-                      onSubmit={handleCreateFilial}
-                      isLoading={createFilial.isPending}
-                    />
-                  </>
-                )}
+              {canCreateMatrizes && (
+                <>
+                  <Button 
+                    onClick={() => setIsNewMatrizOpen(true)}
+                    className="bg-slate-700 hover:bg-slate-800"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nova Matriz
+                  </Button>
+                  <MatrizForm
+                    open={isNewMatrizOpen}
+                    onOpenChange={setIsNewMatrizOpen}
+                    onSubmit={handleCreateMatriz}
+                    isLoading={createMatriz.isPending}
+                  />
+                </>
+              )}
               </div>
             </CardHeader>
             <CardContent>
@@ -154,80 +154,80 @@ const Matrizes = () => {
                   <div></div>
                 </div>
                 
-                {filteredFiliais.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    {searchTerm ? "Nenhuma matriz encontrada." : "Nenhuma matriz cadastrada."}
-                  </div>
-                ) : (
-                  filteredFiliais.map((filial) => (
-                    <div key={filial.id} className="grid grid-cols-5 gap-4 p-4 border-b last:border-b-0 items-center">
-                      <div className="font-medium">{filial.nome_completo}</div>
-                      <div>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                          <Building2 className="h-3 w-3 mr-1" />
-                          {filial.endereco}
-                        </Badge>
-                      </div>
-                      <div className="text-center">{filial.qntd_pacientes}</div>
-                      <div className="flex items-center gap-2">
-                        {canManageFiliais ? (
-                          <>
-                            <Switch
-                              checked={filial.ativo}
-                              onCheckedChange={() => handleToggleAtivo(filial)}
-                              disabled={updateFilial.isPending}
-                            />
-                            <span className={filial.ativo ? "text-green-600" : "text-red-600"}>
-                              {filial.ativo ? "Sim" : "Não"}
-                            </span>
-                          </>
-                        ) : (
-                          <span className={filial.ativo ? "text-green-600" : "text-red-600"}>
-                            {filial.ativo ? "Sim" : "Não"}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 justify-end">
-                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Ver detalhes
-                        </Button>
-                        {canManageFiliais && (
-                          <>
-                            <Button variant="outline" size="sm" onClick={() => setEditingFilial(filial)}>
-                              Editar
-                            </Button>
-                            <Button variant="destructive" size="sm" onClick={() => setDeleteFilialId(filial.id)} disabled={deleteFilial.isPending}>
-                              Remover
-                            </Button>
-                          </>
-                        )}
-                      </div>
+              {filteredMatrizes.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  {searchTerm ? "Nenhuma matriz encontrada." : "Nenhuma matriz cadastrada."}
+                </div>
+              ) : (
+                filteredMatrizes.map((matriz) => (
+                  <div key={matriz.id} className="grid grid-cols-5 gap-4 p-4 border-b last:border-b-0 items-center">
+                    <div className="font-medium">{matriz.nome_completo}</div>
+                    <div>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                        <Building2 className="h-3 w-3 mr-1" />
+                        {matriz.endereco}
+                      </Badge>
                     </div>
-                  ))
-                )}
+                    <div className="text-center">{matriz.qntd_pacientes}</div>
+                    <div className="flex items-center gap-2">
+                      {canManageMatrizes ? (
+                        <>
+                          <Switch
+                            checked={matriz.ativo}
+                            onCheckedChange={() => handleToggleAtivo(matriz)}
+                            disabled={updateMatriz.isPending}
+                          />
+                          <span className={matriz.ativo ? "text-green-600" : "text-red-600"}>
+                            {matriz.ativo ? "Sim" : "Não"}
+                          </span>
+                        </>
+                      ) : (
+                        <span className={matriz.ativo ? "text-green-600" : "text-red-600"}>
+                          {matriz.ativo ? "Sim" : "Não"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 justify-end">
+                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver detalhes
+                      </Button>
+                      {canManageMatrizes && (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => setEditingMatriz(matriz)}>
+                            Editar
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => setDeleteMatrizId(matriz.id)} disabled={deleteMatriz.isPending}>
+                            Remover
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
               </div>
             </CardContent>
           </Card>
 
           {/* Edit Matriz Form */}
           <MatrizForm
-            open={!!editingFilial}
+            open={!!editingMatriz}
             onOpenChange={(open) => {
-              if (!open) setEditingFilial(null);
+              if (!open) setEditingMatriz(null);
             }}
             onSubmit={async (data) => {
-              if (editingFilial) {
-                await updateFilial.mutateAsync({ id: editingFilial.id, ...data });
+              if (editingMatriz) {
+                await updateMatriz.mutateAsync({ id: editingMatriz.id, ...data });
               }
-              setEditingFilial(null);
+              setEditingMatriz(null);
             }}
-            isLoading={updateFilial.isPending}
-            initialData={editingFilial || undefined}
+            isLoading={updateMatriz.isPending}
+            initialData={editingMatriz || undefined}
           />
 
           {/* Delete confirmation */}
-          <AlertDialog open={!!deleteFilialId} onOpenChange={(o) => { if (!o) setDeleteFilialId(null); }}>
+          <AlertDialog open={!!deleteMatrizId} onOpenChange={(o) => { if (!o) setDeleteMatrizId(null); }}>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Remover matriz?</AlertDialogTitle>
@@ -239,9 +239,9 @@ const Matrizes = () => {
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={async () => {
-                    if (deleteFilialId) {
-                      await deleteFilial.mutateAsync(deleteFilialId);
-                      setDeleteFilialId(null);
+                    if (deleteMatrizId) {
+                      await deleteMatriz.mutateAsync(deleteMatrizId);
+                      setDeleteMatrizId(null);
                     }
                   }}
                 >
