@@ -101,10 +101,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Caller role_extended:", callerProfile.role_extended);
 
-    if (!['admin_master', 'admin_matriz'].includes(callerProfile.role_extended)) {
+    if (!['admin_master', 'admin_matriz', 'admin_clinica'].includes(callerProfile.role_extended)) {
       console.log("Permission denied for role:", callerProfile.role_extended);
       return new Response(
-        JSON.stringify({ error: "Apenas Admin Master ou Admin Matriz podem redefinir senhas" }),
+        JSON.stringify({ error: "Apenas Admin Master, Admin Matriz ou Admin Clínica podem redefinir senhas" }),
         {
           status: 403,
           headers: { "Content-Type": "application/json", ...corsHeaders },
