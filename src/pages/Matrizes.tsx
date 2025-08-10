@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { MatrizForm } from "@/components/forms/MatrizForm";
 
-const Filiais = () => {
+const Matrizes = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [isNewFilialOpen, setIsNewFilialOpen] = useState(false)
@@ -256,4 +256,4 @@ const Filiais = () => {
   );
 };
 
-export default Filiais;
+export default Matrizes;
