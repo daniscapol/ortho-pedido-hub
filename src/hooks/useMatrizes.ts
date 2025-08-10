@@ -72,9 +72,12 @@ export const useUpdateMatriz = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Matriz> & { id: string }) => {
+      // Remove calculated fields that don't exist in the filiais table
+      const { qntd_clinicas, qntd_pacientes, ...dbUpdates } = updates;
+      
       const { data, error } = await supabase
         .from("filiais")
-        .update(updates)
+        .update(dbUpdates)
         .eq("id", id)
         .select()
         .single();
