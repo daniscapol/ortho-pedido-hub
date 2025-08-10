@@ -50,7 +50,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    console.log('admin-update-dentist called');
     const payload = (await req.json()) as UpdateDentistRequest
+    console.log('Payload received:', payload);
     const { dentist_id, ...updates } = payload
 
     if (!dentist_id) {
@@ -87,7 +89,7 @@ serve(async (req: Request) => {
     // Load dentist being updated
     const { data: dentist, error: dentistErr } = await supabaseAdmin
       .from('profiles')
-      .select('id, role_extended, filial_id, clinica_id')
+      .select('id, role_extended, filial_id, matriz_id, clinica_id')
       .eq('id', dentist_id)
       .eq('role_extended', 'dentist')
       .maybeSingle()
@@ -101,19 +103,25 @@ serve(async (req: Request) => {
     }
 
     // Check permissions
+    console.log('Checking permissions for caller:', caller);
+    console.log('Dentist being updated:', dentist);
     let canUpdate = false
     
     if (caller.role_extended === 'admin_master') {
       canUpdate = true
+      console.log('Permission granted: admin_master');
     } else if (caller.role_extended === 'admin_matriz' || caller.role_extended === 'admin_filial') {
       // Can update dentists from their matriz/filial
       canUpdate = dentist.filial_id === caller.filial_id
+      console.log(`Permission check for admin_matriz/filial: dentist.filial_id=${dentist.filial_id}, caller.filial_id=${caller.filial_id}, canUpdate=${canUpdate}`);
     } else if (caller.role_extended === 'admin_clinica') {
       // Can update dentists from their clinic
       canUpdate = dentist.clinica_id === caller.clinica_id
+      console.log(`Permission check for admin_clinica: dentist.clinica_id=${dentist.clinica_id}, caller.clinica_id=${caller.clinica_id}, canUpdate=${canUpdate}`);
     }
 
     if (!canUpdate) {
+      console.log('Permission denied');
       return new Response(JSON.stringify({ error: 'Forbidden: Cannot update this dentist' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },

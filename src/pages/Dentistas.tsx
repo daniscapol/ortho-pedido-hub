@@ -122,10 +122,15 @@ const createDentist = useMutation({
 // Mutation para atualizar dentista via Edge Function
 const updateDentist = useMutation({
   mutationFn: async (data: any) => {
+    console.log('updateDentist mutation called with:', data);
     const { data: resp, error } = await supabase.functions.invoke('admin-update-dentist', {
       body: data,
-    })
-    if (error) throw error;
+    });
+    console.log('Edge function response:', { resp, error });
+    if (error) {
+      console.error('Edge function error:', error);
+      throw error;
+    }
     return resp;
   },
   onSuccess: () => {
