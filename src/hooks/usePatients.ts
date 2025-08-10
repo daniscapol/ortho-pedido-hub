@@ -148,13 +148,14 @@ export const useCreatePatient = () => {
       })
     },
     onError: (error: any) => {
+      console.error('Create patient error:', error)
       let description = 'Erro ao cadastrar paciente.'
       if (error?.code === '22001' || /value too long/i.test(error?.message)) {
         description = 'CPF inválido: use 11 dígitos (somente números).'
-      } else if (error?.code === '23505' || /duplicate/i.test(error?.message) || /já cadastrado/i.test(error?.message)) {
+      } else if (error?.code === '23505' || /duplicate/i.test(error?.message) || /já cadastrado/i.test(error?.message) || error?.status === 409) {
         description = 'CPF já cadastrado para outro paciente.'
-      } else if (error?.code === '42501') {
-        description = 'Sem permissão para salvar: verifique se selecionou um dentista da mesma matriz/clinica.'
+      } else if (error?.code === '42501' || error?.status === 403) {
+        description = 'Sem permissão para salvar: selecione um dentista da mesma matriz/clínica.'
       } else if (error?.message) {
         description = error.message
       }
