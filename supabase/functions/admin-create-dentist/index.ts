@@ -69,7 +69,7 @@ serve(async (req: Request) => {
     // Load caller profile
     const { data: caller, error: callerErr } = await supabaseAdmin
       .from('profiles')
-      .select('id, role_extended, filial_id, clinica_id')
+      .select('id, role_extended, filial_id, matriz_id, clinica_id')
       .eq('id', authUser.user.id)
       .maybeSingle()
 
@@ -96,8 +96,8 @@ serve(async (req: Request) => {
         enforcedClinicaId = clinicaRow?.id ?? null
         enforcedFilialId = clinicaRow?.filial_id ?? null
       }
-    } else if (caller.role_extended === 'admin_filial') {
-      // Must belong to caller's filial
+    } else if (caller.role_extended === 'admin_matriz' || caller.role_extended === 'admin_filial') {
+      // Must belong to caller's matriz/filial
       enforcedFilialId = caller.filial_id ?? null
       if (clinica_id) {
         const { data: clinicaRow, error: clinicErr } = await supabaseAdmin
@@ -107,7 +107,7 @@ serve(async (req: Request) => {
           .eq('filial_id', enforcedFilialId)
           .maybeSingle()
         if (clinicErr || !clinicaRow) {
-          return new Response(JSON.stringify({ error: 'Clinica não pertence à sua filial' }), {
+          return new Response(JSON.stringify({ error: 'Clínica não pertence à sua matriz/filial' }), {
             status: 403,
             headers: { 'Content-Type': 'application/json', ...corsHeaders },
           })
@@ -177,6 +177,7 @@ serve(async (req: Request) => {
         role_extended: 'dentist',
         clinica_id: enforcedClinicaId,
         filial_id: enforcedFilialId,
+        matriz_id: enforcedFilialId, // matriz_id same as filial_id
         ativo: true,
       }, { onConflict: 'id' })
 

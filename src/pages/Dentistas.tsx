@@ -96,6 +96,7 @@ const Dentistas = () => {
 // Mutation para criar novo dentista via Edge Function
 const createDentist = useMutation({
   mutationFn: async (data: any) => {
+    console.log('createDentist mutation called with:', data);
     const { nome_completo, email, password, clinica_id } = data;
     const { data: resp, error } = await supabase.functions.invoke('admin-create-dentist', {
       body: {
@@ -104,8 +105,12 @@ const createDentist = useMutation({
         password,
         clinica_id: clinica_id || null,
       },
-    })
-    if (error) throw error;
+    });
+    console.log('Edge function response:', { resp, error });
+    if (error) {
+      console.error('Edge function error:', error);
+      throw error;
+    }
     return resp;
   },
   onSuccess: () => {
