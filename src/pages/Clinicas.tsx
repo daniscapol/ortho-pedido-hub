@@ -221,7 +221,7 @@ const Clinicas = () => {
                     <TableRow>
                       <TableHead>Nome</TableHead>
                       <TableHead>CNPJ</TableHead>
-                      <TableHead>Filial</TableHead>
+                      <TableHead>Matriz</TableHead>
                       <TableHead>Telefone</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Dentistas</TableHead>
@@ -382,7 +382,7 @@ const Clinicas = () => {
                   <p className="text-sm">{viewingClinica.telefone}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Filial</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">Matriz</Label>
                   <p className="text-sm">{viewingClinica.filial?.nome_completo || "N/A"}</p>
                 </div>
                 <div>

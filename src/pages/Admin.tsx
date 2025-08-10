@@ -70,7 +70,7 @@ const Admin = () => {
   const FiliaisSection = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Gerenciamento de Filiais</CardTitle>
+        <CardTitle>Gerenciamento de Matrizes</CardTitle>
       </CardHeader>
       <CardContent>
         {filiaisLoading ? (
@@ -214,14 +214,14 @@ const Admin = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: 'Filial atualizada',
-        description: 'O usuário foi associado à filial com sucesso.',
+        title: 'Matriz atualizada',
+        description: 'O usuário foi associado à matriz com sucesso.',
       });
     },
     onError: (err: any) => {
       toast({
         title: 'Erro',
-        description: err?.message || 'Não foi possível atualizar a filial do usuário.',
+        description: err?.message || 'Não foi possível atualizar a matriz do usuário.',
         variant: 'destructive',
       });
     },
@@ -592,7 +592,7 @@ const Admin = () => {
             className="flex items-center gap-2"
           >
             <Building2 className="h-4 w-4" />
-            Filiais
+            Matrizes
           </Button>
         </div>
 
@@ -701,7 +701,7 @@ const Admin = () => {
                         <TableHead>Nome</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Verificação</TableHead>
-                        <TableHead>Filial</TableHead>
+                        <TableHead>Matriz</TableHead>
                         <TableHead>Clínica</TableHead>
                         <TableHead>Função</TableHead>
                         <TableHead>Criado em</TableHead>
@@ -730,11 +730,11 @@ const Admin = () => {
                                }
                                disabled={updateUserFilial.isPending}
                              >
-                                <SelectTrigger className="w-52">
-                                 <SelectValue placeholder="Selecionar filial" />
-                               </SelectTrigger>
-                               <SelectContent>
-                                 <SelectItem value="none">Sem filial</SelectItem>
+                                 <SelectTrigger className="w-52">
+                                  <SelectValue placeholder="Selecionar matriz" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">Sem matriz</SelectItem>
                                  {filiais?.map((f) => (
                                    <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                                  ))}
