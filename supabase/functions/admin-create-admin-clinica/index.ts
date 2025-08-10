@@ -49,7 +49,7 @@ serve(async (req: Request) => {
     // Caller profile
     const { data: caller, error: callerErr } = await supabaseAdmin
       .from('profiles')
-      .select('id, role_extended, filial_id')
+      .select('id, role_extended, filial_id, matriz_id')
       .eq('id', authUser.user.id)
       .maybeSingle()
     if (callerErr) throw callerErr
@@ -58,13 +58,15 @@ serve(async (req: Request) => {
     // Target clinic and filial
     const { data: clinic, error: clinicErr } = await supabaseAdmin
       .from('clinicas')
-      .select('id, filial_id')
+      .select('id, filial_id, matriz_id')
       .eq('id', clinica_id)
       .maybeSingle()
     if (clinicErr || !clinic) return new Response(JSON.stringify({ error: 'Clinica not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
 
-    // Permission checks: admin_master can create anywhere; admin_filial only within own filial
-    if (!(caller.role_extended === 'admin_master' || (caller.role_extended === 'admin_filial' && caller.filial_id && caller.filial_id === clinic.filial_id))) {
+    // Permission checks: admin_master can create anywhere; admin_matriz/admin_filial only within own matriz/filial
+    if (!(caller.role_extended === 'admin_master' || 
+          (caller.role_extended === 'admin_matriz' && caller.filial_id && caller.filial_id === (clinic.matriz_id || clinic.filial_id)) ||
+          (caller.role_extended === 'admin_filial' && caller.filial_id && caller.filial_id === clinic.filial_id))) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
     }
 
@@ -99,6 +101,7 @@ serve(async (req: Request) => {
         role_extended: 'admin_clinica',
         clinica_id: clinic.id,
         filial_id: clinic.filial_id,
+        matriz_id: clinic.matriz_id || clinic.filial_id,
         ativo: true,
       }, { onConflict: 'id' })
     if (upsertErr) return new Response(JSON.stringify({ error: upsertErr.message }), { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
