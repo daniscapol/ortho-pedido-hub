@@ -42,8 +42,11 @@ serve(async (req: Request) => {
   try {
     const payload = (await req.json()) as CreateDentistRequest
     const { name, email, password, clinica_id } = payload
+    
+    console.log('Received payload:', { name, email, clinica_id });
 
     if (!name || !email || !password) {
+      console.log('Missing required fields:', { name: !!name, email: !!email, password: !!password });
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -51,6 +54,7 @@ serve(async (req: Request) => {
     }
 
     if (!clinica_id) {
+      console.log('Missing clinica_id');
       return new Response(JSON.stringify({ error: 'Clínica é obrigatória' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -73,8 +77,12 @@ serve(async (req: Request) => {
       .eq('id', authUser.user.id)
       .maybeSingle()
 
+    console.log('Caller profile:', caller);
+    console.log('Caller error:', callerErr);
+
     if (callerErr) throw callerErr
     if (!caller) {
+      console.log('Caller profile not found');
       return new Response(JSON.stringify({ error: 'Caller profile not found' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -115,13 +123,25 @@ serve(async (req: Request) => {
         enforcedClinicaId = clinicaRow.id
       }
     } else if (caller.role_extended === 'admin_clinica') {
+      console.log('Processing admin_clinica, caller clinica_id:', caller.clinica_id);
       // Must belong to caller's clinic
       if (!caller.clinica_id) {
+        console.log('Admin clinica has no clinica_id');
         return new Response(JSON.stringify({ error: 'Seu perfil não possui clínica vinculada' }), {
           status: 403,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
         })
       }
+
+      // Admin clinica can only create dentists for their own clinic
+      if (clinica_id !== caller.clinica_id) {
+        console.log('Clinica mismatch:', { requested: clinica_id, caller_clinic: caller.clinica_id });
+        return new Response(JSON.stringify({ error: 'Você só pode criar dentistas para sua própria clínica' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        })
+      }
+
       enforcedClinicaId = caller.clinica_id
       // Get filial from clinic
       const { data: clinicaRow } = await supabaseAdmin
@@ -130,6 +150,7 @@ serve(async (req: Request) => {
         .eq('id', enforcedClinicaId)
         .maybeSingle()
       enforcedFilialId = clinicaRow?.filial_id ?? null
+      console.log('Enforced clinic and filial:', { enforcedClinicaId, enforcedFilialId });
     } else {
       return new Response(JSON.stringify({ error: 'Forbidden' }), {
         status: 403,
