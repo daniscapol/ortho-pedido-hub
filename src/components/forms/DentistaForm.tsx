@@ -172,7 +172,14 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
                   }
                 })}
                 placeholder="dentista@email.com"
+                disabled={!!editingDentist}
+                className={editingDentist ? "bg-muted cursor-not-allowed" : ""}
               />
+              {editingDentist && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  O email não pode ser alterado após a criação
+                </p>
+              )}
               {errors.email && (
                 <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
               )}
