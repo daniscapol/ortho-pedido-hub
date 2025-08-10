@@ -612,7 +612,14 @@ export type Database = {
             foreignKeyName: "patients_filial_id_fkey"
             columns: ["filial_id"]
             isOneToOne: false
-            referencedRelation: "clinicas"
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patients_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "matrizes"
             referencedColumns: ["id"]
           },
         ]
