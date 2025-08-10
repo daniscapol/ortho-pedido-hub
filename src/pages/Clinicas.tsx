@@ -162,7 +162,7 @@ const { data: matrizes } = useMatrizes();
   const updateUser = useMutation({
     mutationFn: async ({ userId, updates }: { userId: string; updates: any }) => {
       const { data, error } = await supabase.functions.invoke('admin-update-user-links', {
-        body: { user_id: userId, updates },
+        body: { userId, updates }, // Corrigido: usar userId em vez de user_id
       });
       if (error) throw error;
       return data;
@@ -184,7 +184,7 @@ const { data: matrizes } = useMatrizes();
   const changeUserPassword = useMutation({
     mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
       const { data, error } = await supabase.functions.invoke('admin-update-user-links', {
-        body: { user_id: userId, updates: { password: newPassword } },
+        body: { userId, updates: { password: newPassword } }, // Corrigido: usar userId em vez de user_id
       });
       if (error) throw error;
       return data;
