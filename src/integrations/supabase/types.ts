@@ -1303,7 +1303,7 @@ export type Database = {
       user_role_extended:
         | "admin_master"
         | "admin_clinica"
-        | "admin_filial"
+        | "admin_matriz"
         | "dentist"
     }
     CompositeTypes: {
@@ -1436,7 +1436,7 @@ export const Constants = {
       user_role_extended: [
         "admin_master",
         "admin_clinica",
-        "admin_filial",
+        "admin_matriz",
         "dentist",
       ],
     },
