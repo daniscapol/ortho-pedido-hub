@@ -56,9 +56,65 @@ export const useCreatePatient = () => {
 
   return useMutation({
     mutationFn: async (patientData: Omit<Patient, 'id' | 'created_at' | 'updated_at' | 'dentist'>) => {
+      // Ensure required relational fields for RLS (clinica_id / filial_id)
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError) throw authError
+
+      const userId = authData.user?.id
+      if (!userId) throw new Error('Usuário não autenticado')
+
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('role_extended, clinica_id, matriz_id, filial_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+      const mutable: any = { ...patientData }
+
+      // If dentist is creating without explicitly selecting dentist_id
+      if (!mutable.dentist_id && currentProfile?.role_extended === 'dentist') {
+        mutable.dentist_id = userId
+      }
+
+      // Derive clinic/matriz (filial) from selected dentist when available
+      if (mutable.dentist_id) {
+        const { data: dentistProfile } = await supabase
+          .from('profiles')
+          .select('clinica_id, matriz_id, filial_id')
+          .eq('id', mutable.dentist_id)
+          .maybeSingle()
+
+        if (dentistProfile) {
+          mutable.clinica_id = dentistProfile.clinica_id ?? mutable.clinica_id
+          // DB uses patients.filial_id; prefer explicit filial_id then fall back to matriz_id
+          mutable.filial_id = dentistProfile.filial_id ?? dentistProfile.matriz_id ?? mutable.filial_id
+        }
+      } else if (currentProfile) {
+        // Fallback for admins creating sem selecionar dentista (não recomendado)
+        if (currentProfile.role_extended === 'admin_clinica') {
+          mutable.clinica_id = currentProfile.clinica_id ?? mutable.clinica_id
+        }
+        mutable.filial_id = currentProfile.filial_id ?? currentProfile.matriz_id ?? mutable.filial_id
+      }
+
+      // Default ativo
+      if (typeof mutable.ativo === 'undefined') mutable.ativo = true
+
+      const insertPayload = {
+        nome_completo: mutable.nome_completo,
+        cpf: mutable.cpf,
+        telefone_contato: mutable.telefone_contato,
+        email_contato: mutable.email_contato,
+        observacoes: mutable.observacoes ?? null,
+        ativo: mutable.ativo,
+        dentist_id: mutable.dentist_id,
+        clinica_id: mutable.clinica_id,
+        filial_id: mutable.filial_id,
+      }
+
       const { data, error } = await supabase
         .from('patients')
-        .insert([patientData])
+        .insert([insertPayload])
         .select(`
           *,
           dentist:dentist_id (
@@ -95,9 +151,59 @@ export const useUpdatePatient = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...patientData }: { id: string } & Omit<Patient, 'id' | 'created_at' | 'updated_at' | 'dentist'>) => {
+      // Update must also respect RLS; recalculate clinica_id/filial_id if dentist changes
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError) throw authError
+
+      const userId = authData.user?.id
+      if (!userId) throw new Error('Usuário não autenticado')
+
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('role_extended, clinica_id, matriz_id, filial_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+      const mutable: any = { ...patientData }
+
+      // If no dentist specified, fallback for dentist user
+      if (!mutable.dentist_id && currentProfile?.role_extended === 'dentist') {
+        mutable.dentist_id = userId
+      }
+
+      if (mutable.dentist_id) {
+        const { data: dentistProfile } = await supabase
+          .from('profiles')
+          .select('clinica_id, matriz_id, filial_id')
+          .eq('id', mutable.dentist_id)
+          .maybeSingle()
+
+        if (dentistProfile) {
+          mutable.clinica_id = dentistProfile.clinica_id ?? mutable.clinica_id
+          mutable.filial_id = dentistProfile.filial_id ?? dentistProfile.matriz_id ?? mutable.filial_id
+        }
+      } else if (currentProfile) {
+        if (currentProfile.role_extended === 'admin_clinica') {
+          mutable.clinica_id = currentProfile.clinica_id ?? mutable.clinica_id
+        }
+        mutable.filial_id = currentProfile.filial_id ?? currentProfile.matriz_id ?? mutable.filial_id
+      }
+
+      const updatePayload = {
+        nome_completo: mutable.nome_completo,
+        cpf: mutable.cpf,
+        telefone_contato: mutable.telefone_contato,
+        email_contato: mutable.email_contato,
+        observacoes: mutable.observacoes ?? null,
+        ativo: typeof mutable.ativo === 'undefined' ? true : mutable.ativo,
+        dentist_id: mutable.dentist_id,
+        clinica_id: mutable.clinica_id,
+        filial_id: mutable.filial_id,
+      }
+
       const { data, error } = await supabase
         .from('patients')
-        .update(patientData)
+        .update(updatePayload)
         .eq('id', id)
         .select(`
           *,
