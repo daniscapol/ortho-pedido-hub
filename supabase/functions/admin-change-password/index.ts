@@ -84,7 +84,12 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('id', user.id)
       .single();
 
+    console.log("Caller user ID:", user.id);
+    console.log("Caller profile data:", callerProfile);
+    console.log("Profile error:", profileError);
+
     if (profileError || !callerProfile) {
+      console.log("Profile not found or error:", profileError);
       return new Response(
         JSON.stringify({ error: "Perfil do usuário não encontrado" }),
         {
@@ -94,7 +99,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    console.log("Caller role_extended:", callerProfile.role_extended);
+
     if (!['admin_master', 'admin_matriz'].includes(callerProfile.role_extended)) {
+      console.log("Permission denied for role:", callerProfile.role_extended);
       return new Response(
         JSON.stringify({ error: "Apenas Admin Master ou Admin Matriz podem redefinir senhas" }),
         {
