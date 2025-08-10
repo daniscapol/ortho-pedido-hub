@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
-export interface Filial {
+export interface Matriz {
   id: string;
   nome_completo: string;
   endereco: string;
@@ -15,9 +15,9 @@ export interface Filial {
   qntd_pacientes?: number;
 }
 
-export const useFiliais = () => {
+export const useMatrizes = () => {
   return useQuery({
-    queryKey: ["filiais"],
+    queryKey: ["matrizes"],
     queryFn: async () => {
       console.log("🔍 Fetching matrizes (via RPC)...");
 
@@ -37,7 +37,7 @@ export const useFiliais = () => {
   });
 };
 
-export const useCreateFilial = () => {
+export const useCreateMatriz = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -50,7 +50,7 @@ export const useCreateFilial = () => {
       return (data as any)?.filial
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["filiais"] });
+      queryClient.invalidateQueries({ queryKey: ["matrizes"] });
       toast({
         title: "Matriz criada",
         description: "A matriz foi criada com sucesso.",
@@ -66,12 +66,12 @@ export const useCreateFilial = () => {
   });
 };
 
-export const useUpdateFilial = () => {
+export const useUpdateMatriz = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Filial> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: Partial<Matriz> & { id: string }) => {
       const { data, error } = await supabase
         .from("filiais")
         .update(updates)
@@ -83,7 +83,7 @@ export const useUpdateFilial = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["filiais"] });
+      queryClient.invalidateQueries({ queryKey: ["matrizes"] });
       toast({
         title: "Matriz atualizada",
         description: "A matriz foi atualizada com sucesso.",
@@ -99,7 +99,7 @@ export const useUpdateFilial = () => {
   });
 };
 
-export const useDeleteFilial = () => {
+export const useDeleteMatriz = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -113,7 +113,7 @@ export const useDeleteFilial = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["filiais"] });
+      queryClient.invalidateQueries({ queryKey: ["matrizes"] });
       toast({
         title: "Matriz removida",
         description: "A matriz foi removida com sucesso.",

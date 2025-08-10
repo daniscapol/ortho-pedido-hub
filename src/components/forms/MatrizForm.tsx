@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-interface FilialFormData {
+interface MatrizFormData {
   nome_completo: string;
   endereco: string;
   telefone: string;
@@ -20,16 +20,16 @@ interface FilialFormData {
   ativo: boolean;
 }
 
-interface FilialFormProps {
+interface MatrizFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: FilialFormData) => Promise<void>;
+  onSubmit: (data: MatrizFormData) => Promise<void>;
   isLoading?: boolean;
-  initialData?: Partial<FilialFormData> | null;
+  initialData?: Partial<MatrizFormData> | null;
 }
 
-export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading, initialData }: FilialFormProps) => {
-  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<FilialFormData>({
+export const MatrizForm = ({ open, onOpenChange, onSubmit, isLoading, initialData }: MatrizFormProps) => {
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<MatrizFormData>({
     defaultValues: {
       ativo: initialData?.ativo ?? true,
       ...initialData,
@@ -41,13 +41,13 @@ export const FilialForm = ({ open, onOpenChange, onSubmit, isLoading, initialDat
       reset({
         ativo: initialData?.ativo ?? true,
         ...initialData,
-      } as FilialFormData);
+      } as MatrizFormData);
     }
   }, [open, initialData, reset]);
 
   const ativo = watch("ativo");
 
-  const handleFormSubmit = async (data: FilialFormData) => {
+  const handleFormSubmit = async (data: MatrizFormData) => {
     await onSubmit(data);
     reset();
     onOpenChange(false);

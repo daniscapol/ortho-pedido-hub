@@ -26,7 +26,7 @@ import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
 import { MateriaisManager } from "@/components/admin/MateriaisManager";
 import { CoresManager } from "@/components/admin/CoresManager";
 import { CompatibilidadeManager } from "@/components/admin/CompatibilidadeManager";
-import { useFiliais } from "@/hooks/useFiliais";
+import { useMatrizes } from "@/hooks/useMatrizes";
 import { useClinicas } from "@/hooks/useClinicas";
 
 interface User {
@@ -62,7 +62,7 @@ const Admin = () => {
   const updateOrderStatus = useUpdateOrderStatus();
 
   // Hook para filiais
-  const { data: filiais, isLoading: filiaisLoading } = useFiliais();
+  const { data: filiais, isLoading: filiaisLoading } = useMatrizes();
   // Hook para clínicas
   const { data: clinicas } = useClinicas();
 

@@ -37,7 +37,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { useFiliais } from "@/hooks/useFiliais";
+import { useMatrizes } from "@/hooks/useMatrizes";
 
 const Clinicas = () => {
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ const Clinicas = () => {
   const updateClinica = useUpdateClinica();
   const deleteClinica = useDeleteClinica();
   const { toast } = useToast();
-  const { data: filiais } = useFiliais();
+const { data: filiais } = useMatrizes();
 
   // Mutation: criar usuário admin_clinica
   const createAdminClinica = useMutation({

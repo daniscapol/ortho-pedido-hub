@@ -8,26 +8,26 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { useFiliais, useCreateFilial, useUpdateFilial, useDeleteFilial, type Filial } from "@/hooks/useFiliais";
+import { useMatrizes, useCreateMatriz, useUpdateMatriz, useDeleteMatriz, type Matriz } from "@/hooks/useMatrizes";
 import Sidebar from "@/components/layout/Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
-import { FilialForm } from "@/components/forms/FilialForm";
+import { MatrizForm } from "@/components/forms/MatrizForm";
 
 const Filiais = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [isNewFilialOpen, setIsNewFilialOpen] = useState(false)
-  const [editingFilial, setEditingFilial] = useState<Filial | null>(null)
+  const [editingFilial, setEditingFilial] = useState<Matriz | null>(null)
   const [deleteFilialId, setDeleteFilialId] = useState<string | null>(null)
   
-  const { data: filiais, isLoading } = useFiliais();
+  const { data: filiais, isLoading } = useMatrizes();
   const { data: profile } = useProfile();
-  const createFilial = useCreateFilial();
-  const updateFilial = useUpdateFilial();
-  const deleteFilial = useDeleteFilial();
+  const createFilial = useCreateMatriz();
+  const updateFilial = useUpdateMatriz();
+  const deleteFilial = useDeleteMatriz();
 
   const canManageFiliais = profile?.role_extended === 'admin_master';
   const canCreateFiliais = profile?.role_extended === 'admin_master';
@@ -47,7 +47,7 @@ const Filiais = () => {
     await createFilial.mutateAsync(data);
   };
 
-  const handleToggleAtivo = async (filial: Filial) => {
+  const handleToggleAtivo = async (filial: Matriz) => {
     try {
       await updateFilial.mutateAsync({
         id: filial.id,
@@ -133,7 +133,7 @@ const Filiais = () => {
                       <Plus className="h-4 w-4 mr-2" />
                       Nova Matriz
                     </Button>
-                    <FilialForm
+                    <MatrizForm
                       open={isNewFilialOpen}
                       onOpenChange={setIsNewFilialOpen}
                       onSubmit={handleCreateFilial}
@@ -210,8 +210,8 @@ const Filiais = () => {
             </CardContent>
           </Card>
 
-          {/* Edit Filial Form */}
-          <FilialForm
+          {/* Edit Matriz Form */}
+          <MatrizForm
             open={!!editingFilial}
             onOpenChange={(open) => {
               if (!open) setEditingFilial(null);
