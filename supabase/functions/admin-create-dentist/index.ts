@@ -173,7 +173,21 @@ serve(async (req: Request) => {
     })
 
     if (createErr) {
-      return new Response(JSON.stringify({ error: createErr.message }), {
+      console.log('Create user error:', createErr);
+      
+      // Handle specific error cases with user-friendly messages
+      let errorMessage = createErr.message;
+      
+      if (createErr.message.includes('User with this email address already exists') || 
+          createErr.message.includes('A user with this email address has already been registered')) {
+        errorMessage = `O email ${email} já está cadastrado no sistema. Por favor, use um email diferente.`;
+      } else if (createErr.message.includes('Invalid email')) {
+        errorMessage = 'O formato do email é inválido. Por favor, verifique e tente novamente.';
+      } else if (createErr.message.includes('Password')) {
+        errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
+      }
+      
+      return new Response(JSON.stringify({ error: errorMessage }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       })
