@@ -59,8 +59,8 @@ serve(async (req: Request) => {
       .maybeSingle()
 
     if (callerErr) throw callerErr
-    if (!caller || caller.role_extended !== 'admin_master') {
-      return new Response(JSON.stringify({ error: 'Forbidden - Only admin_master can cleanup orphaned users' }), {
+    if (!caller || !['admin_master', 'admin_clinica', 'admin_matriz'].includes(caller.role_extended)) {
+      return new Response(JSON.stringify({ error: 'Forbidden - Only admins can cleanup orphaned users' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       })
