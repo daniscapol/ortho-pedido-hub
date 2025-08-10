@@ -57,6 +57,8 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const { userId, updates } = await req.json().catch(() => ({}));
+    
+    console.log("Received request:", { userId, updates });
 
     if (!userId || !updates || typeof updates !== 'object') {
       return new Response(
@@ -76,12 +78,16 @@ serve(async (req: Request): Promise<Response> => {
       }
     }
 
+    console.log("Filtered updates:", profileUpdates);
+
     if (Object.keys(profileUpdates).length === 0) {
       return new Response(
         JSON.stringify({ error: "invalid_request", message: "Nenhum campo válido para atualização foi fornecido." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
+    console.log("Attempting to update user:", userId, "with data:", profileUpdates);
 
     const { data: updated, error: updateError } = await supabase
       .from("profiles")
@@ -90,12 +96,17 @@ serve(async (req: Request): Promise<Response> => {
       .select("*")
       .single();
 
+    console.log("Update result:", { updated, updateError });
+
     if (updateError) {
+      console.error("Update error:", updateError);
       return new Response(
         JSON.stringify({ error: "update_failed", message: updateError.message }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
+    console.log("Successfully updated profile:", updated);
 
     return new Response(JSON.stringify({ success: true, profile: updated }), {
       status: 200,
