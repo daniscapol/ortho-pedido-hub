@@ -722,14 +722,6 @@ const { data: matrizes } = useMatrizes();
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Email</Label>
-                <Input 
-                  type="email" 
-                  value={editingUser.email || ''} 
-                  onChange={(e) => setEditingUser({...editingUser, email: e.target.value})} 
-                />
-              </div>
-              <div className="grid gap-2">
                 <Label>Tipo de Usuário</Label>
                 <Select 
                   value={editingUser.role_extended || 'dentist'} 
@@ -752,7 +744,6 @@ const { data: matrizes } = useMatrizes();
                       userId: editingUser.id,
                       updates: {
                         name: editingUser.name || editingUser.nome_completo,
-                        email: editingUser.email,
                         role_extended: editingUser.role_extended
                       }
                     });
