@@ -129,18 +129,71 @@ export const useUpdatePatient = () => {
   })
 }
 
-// Hook para buscar dentistas para o dropdown
+// Hook para buscar dentistas para o dropdown respeitando hierarquia
 export const useDentistsForPatients = () => {
   return useQuery({
     queryKey: ['dentists-for-patients'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Primeiro, verificar se o usuário atual é admin
+      const { data: currentProfile } = await supabase
         .from('profiles')
-        .select('id, nome_completo, email')
-        .eq('role', 'dentist')
-        .order('nome_completo')
+        .select('role, role_extended, filial_id, clinica_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single()
 
-      if (error) throw error
+      console.log('Current profile for dentists selection:', currentProfile)
+
+      let query = supabase
+        .from('profiles')
+        .select('id, nome_completo, email, role_extended, filial_id, clinica_id')
+
+      // Se for admin_master, mostrar todos os perfis com role_extended = 'dentist'
+      if (currentProfile?.role_extended === 'admin_master') {
+        console.log('User is admin_master, fetching all dentists')
+        query = query.eq('role_extended', 'dentist')
+      } 
+      // Se for admin_filial (admin matriz), mostrar dentistas da sua matriz
+      else if (currentProfile?.role_extended === 'admin_filial') {
+        console.log('User is admin_filial, fetching dentists from their matriz')
+        if (currentProfile?.filial_id) {
+          query = query
+            .eq('role_extended', 'dentist')
+            .eq('filial_id', currentProfile.filial_id)
+        } else {
+          // Se não tem filial_id, não mostra nenhum dentista
+          query = query.eq('id', 'never-match')
+        }
+      }
+      // Se for admin_clinica, mostrar dentistas da sua clínica
+      else if (currentProfile?.role_extended === 'admin_clinica') {
+        console.log('User is admin_clinica, fetching dentists from their clinica')
+        if (currentProfile?.clinica_id) {
+          query = query
+            .eq('role_extended', 'dentist')
+            .eq('clinica_id', currentProfile.clinica_id)
+        } else {
+          // Se não tem clinica_id, não mostra nenhum dentista
+          query = query.eq('id', 'never-match')
+        }
+      }
+      // Se for dentist, mostrar apenas ele mesmo
+      else if (currentProfile?.role_extended === 'dentist') {
+        console.log('User is dentist, fetching only own profile')
+        query = query.eq('id', (await supabase.auth.getUser()).data.user?.id)
+      }
+      // Se não for nenhum dos casos acima, não mostrar nenhum dentista
+      else {
+        query = query.eq('id', 'never-match')
+      }
+
+      const { data, error } = await query.order('nome_completo', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching dentists for patients:', error)
+        throw error
+      }
+
+      console.log('Fetched dentists for patients:', data)
       return data
     },
   })
