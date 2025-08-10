@@ -102,9 +102,15 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
   }, [editingDentist, open, setValue, reset, forceClinicaId]);
 
   const handleFormSubmit = async (data: DentistaFormData) => {
-    await onSubmit(data);
-    reset();
-    onOpenChange(false);
+    console.log('DentistaForm handleFormSubmit called with:', data);
+    try {
+      await onSubmit(data);
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error in handleFormSubmit:', error);
+      // Don't close the form if there's an error
+    }
   };
 
   return (

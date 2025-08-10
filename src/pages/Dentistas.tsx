@@ -156,7 +156,15 @@ const updateDentist = useMutation({
   };
 
   const handleUpdateDentist = async (data: any) => {
-    if (!editingDentist) return;
+    console.log('Dentistas handleUpdateDentist called with:', data);
+    if (!editingDentist) {
+      console.log('No editingDentist found');
+      return;
+    }
+    console.log('Calling updateDentist.mutateAsync with:', {
+      dentist_id: editingDentist.id,
+      ...data
+    });
     await updateDentist.mutateAsync({
       dentist_id: editingDentist.id,
       ...data
