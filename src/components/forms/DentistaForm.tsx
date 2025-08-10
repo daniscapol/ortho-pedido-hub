@@ -105,11 +105,13 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
     console.log('DentistaForm handleFormSubmit called with:', data);
     try {
       await onSubmit(data);
+      console.log('onSubmit completed successfully, resetting form');
       reset();
       onOpenChange(false);
     } catch (error) {
       console.error('Error in handleFormSubmit:', error);
-      // Don't close the form if there's an error
+      // Don't reset form or close dialog if there's an error
+      // This keeps the form open so user can try again
     }
   };
 

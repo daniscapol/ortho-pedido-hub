@@ -162,6 +162,8 @@ const updateDentist = useMutation({
 
   const handleUpdateDentist = async (data: any) => {
     console.log('Dentistas handleUpdateDentist called with:', data);
+    console.log('Current editingDentist state:', editingDentist);
+    console.log('updateDentist.isPending:', updateDentist.isPending);
     if (!editingDentist) {
       console.log('No editingDentist found');
       return;
@@ -170,10 +172,16 @@ const updateDentist = useMutation({
       dentist_id: editingDentist.id,
       ...data
     });
-    await updateDentist.mutateAsync({
-      dentist_id: editingDentist.id,
-      ...data
-    });
+    try {
+      await updateDentist.mutateAsync({
+        dentist_id: editingDentist.id,
+        ...data
+      });
+      console.log('updateDentist.mutateAsync completed successfully');
+    } catch (error) {
+      console.error('updateDentist.mutateAsync failed:', error);
+      throw error;
+    }
   };
 
   // Filtrar dentistas baseado na busca
