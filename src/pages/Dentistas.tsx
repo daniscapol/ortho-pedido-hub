@@ -73,7 +73,7 @@ const DentistCard = ({ dentist, onClick, onEdit, onChangePassword, onResetPasswo
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onResetPassword(dentist.email)}>
                     <Mail className="mr-2 h-4 w-4" />
-                    Enviar Redefinição
+                    Enviar Redefinição de Senha
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
