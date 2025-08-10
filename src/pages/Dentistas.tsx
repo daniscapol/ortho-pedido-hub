@@ -7,8 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone, UserPlus } from "lucide-react";
-import { useDentists, Dentist } from "@/hooks/useDentists";
+import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone, UserPlus, Edit } from "lucide-react";
+import { useDentists, useUpdateDentist, Dentist } from "@/hooks/useDentists";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
@@ -25,14 +25,16 @@ import { useClinicas } from "@/hooks/useClinicas";
 interface DentistCardProps {
   dentist: Dentist;
   onClick: () => void;
+  onEdit: (dentist: Dentist) => void;
+  canEdit: boolean;
 }
 
-const DentistCard = ({ dentist, onClick }: DentistCardProps) => {
+const DentistCard = ({ dentist, onClick, onEdit, canEdit }: DentistCardProps) => {
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
+    <Card className="hover:shadow-md transition-shadow relative">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer flex-1" onClick={onClick}>
             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
               <UserCheck className="w-6 h-6 text-primary" />
             </div>
@@ -41,12 +43,27 @@ const DentistCard = ({ dentist, onClick }: DentistCardProps) => {
               <p className="text-sm text-muted-foreground">{dentist.email}</p>
             </div>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            {dentist._count?.orders || 0} pedidos
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {dentist._count?.orders || 0} pedidos
+            </Badge>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(dentist);
+                }}
+                className="h-8 w-8 p-0"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 cursor-pointer" onClick={onClick}>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-muted-foreground" />
@@ -71,6 +88,7 @@ const Dentistas = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateUser, setShowCreateUser] = useState(false);
+  const [editingDentist, setEditingDentist] = useState<Dentist | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: clinicas } = useClinicas();
@@ -101,6 +119,26 @@ const createDentist = useMutation({
   },
 });
 
+// Mutation para atualizar dentista via Edge Function
+const updateDentist = useMutation({
+  mutationFn: async (data: any) => {
+    const { data: resp, error } = await supabase.functions.invoke('admin-update-dentist', {
+      body: data,
+    })
+    if (error) throw error;
+    return resp;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['dentists'] });
+    toast({ title: 'Dentista atualizado', description: 'Informações do dentista atualizadas com sucesso.' });
+    setEditingDentist(null);
+  },
+  onError: (error: any) => {
+    console.error('Erro ao atualizar dentista:', error);
+    toast({ title: 'Erro', description: error?.message || 'Erro ao atualizar dentista.', variant: 'destructive' });
+  },
+});
+
   const handleLogout = async () => {
     await signOut();
   };
@@ -111,6 +149,18 @@ const createDentist = useMutation({
 
   const handleCreateDentist = async (data: any) => {
     await createDentist.mutateAsync(data);
+  };
+
+  const handleEditDentist = (dentist: Dentist) => {
+    setEditingDentist(dentist);
+  };
+
+  const handleUpdateDentist = async (data: any) => {
+    if (!editingDentist) return;
+    await updateDentist.mutateAsync({
+      dentist_id: editingDentist.id,
+      ...data
+    });
   };
 
   // Filtrar dentistas baseado na busca
@@ -212,6 +262,31 @@ const createDentist = useMutation({
                     forceClinicaId={profile?.role_extended === 'admin_clinica' ? (profile?.clinica_id ?? null) : undefined}
                     clinics={clinicas?.map(c => ({ id: c.id, nome_completo: c.nome_completo }))}
                   />
+                  <DentistaForm
+                    open={!!editingDentist}
+                    onOpenChange={(open) => !open && setEditingDentist(null)}
+                    onSubmit={handleUpdateDentist}
+                    isLoading={updateDentist.isPending}
+                    canCreateAdmin={profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica'}
+                    forceClinicaId={profile?.role_extended === 'admin_clinica' ? (profile?.clinica_id ?? null) : undefined}
+                    clinics={clinicas?.map(c => ({ id: c.id, nome_completo: c.nome_completo }))}
+                    editingDentist={editingDentist ? {
+                      id: editingDentist.id,
+                      nome_completo: editingDentist.name || editingDentist.nome_completo || '',
+                      email: editingDentist.email || '',
+                      cro: editingDentist.cro || '',
+                      cpf: editingDentist.cpf || '',
+                      telefone: editingDentist.telefone || '',
+                      endereco: editingDentist.endereco || '',
+                      cep: editingDentist.cep || '',
+                      cidade: editingDentist.cidade || '',
+                      estado: editingDentist.estado || '',
+                      numero: editingDentist.numero || '',
+                      complemento: editingDentist.complemento || '',
+                      clinica_id: editingDentist.clinica_id || null,
+                      ativo: editingDentist.ativo ?? true
+                    } : null}
+                  />
                 </>
               )}
             </div>
@@ -252,6 +327,9 @@ const createDentist = useMutation({
                   key={dentist.id} 
                   dentist={dentist} 
                   onClick={() => handleDentistClick(dentist)}
+                  onEdit={handleEditDentist}
+                  canEdit={profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
+                          profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_filial'}
                 />
               ))
             ) : (

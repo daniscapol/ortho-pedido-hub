@@ -34,9 +34,25 @@ interface DentistaFormProps {
   canCreateAdmin?: boolean;
   clinics?: { id: string; nome_completo: string }[];
   forceClinicaId?: string | null;
+  editingDentist?: {
+    id: string;
+    nome_completo?: string;
+    email?: string;
+    cro?: string;
+    cpf?: string;
+    telefone?: string;
+    endereco?: string;
+    cep?: string;
+    cidade?: string;
+    estado?: string;
+    numero?: string;
+    complemento?: string;
+    clinica_id?: string | null;
+    ativo?: boolean;
+  } | null;
 }
 
-export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreateAdmin, clinics, forceClinicaId }: DentistaFormProps) => {
+export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreateAdmin, clinics, forceClinicaId, editingDentist }: DentistaFormProps) => {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<DentistaFormData>({
     defaultValues: {
       role: 'dentist',
@@ -60,6 +76,31 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
     }
   }, [forceClinicaId, setValue]);
 
+  useEffect(() => {
+    if (editingDentist && open) {
+      setValue('nome_completo', editingDentist.nome_completo || '');
+      setValue('email', editingDentist.email || '');
+      setValue('cro', editingDentist.cro || '');
+      setValue('cpf', editingDentist.cpf || '');
+      setValue('telefone', editingDentist.telefone || '');
+      setValue('endereco', editingDentist.endereco || '');
+      setValue('cep', editingDentist.cep || '');
+      setValue('cidade', editingDentist.cidade || '');
+      setValue('estado', editingDentist.estado || '');
+      setValue('numero', editingDentist.numero || '');
+      setValue('complemento', editingDentist.complemento || '');
+      setValue('clinica_id', editingDentist.clinica_id || null);
+      setValue('ativo', editingDentist.ativo ?? true);
+    } else if (!editingDentist && open) {
+      reset({
+        role: 'dentist',
+        role_extended: 'dentist',
+        ativo: true,
+        clinica_id: forceClinicaId ?? null,
+      });
+    }
+  }, [editingDentist, open, setValue, reset, forceClinicaId]);
+
   const handleFormSubmit = async (data: DentistaFormData) => {
     await onSubmit(data);
     reset();
@@ -70,7 +111,7 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Dentista</DialogTitle>
+          <DialogTitle>{editingDentist ? 'Editar Dentista' : 'Novo Dentista'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,24 +170,26 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
               )}
             </div>
 
-            <div>
-              <Label htmlFor="password">Senha *</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register("password", { 
-                  required: "Senha é obrigatória",
-                  minLength: {
-                    value: 6,
-                    message: "Senha deve ter pelo menos 6 caracteres"
-                  }
-                })}
-                placeholder="Senha temporária"
-              />
-              {errors.password && (
-                <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
-              )}
-            </div>
+            {!editingDentist && (
+              <div>
+                <Label htmlFor="password">Senha *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  {...register("password", { 
+                    required: !editingDentist ? "Senha é obrigatória" : false,
+                    minLength: {
+                      value: 6,
+                      message: "Senha deve ter pelo menos 6 caracteres"
+                    }
+                  })}
+                  placeholder="Senha temporária"
+                />
+                {errors.password && (
+                  <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+                )}
+              </div>
+            )}
 
             <div>
               <Label htmlFor="telefone">Telefone</Label>
@@ -263,7 +306,7 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Criando..." : "Criar Dentista"}
+              {isLoading ? (editingDentist ? "Salvando..." : "Criando...") : (editingDentist ? "Salvar Alterações" : "Criar Dentista")}
             </Button>
           </div>
         </form>

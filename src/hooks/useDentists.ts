@@ -1,11 +1,25 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
 export interface Dentist {
   id: string
   name: string | null
+  nome_completo?: string | null
   email: string | null
   role: 'admin' | 'dentist'
+  role_extended?: string
+  cro?: string | null
+  cpf?: string | null
+  telefone?: string | null
+  endereco?: string | null
+  cep?: string | null
+  cidade?: string | null
+  estado?: string | null
+  numero?: string | null
+  complemento?: string | null
+  clinica_id?: string | null
+  filial_id?: string | null
+  ativo?: boolean
   created_at: string
   updated_at: string
   _count?: {
@@ -31,9 +45,22 @@ export const useDentists = () => {
         .select(`
           id,
           name,
+          nome_completo,
           email,
           role,
           role_extended,
+          cro,
+          cpf,
+          telefone,
+          endereco,
+          cep,
+          cidade,
+          estado,
+          numero,
+          complemento,
+          clinica_id,
+          filial_id,
+          ativo,
           created_at,
           updated_at
         `)
@@ -114,6 +141,21 @@ export const useDentists = () => {
 
       return dentistsWithCounts as Dentist[]
     },
+  })
+}
+
+export const useUpdateDentist = () => {
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Dentist> & { id: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-update-dentist', {
+        body: {
+          dentist_id: id,
+          ...updates
+        }
+      })
+      if (error) throw error
+      return data
+    }
   })
 }
 
