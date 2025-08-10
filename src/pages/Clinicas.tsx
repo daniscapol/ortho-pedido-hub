@@ -58,6 +58,10 @@ const Clinicas = () => {
   const [adminPassword, setAdminPassword] = useState("");
   const [expandedClinicas, setExpandedClinicas] = useState<Set<string>>(new Set());
   const [clinicaUsers, setClinicaUsers] = useState<Record<string, any[]>>({});
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [userPasswordDialog, setUserPasswordDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
+  const [newPassword, setNewPassword] = useState("");
+  const [deleteUserDialog, setDeleteUserDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
   
   const { data: clinicas, isLoading } = useClinicas();
   const { data: profile } = useProfile();
@@ -85,6 +89,7 @@ const { data: matrizes } = useMatrizes();
   })
 
   const canManageClinicas = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_matriz';
+  const canManageUsers = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_matriz';
 
   const visibleClinicas = (clinicas || []).filter((c) => {
     if (profile?.role_extended === 'admin_master') return true
@@ -151,6 +156,89 @@ const { data: matrizes } = useMatrizes();
     }
     setExpandedClinicas(newExpanded);
   };
+
+  // Mutations para gerenciar usuários
+  const updateUser = useMutation({
+    mutationFn: async ({ userId, updates }: { userId: string; updates: any }) => {
+      const { data, error } = await supabase.functions.invoke('admin-update-user-links', {
+        body: { user_id: userId, updates },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { userId }) => {
+      toast({ title: 'Usuário atualizado', description: 'As informações do usuário foram atualizadas com sucesso.' });
+      // Recarregar usuários da clínica
+      Object.keys(clinicaUsers).forEach(clinicaId => {
+        if (clinicaUsers[clinicaId].some(user => user.id === userId)) {
+          toggleClinicaExpansion(clinicaId);
+        }
+      });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível atualizar o usuário.', variant: 'destructive' });
+    }
+  });
+
+  const changeUserPassword = useMutation({
+    mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-update-user-links', {
+        body: { user_id: userId, updates: { password: newPassword } },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({ title: 'Senha alterada', description: 'A senha do usuário foi alterada com sucesso.' });
+      setUserPasswordDialog({ open: false, user: null });
+      setNewPassword("");
+    },
+    onError: (error: any) => {
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível alterar a senha.', variant: 'destructive' });
+    }
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { user_id: userId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, userId) => {
+      toast({ title: 'Usuário removido', description: 'O usuário foi removido com sucesso.' });
+      setDeleteUserDialog({ open: false, user: null });
+      // Recarregar usuários da clínica
+      Object.keys(clinicaUsers).forEach(clinicaId => {
+        if (clinicaUsers[clinicaId].some(user => user.id === userId)) {
+          setClinicaUsers(prev => ({
+            ...prev,
+            [clinicaId]: prev[clinicaId].filter(user => user.id !== userId)
+          }));
+        }
+      });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível remover o usuário.', variant: 'destructive' });
+    }
+  });
+
+  const resetUserPassword = useMutation({
+    mutationFn: async (email: string) => {
+      const { data, error } = await supabase.functions.invoke('reset-password', {
+        body: { email },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({ title: 'Email enviado', description: 'Um email de redefinição de senha foi enviado para o usuário.' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível enviar o email de redefinição.', variant: 'destructive' });
+    }
+  });
 
   if (isLoading) {
     return (
@@ -395,6 +483,37 @@ const { data: matrizes } = useMatrizes();
                                               <span className="text-xs text-muted-foreground">
                                                 {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                                               </span>
+                                              {canManageUsers && (
+                                                <DropdownMenu>
+                                                  <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                                      <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                  </DropdownMenuTrigger>
+                                                  <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => setEditingUser(user)}>
+                                                      <User className="mr-2 h-4 w-4" />
+                                                      Editar
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setUserPasswordDialog({ open: true, user })}>
+                                                      <Settings className="mr-2 h-4 w-4" />
+                                                      Alterar Senha
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => resetUserPassword.mutate(user.email)}>
+                                                      <Bell className="mr-2 h-4 w-4" />
+                                                      Enviar Reset de Senha
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem 
+                                                      onClick={() => setDeleteUserDialog({ open: true, user })}
+                                                      className="text-destructive"
+                                                    >
+                                                      <LogOut className="mr-2 h-4 w-4" />
+                                                      Remover
+                                                    </DropdownMenuItem>
+                                                  </DropdownMenuContent>
+                                                </DropdownMenu>
+                                              )}
                                             </div>
                                           </div>
                                         ))}
@@ -579,6 +698,123 @@ const { data: matrizes } = useMatrizes();
                   setDeleteClinicaId(null);
                 }
               }}
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => { if (!open) setEditingUser(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          {editingUser && (
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                <Label>Nome</Label>
+                <Input 
+                  value={editingUser.name || editingUser.nome_completo || ''} 
+                  onChange={(e) => setEditingUser({...editingUser, name: e.target.value, nome_completo: e.target.value})} 
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Email</Label>
+                <Input 
+                  type="email" 
+                  value={editingUser.email || ''} 
+                  onChange={(e) => setEditingUser({...editingUser, email: e.target.value})} 
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditingUser(null)}>Cancelar</Button>
+                <Button 
+                  onClick={() => {
+                    updateUser.mutate({
+                      userId: editingUser.id,
+                      updates: {
+                        name: editingUser.name || editingUser.nome_completo,
+                        email: editingUser.email
+                      }
+                    });
+                    setEditingUser(null);
+                  }}
+                  disabled={updateUser.isPending}
+                >
+                  {updateUser.isPending ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={userPasswordDialog.open} onOpenChange={(open) => setUserPasswordDialog({ open, user: open ? userPasswordDialog.user : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Senha</DialogTitle>
+          </DialogHeader>
+          {userPasswordDialog.user && (
+            <div className="space-y-4">
+              <div>
+                <Label>Usuário</Label>
+                <p className="text-sm">{userPasswordDialog.user.name || userPasswordDialog.user.nome_completo} ({userPasswordDialog.user.email})</p>
+              </div>
+              <div className="grid gap-2">
+                <Label>Nova Senha</Label>
+                <Input 
+                  type="password" 
+                  value={newPassword} 
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Digite a nova senha" 
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => { setUserPasswordDialog({ open: false, user: null }); setNewPassword(""); }}>
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (newPassword.length >= 6) {
+                      changeUserPassword.mutate({
+                        userId: userPasswordDialog.user!.id,
+                        newPassword
+                      });
+                    }
+                  }}
+                  disabled={changeUserPassword.isPending || newPassword.length < 6}
+                >
+                  {changeUserPassword.isPending ? 'Alterando...' : 'Alterar Senha'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <AlertDialog open={deleteUserDialog.open} onOpenChange={(open) => setDeleteUserDialog({ open, user: open ? deleteUserDialog.user : null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O usuário "{deleteUserDialog.user?.name || deleteUserDialog.user?.nome_completo}" será removido permanentemente do sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteUserDialog({ open: false, user: null })}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteUserDialog.user) {
+                  deleteUser.mutate(deleteUserDialog.user.id);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Remover
             </AlertDialogAction>
