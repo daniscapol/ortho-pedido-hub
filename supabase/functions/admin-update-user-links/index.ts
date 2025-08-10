@@ -1,5 +1,5 @@
 // Supabase Edge Function: admin-update-user-links
-// Purpose: Allow admin master to update a user's filial_id and/or clinica_id safely with service role, with proper authorization.
+// Purpose: Allow admin master and admin matriz to update user profile data safely with service role, with proper authorization.
 // CORS enabled and robust error messages.
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -49,31 +49,45 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    if (callerProfile.role_extended !== "admin_master") {
+    if (!['admin_master', 'admin_matriz'].includes(callerProfile.role_extended)) {
       return new Response(
-        JSON.stringify({ error: "forbidden", message: "Apenas Admin Master pode executar esta ação." }),
+        JSON.stringify({ error: "forbidden", message: "Apenas Admin Master ou Admin Matriz podem executar esta ação." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const { userId, filialId, clinicaId } = await req.json().catch(() => ({}));
+    const { userId, updates } = await req.json().catch(() => ({}));
 
-    if (!userId || (filialId === undefined && clinicaId === undefined)) {
+    if (!userId || !updates || typeof updates !== 'object') {
       return new Response(
-        JSON.stringify({ error: "invalid_request", message: "Informe userId e pelo menos um dos campos: filialId ou clinicaId." }),
+        JSON.stringify({ error: "invalid_request", message: "Informe userId e um objeto updates com os campos a serem atualizados." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const updates: Record<string, string | null> = {};
-    if (filialId !== undefined) updates["filial_id"] = filialId; // pode ser null
-    if (clinicaId !== undefined) updates["clinica_id"] = clinicaId; // pode ser null
+    // Allowed fields to update
+    const allowedFields = ['name', 'nome_completo', 'email', 'role_extended', 'filial_id', 'clinica_id', 'telefone', 'documento', 'cro', 'cpf', 'endereco', 'cep', 'cidade', 'estado', 'numero', 'complemento'];
+    const profileUpdates: Record<string, any> = {};
+    
+    // Filter only allowed fields
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedFields.includes(key)) {
+        profileUpdates[key] = value;
+      }
+    }
+
+    if (Object.keys(profileUpdates).length === 0) {
+      return new Response(
+        JSON.stringify({ error: "invalid_request", message: "Nenhum campo válido para atualização foi fornecido." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     const { data: updated, error: updateError } = await supabase
       .from("profiles")
-      .update(updates)
+      .update(profileUpdates)
       .eq("id", userId)
-      .select("id, filial_id, clinica_id")
+      .select("*")
       .single();
 
     if (updateError) {
