@@ -175,14 +175,14 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
 
             {/* Filial selection - forced for admin_filial, selectable for admin_master */}
             <div className="md:col-span-2">
-              <Label htmlFor="filial_id">Filial</Label>
+              <Label htmlFor="filial_id">Matriz</Label>
               {typeof forceFilialId !== 'undefined' ? (
                 <Select value={forceFilialId ?? 'none'} onValueChange={() => {}} disabled>
                   <SelectTrigger>
-                    <SelectValue placeholder="Filial vinculada" />
+                    <SelectValue placeholder="Matriz vinculada" />
                   </SelectTrigger>
                   <SelectContent>
-                    {forceFilialId === null && <SelectItem value="none">Sem filial</SelectItem>}
+                    {forceFilialId === null && <SelectItem value="none">Sem matriz</SelectItem>}
                     {filiais?.filter(f => f.id === forceFilialId).map((f) => (
                       <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                     ))}
@@ -194,10 +194,10 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
                   onValueChange={(val) => setValue('filial_id', val === 'none' ? undefined : val)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecionar filial" />
+                    <SelectValue placeholder="Selecionar matriz" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sem filial</SelectItem>
+                    <SelectItem value="none">Sem matriz</SelectItem>
                     {filiais?.map((f) => (
                       <SelectItem key={f.id} value={f.id}>{f.nome_completo}</SelectItem>
                     ))}

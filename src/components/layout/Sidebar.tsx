@@ -69,7 +69,7 @@ const Sidebar = () => {
     },
     {
       icon: Building2,
-      label: "Filiais",
+      label: "Matrizes",
       path: "/filiais",
       active: location.pathname === "/filiais",
       permission: "filiais"

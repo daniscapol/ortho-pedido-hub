@@ -19,24 +19,19 @@ export const useFiliais = () => {
   return useQuery({
     queryKey: ["filiais"],
     queryFn: async () => {
-      console.log("🔍 Fetching filiais...");
+      console.log("🔍 Fetching matrizes (via RPC)...");
 
-      // Direct SELECT to respect RLS; avoid joins/aggregations
-      const { data, error } = await supabase
-        .from("filiais")
-        .select("*")
-        .order("nome_completo");
+      const { data, error } = await supabase.rpc('get_matrizes_with_counts');
 
       if (error) {
-        console.error("❌ Error fetching basic filiais:", error);
+        console.error("❌ Error fetching matrizes:", error);
         throw error;
       }
 
-      // Return without counts to avoid column mismatches
       return (data || []).map((f: any) => ({
         ...f,
-        qntd_clinicas: 0,
-        qntd_pacientes: 0,
+        qntd_clinicas: Number(f.qntd_clinicas ?? 0),
+        qntd_pacientes: Number(f.qntd_pacientes ?? 0),
       }));
     },
   });
@@ -57,13 +52,13 @@ export const useCreateFilial = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["filiais"] });
       toast({
-        title: "Filial criada",
-        description: "A filial foi criada com sucesso.",
+        title: "Matriz criada",
+        description: "A matriz foi criada com sucesso.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro ao criar filial",
+        title: "Erro ao criar matriz",
         description: (error as any)?.message ?? "Erro inesperado",
         variant: "destructive",
       });
@@ -90,13 +85,13 @@ export const useUpdateFilial = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["filiais"] });
       toast({
-        title: "Filial atualizada",
-        description: "A filial foi atualizada com sucesso.",
+        title: "Matriz atualizada",
+        description: "A matriz foi atualizada com sucesso.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro ao atualizar filial",
+        title: "Erro ao atualizar matriz",
         description: (error as any)?.message ?? "Erro inesperado",
         variant: "destructive",
       });
@@ -120,13 +115,13 @@ export const useDeleteFilial = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["filiais"] });
       toast({
-        title: "Filial removida",
-        description: "A filial foi removida com sucesso.",
+        title: "Matriz removida",
+        description: "A matriz foi removida com sucesso.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro ao remover filial",
+        title: "Erro ao remover matriz",
         description: (error as any)?.message ?? "Erro inesperado",
         variant: "destructive",
       });
