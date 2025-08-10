@@ -101,6 +101,7 @@ export type Database = {
           estado: string | null
           filial_id: string | null
           id: string
+          matriz_id: string | null
           nome_completo: string
           numero: string | null
           telefone: string | null
@@ -118,6 +119,7 @@ export type Database = {
           estado?: string | null
           filial_id?: string | null
           id?: string
+          matriz_id?: string | null
           nome_completo: string
           numero?: string | null
           telefone?: string | null
@@ -135,6 +137,7 @@ export type Database = {
           estado?: string | null
           filial_id?: string | null
           id?: string
+          matriz_id?: string | null
           nome_completo?: string
           numero?: string | null
           telefone?: string | null
@@ -792,6 +795,8 @@ export type Database = {
           filial_id: string | null
           filial_padrao_id: string | null
           id: string
+          matriz_id: string | null
+          matriz_padrao_id: string | null
           name: string | null
           nome_completo: string | null
           numero: string | null
@@ -819,6 +824,8 @@ export type Database = {
           filial_id?: string | null
           filial_padrao_id?: string | null
           id: string
+          matriz_id?: string | null
+          matriz_padrao_id?: string | null
           name?: string | null
           nome_completo?: string | null
           numero?: string | null
@@ -846,6 +853,8 @@ export type Database = {
           filial_id?: string | null
           filial_padrao_id?: string | null
           id?: string
+          matriz_id?: string | null
+          matriz_padrao_id?: string | null
           name?: string | null
           nome_completo?: string | null
           numero?: string | null
@@ -876,6 +885,13 @@ export type Database = {
             columns: ["filial_id"]
             isOneToOne: false
             referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "matrizes"
             referencedColumns: ["id"]
           },
           {
@@ -1058,7 +1074,75 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      matrizes: {
+        Row: {
+          ativo: boolean | null
+          cep: string | null
+          cidade: string | null
+          clinica_id: string | null
+          cnpj: string | null
+          complemento: string | null
+          created_at: string | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          id: string | null
+          nome_completo: string | null
+          numero: string | null
+          telefone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          cep?: string | null
+          cidade?: string | null
+          clinica_id?: string | null
+          cnpj?: string | null
+          complemento?: string | null
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string | null
+          nome_completo?: string | null
+          numero?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          cep?: string | null
+          cidade?: string | null
+          clinica_id?: string | null
+          cnpj?: string | null
+          complemento?: string | null
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string | null
+          nome_completo?: string | null
+          numero?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinicas_filial_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "filiais_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_manage_clinica: {
@@ -1067,6 +1151,10 @@ export type Database = {
       }
       can_manage_filial: {
         Args: { target_filial_id: string }
+        Returns: boolean
+      }
+      can_manage_matriz: {
+        Args: { target_matriz_id: string }
         Returns: boolean
       }
       cleanup_typing_indicators: {
@@ -1131,6 +1219,27 @@ export type Database = {
           qntd_pacientes: number
         }[]
       }
+      get_matrizes_with_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          nome_completo: string
+          endereco: string
+          telefone: string
+          email: string
+          ativo: boolean
+          created_at: string
+          updated_at: string
+          cep: string
+          cidade: string
+          estado: string
+          numero: string
+          complemento: string
+          cnpj: string
+          qntd_clinicas: number
+          qntd_pacientes: number
+        }[]
+      }
       get_or_create_conversation: {
         Args: { p_dentist_id: string; p_dentist_name: string }
         Returns: string
@@ -1151,6 +1260,10 @@ export type Database = {
         Returns: string
       }
       get_user_filial_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_matriz_id: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
