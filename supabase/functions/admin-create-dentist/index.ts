@@ -50,6 +50,13 @@ serve(async (req: Request) => {
       })
     }
 
+    if (!clinica_id) {
+      return new Response(JSON.stringify({ error: 'Clínica é obrigatória' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
     const supabaseAuthed = getAuthedClient(req)
     const { data: authUser } = await supabaseAuthed.auth.getUser()
     if (!authUser?.user) {

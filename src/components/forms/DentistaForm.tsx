@@ -46,6 +46,11 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
     }
   });
 
+  // Adicionar validação personalizada para clinica_id
+  register('clinica_id', { 
+    required: forceClinicaId ? false : "Clínica é obrigatória" 
+  });
+
   const ativo = watch("ativo");
   const roleExtended = watch("role_extended");
 
@@ -153,7 +158,7 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="clinica_id">Clínica</Label>
+              <Label htmlFor="clinica_id">Clínica *</Label>
               {forceClinicaId ? (
                 <Select value={forceClinicaId ?? ''} onValueChange={() => {}} disabled>
                   <SelectTrigger>
@@ -167,19 +172,21 @@ export const DentistaForm = ({ open, onOpenChange, onSubmit, isLoading, canCreat
                 </Select>
               ) : (
                 <Select
-                  value={watch('clinica_id') ?? 'none'}
-                  onValueChange={(val) => setValue('clinica_id', val === 'none' ? null : val)}
+                  value={watch('clinica_id') ?? ''}
+                  onValueChange={(val) => setValue('clinica_id', val || null)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecionar clínica" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sem clínica</SelectItem>
                     {clinics?.map((c) => (
                       <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              )}
+              {errors.clinica_id && (
+                <p className="text-sm text-destructive mt-1">{errors.clinica_id.message}</p>
               )}
             </div>
 
