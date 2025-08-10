@@ -106,6 +106,19 @@ export const useCreatePatient = () => {
         mutable.cpf = digits.slice(0, 11)
       }
 
+      // Preflight: check duplicate CPF (friendly error)
+      const { data: existingByCpf } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('cpf', mutable.cpf)
+        .limit(1)
+        .maybeSingle()
+      if (existingByCpf) {
+        const e = new Error('CPF já cadastrado para algum paciente visível a você') as any
+        e.code = '23505'
+        throw e
+      }
+
       const insertPayload = {
         nome_completo: mutable.nome_completo,
         cpf: mutable.cpf,
@@ -134,12 +147,18 @@ export const useCreatePatient = () => {
         description: "Paciente cadastrado com sucesso!",
       })
     },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao cadastrar paciente: " + error.message,
-        variant: "destructive",
-      })
+    onError: (error: any) => {
+      let description = 'Erro ao cadastrar paciente.'
+      if (error?.code === '22001' || /value too long/i.test(error?.message)) {
+        description = 'CPF inválido: use 11 dígitos (somente números).'
+      } else if (error?.code === '23505' || /duplicate/i.test(error?.message) || /já cadastrado/i.test(error?.message)) {
+        description = 'CPF já cadastrado para outro paciente.'
+      } else if (error?.code === '42501') {
+        description = 'Sem permissão para salvar: verifique se selecionou um dentista da mesma matriz/clinica.'
+      } else if (error?.message) {
+        description = error.message
+      }
+      toast({ title: 'Erro', description, variant: 'destructive' })
     },
   })
 }
@@ -188,6 +207,28 @@ export const useUpdatePatient = () => {
         mutable.filial_id = currentProfile.filial_id ?? currentProfile.matriz_id ?? mutable.filial_id
       }
 
+      // Normalize CPF to digits and max 11
+      if (mutable.cpf) {
+        const digits = String(mutable.cpf).replace(/\D/g, '')
+        mutable.cpf = digits.slice(0, 11)
+      }
+
+      // Preflight duplicate (excluding current id)
+      if (mutable.cpf) {
+        const { data: existingByCpf } = await supabase
+          .from('patients')
+          .select('id')
+          .eq('cpf', mutable.cpf)
+          .neq('id', id)
+          .limit(1)
+          .maybeSingle()
+        if (existingByCpf) {
+          const e = new Error('CPF já cadastrado para outro paciente') as any
+          e.code = '23505'
+          throw e
+        }
+      }
+
       const updatePayload = {
         nome_completo: mutable.nome_completo,
         cpf: mutable.cpf,
@@ -217,12 +258,18 @@ export const useUpdatePatient = () => {
         description: "Paciente atualizado com sucesso!",
       })
     },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar paciente: " + error.message,
-        variant: "destructive",
-      })
+    onError: (error: any) => {
+      let description = 'Erro ao atualizar paciente.'
+      if (error?.code === '22001' || /value too long/i.test(error?.message)) {
+        description = 'CPF inválido: use 11 dígitos (somente números).'
+      } else if (error?.code === '23505' || /duplicate/i.test(error?.message) || /já cadastrado/i.test(error?.message)) {
+        description = 'CPF já cadastrado para outro paciente.'
+      } else if (error?.code === '42501') {
+        description = 'Sem permissão para atualizar: verifique se o paciente pertence à sua matriz/clínica.'
+      } else if (error?.message) {
+        description = error.message
+      }
+      toast({ title: 'Erro', description, variant: 'destructive' })
     },
   })
 }
