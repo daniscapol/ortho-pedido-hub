@@ -72,7 +72,7 @@ serve(async (req: Request) => {
     // Load caller profile
     const { data: caller, error: callerErr } = await supabaseAdmin
       .from('profiles')
-      .select('id, role_extended, filial_id, clinica_id')
+      .select('id, role_extended, filial_id, matriz_id, clinica_id')
       .eq('id', authUser.user.id)
       .maybeSingle()
 
@@ -105,8 +105,8 @@ serve(async (req: Request) => {
     
     if (caller.role_extended === 'admin_master') {
       canUpdate = true
-    } else if (caller.role_extended === 'admin_filial') {
-      // Can update dentists from their filial
+    } else if (caller.role_extended === 'admin_matriz' || caller.role_extended === 'admin_filial') {
+      // Can update dentists from their matriz/filial
       canUpdate = dentist.filial_id === caller.filial_id
     } else if (caller.role_extended === 'admin_clinica') {
       // Can update dentists from their clinic
@@ -137,8 +137,8 @@ serve(async (req: Request) => {
         }
 
         // Check if caller can assign to this clinic
-        if (caller.role_extended === 'admin_filial' && clinicaRow.filial_id !== caller.filial_id) {
-          return new Response(JSON.stringify({ error: 'Clínica não pertence à sua filial' }), {
+        if ((caller.role_extended === 'admin_matriz' || caller.role_extended === 'admin_filial') && clinicaRow.filial_id !== caller.filial_id) {
+          return new Response(JSON.stringify({ error: 'Clínica não pertence à sua matriz/filial' }), {
             status: 403,
             headers: { 'Content-Type': 'application/json', ...corsHeaders },
           })
@@ -149,8 +149,9 @@ serve(async (req: Request) => {
           })
         }
 
-        // Update filial_id based on clinic
+        // Update filial_id and matriz_id based on clinic
         updates.filial_id = clinicaRow.filial_id
+        updates.matriz_id = clinicaRow.filial_id
       }
     }
 
@@ -170,6 +171,7 @@ serve(async (req: Request) => {
     if (updates.complemento !== undefined) updateData.complemento = updates.complemento
     if (updates.clinica_id !== undefined) updateData.clinica_id = updates.clinica_id
     if (updates.filial_id !== undefined) updateData.filial_id = updates.filial_id
+    if (updates.matriz_id !== undefined) updateData.matriz_id = updates.matriz_id
     if (updates.ativo !== undefined) updateData.ativo = updates.ativo
 
     // Update profile
