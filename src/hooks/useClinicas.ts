@@ -15,7 +15,7 @@ export interface Clinica {
   numero?: string;
   complemento?: string;
   ativo: boolean;
-  filial_id?: string;
+  matriz_id?: string;
   created_at: string;
   updated_at: string;
   qntd_dentistas?: number;
@@ -49,11 +49,11 @@ export const useClinicas = () => {
           try {
             // Fetch matriz name
             let matrizNome: string | null = null;
-            if (clinica.filial_id) {
+            if (clinica.matriz_id) {
               const { data: matrizRow, error: matrizError } = await supabase
-                .from('filiais')
+                .from('matrizes')
                 .select('nome_completo')
-                .eq('id', clinica.filial_id)
+                .eq('id', clinica.matriz_id)
                 .maybeSingle();
               if (!matrizError) matrizNome = matrizRow?.nome_completo ?? null;
             }
@@ -108,7 +108,7 @@ export const useCreateClinica = () => {
       endereco?: string;
       telefone: string; 
       email: string; 
-      filial_id?: string;
+      matriz_id?: string;
       cep?: string;
       cidade?: string;
       estado?: string;

@@ -5,13 +5,13 @@ import { useAuth } from '@/components/auth/AuthProvider'
 export interface Profile {
   id: string
   role: 'admin' | 'dentist'
-  role_extended?: 'admin_master' | 'admin_clinica' | 'admin_filial' | 'dentist'
+  role_extended?: 'admin_master' | 'admin_clinica' | 'admin_matriz' | 'dentist'
   name: string | null
   email: string | null
   created_at: string
   updated_at: string
   clinica_id?: string | null
-  filial_id?: string | null
+  matriz_id?: string | null
 }
 
 export const useProfile = () => {

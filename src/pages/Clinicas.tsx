@@ -77,11 +77,11 @@ const { data: matrizes } = useMatrizes();
     }
   })
 
-  const canManageClinicas = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_filial';
+  const canManageClinicas = profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_matriz';
 
   const visibleClinicas = (clinicas || []).filter((c) => {
     if (profile?.role_extended === 'admin_master') return true
-    if (profile?.role_extended === 'admin_filial') return c.filial_id === profile?.filial_id
+    if (profile?.role_extended === 'admin_matriz') return c.matriz_id === profile?.matriz_id
     if (profile?.role_extended === 'admin_clinica') return c.id === profile?.clinica_id
     return false
   })
@@ -94,7 +94,7 @@ const { data: matrizes } = useMatrizes();
 
   const handleCreateClinica = async (data: any) => {
     // Clean up the data to only include fields that exist in the database table
-    const filialId = profile?.role_extended === 'admin_filial' ? profile?.filial_id : data.filial_id
+    const matrizId = profile?.role_extended === 'admin_matriz' ? profile?.matriz_id : data.matriz_id
     const cleanData = {
       nome_completo: data.nome_completo,
       cnpj: data.cnpj,
@@ -106,7 +106,7 @@ const { data: matrizes } = useMatrizes();
       estado: data.estado,
       numero: data.numero,
       complemento: data.complemento,
-      filial_id: filialId ?? null,
+      matriz_id: matrizId ?? null,
       ativo: data.ativo ?? true
     };
     await createClinica.mutateAsync(cleanData);
@@ -185,7 +185,7 @@ const { data: matrizes } = useMatrizes();
                   <Building className="h-6 w-6" />
                   <CardTitle className="text-2xl">Clínicas</CardTitle>
                 </div>
-                {(profile?.role_extended === "admin_master" || profile?.role_extended === "admin_filial") && (
+                {(profile?.role_extended === "admin_master" || profile?.role_extended === "admin_matriz") && (
                   <Button onClick={() => setShowClinicaForm(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Nova Clínica
@@ -322,7 +322,7 @@ const { data: matrizes } = useMatrizes();
         onSubmit={handleCreateClinica}
         isLoading={createClinica.isPending}
         matrizes={matrizes?.map(f => ({ id: f.id, nome_completo: f.nome_completo }))}
-        forceMatrizId={profile?.role_extended === 'admin_filial' ? (profile?.filial_id ?? null) : undefined}
+        forceMatrizId={profile?.role_extended === 'admin_matriz' ? (profile?.matriz_id ?? null) : undefined}
       />
 
       {/* Edit Clinica Form */}
@@ -345,7 +345,7 @@ const { data: matrizes } = useMatrizes();
               estado: data.estado,
               numero: data.numero,
               complemento: data.complemento,
-              filial_id: data.filial_id,
+              matriz_id: data.matriz_id,
               ativo: data.ativo
             };
             await updateClinica.mutateAsync({ id: editingClinica.id, ...cleanData });

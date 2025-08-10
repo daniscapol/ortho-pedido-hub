@@ -244,7 +244,7 @@ const updateDentist = useMutation({
               
               {/* Apenas admins podem criar dentistas */}
               {(profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
-                profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_filial') && (
+                profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_matriz') && (
                 <>
                   <Button 
                     onClick={() => setShowCreateUser(true)}
@@ -329,7 +329,7 @@ const updateDentist = useMutation({
                   onClick={() => handleDentistClick(dentist)}
                   onEdit={handleEditDentist}
                   canEdit={profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
-                          profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_filial'}
+                          profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_matriz'}
                 />
               ))
             ) : (

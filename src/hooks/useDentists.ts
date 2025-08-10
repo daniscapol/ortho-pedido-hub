@@ -18,7 +18,7 @@ export interface Dentist {
   numero?: string | null
   complemento?: string | null
   clinica_id?: string | null
-  filial_id?: string | null
+  matriz_id?: string | null
   ativo?: boolean
   created_at: string
   updated_at: string
@@ -59,7 +59,7 @@ export const useDentists = () => {
           numero,
           complemento,
           clinica_id,
-          filial_id,
+          matriz_id,
           ativo,
           created_at,
           updated_at
@@ -70,22 +70,22 @@ export const useDentists = () => {
         console.log('User is admin_master, fetching all dentists')
         query = query.eq('role_extended', 'dentist')
       } 
-      // Se for admin_filial (admin matriz), mostrar dentistas da sua matriz
-      else if (currentProfile?.role_extended === 'admin_filial') {
-        console.log('User is admin_filial, fetching dentists from their matriz')
+      // Se for admin_matriz (admin matriz), mostrar dentistas da sua matriz
+      else if (currentProfile?.role_extended === 'admin_matriz') {
+        console.log('User is admin_matriz, fetching dentists from their matriz')
         // Buscar dentistas que pertencem a clínicas da sua matriz
         const { data: userProfile } = await supabase
           .from('profiles')
-          .select('filial_id')
+          .select('matriz_id')
           .eq('id', (await supabase.auth.getUser()).data.user?.id)
           .single()
         
-        if (userProfile?.filial_id) {
+        if (userProfile?.matriz_id) {
           query = query
             .eq('role_extended', 'dentist')
-            .eq('filial_id', userProfile.filial_id)
+            .eq('matriz_id', userProfile.matriz_id)
         } else {
-          // Se não tem filial_id, não mostra nenhum dentista
+          // Se não tem matriz_id, não mostra nenhum dentista
           query = query.eq('id', 'never-match')
         }
       }

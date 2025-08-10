@@ -34,7 +34,7 @@ const Matrizes = () => {
 
   const visibleMatrizes = (matrizes || []).filter((f) => {
     if (profile?.role_extended === 'admin_master') return true
-    if (profile?.role_extended === 'admin_filial' || profile?.role_extended === 'admin_clinica') return f.id === profile?.filial_id
+    if (profile?.role_extended === 'admin_matriz' || profile?.role_extended === 'admin_clinica') return f.id === profile?.matriz_id
     return false
   })
 

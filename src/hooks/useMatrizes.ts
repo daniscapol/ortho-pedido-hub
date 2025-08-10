@@ -43,11 +43,11 @@ export const useCreateMatriz = () => {
 
   return useMutation({
     mutationFn: async (matriz: { nome_completo: string; endereco: string; telefone: string; email: string; ativo?: boolean; cnpj?: string; cep?: string; cidade?: string; estado?: string; numero?: string; complemento?: string }) => {
-      const { data, error } = await supabase.functions.invoke('admin-create-filial', {
+      const { data, error } = await supabase.functions.invoke('admin-create-matriz', {
         body: matriz,
       })
       if (error) throw error
-      return (data as any)?.filial
+      return (data as any)?.matriz
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matrizes"] });
@@ -72,11 +72,11 @@ export const useUpdateMatriz = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Matriz> & { id: string }) => {
-      // Remove calculated fields that don't exist in the filiais table
+      // Remove calculated fields that don't exist in the matrizes table
       const { qntd_clinicas, qntd_pacientes, ...dbUpdates } = updates;
       
       const { data, error } = await supabase
-        .from("filiais")
+        .from("matrizes")
         .update(dbUpdates)
         .eq("id", id)
         .select()
@@ -109,7 +109,7 @@ export const useDeleteMatriz = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("filiais")
+        .from("matrizes")
         .delete()
         .eq("id", id);
 

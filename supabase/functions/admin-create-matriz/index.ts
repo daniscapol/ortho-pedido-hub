@@ -19,7 +19,7 @@ function getAuthedClient(req: Request) {
   )
 }
 
-interface CreateFilialRequest {
+interface CreateMatrizRequest {
   nome_completo: string
   endereco: string
   telefone: string
@@ -53,18 +53,18 @@ const handler = async (req: Request): Promise<Response> => {
       .maybeSingle()
 
     if (callerErr) throw callerErr
-    // Somente admin_master pode criar filiais
+    // Somente admin_master pode criar matrizes
     if (!callerProfile || callerProfile.role_extended !== 'admin_master') {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
     }
 
-    const b = (await req.json()) as CreateFilialRequest
+    const b = (await req.json()) as CreateMatrizRequest
     if (!b.nome_completo || !b.endereco || !b.telefone || !b.email) {
       return new Response(JSON.stringify({ error: 'Campos obrigatórios ausentes' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
     }
 
     // Payload whitelist – evita colunas desconhecidas como clinica_id
-    const payload: CreateFilialRequest = {
+    const payload: CreateMatrizRequest = {
       nome_completo: b.nome_completo,
       endereco: b.endereco,
       telefone: b.telefone,
@@ -78,12 +78,12 @@ const handler = async (req: Request): Promise<Response> => {
       complemento: b.complemento,
     }
 
-    const { data, error } = await supabaseAdmin.from('filiais').insert([payload]).select('*').single()
+    const { data, error } = await supabaseAdmin.from('matrizes').insert([payload]).select('*').single()
     if (error) throw error
 
-    return new Response(JSON.stringify({ filial: data }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
+    return new Response(JSON.stringify({ matriz: data }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
   } catch (e: any) {
-    console.error('admin-create-filial error:', e)
+    console.error('admin-create-matriz error:', e)
     return new Response(JSON.stringify({ error: e?.message || 'Unexpected error' }), { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
   }
 }

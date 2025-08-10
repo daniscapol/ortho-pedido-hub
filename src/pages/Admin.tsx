@@ -31,7 +31,7 @@ import { useClinicas } from "@/hooks/useClinicas";
 
 interface User {
   id: string;
-  role_extended: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist';
+  role_extended: 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist';
   name: string | null;
   email: string | null;
   created_at: string;
@@ -56,7 +56,7 @@ const Admin = () => {
     name: '', 
     email: '', 
     password: '', 
-    role_extended: 'dentist' as 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist'
+    role_extended: 'dentist' as 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist'
   });
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const updateOrderStatus = useUpdateOrderStatus();
@@ -179,7 +179,7 @@ const Admin = () => {
 
   // Mutation para alterar role do usuário
   const updateUserRole = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist' }) => {
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist' }) => {
       const { error } = await supabase
         .from('profiles')
         .update({ role_extended: newRole })
@@ -257,7 +257,7 @@ const Admin = () => {
       name: string; 
       email: string; 
       password: string; 
-      role_extended: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist'
+      role_extended: 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist'
     }) => {
       // Criar usuário via Edge Function com Service Role
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
@@ -436,7 +436,7 @@ const Admin = () => {
     );
   }
 
-  const handleRoleChange = (userId: string, newRole: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist') => {
+  const handleRoleChange = (userId: string, newRole: 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist') => {
     updateUserRole.mutate({ userId, newRole });
   };
 
@@ -587,8 +587,8 @@ const Admin = () => {
             Compatibilidades
           </Button>
           <Button 
-            variant={activeTab === "filiais" ? "default" : "outline"}
-            onClick={() => setActiveTab("filiais")}
+            variant={activeTab === "matrizes" ? "default" : "outline"}
+            onClick={() => setActiveTab("matrizes")}
             className="flex items-center gap-2"
           >
             <Building2 className="h-4 w-4" />
@@ -654,7 +654,7 @@ const Admin = () => {
                         <Label htmlFor="new-role-extended">Função</Label>
                         <Select
                           value={newUserData.role_extended}
-                          onValueChange={(value: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist') => 
+                          onValueChange={(value: 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist') => 
                             setNewUserData(prev => ({ ...prev, role_extended: value }))
                           }
                         >
@@ -664,7 +664,7 @@ const Admin = () => {
                           <SelectContent>
                             <SelectItem value="dentist">Dentista</SelectItem>
                             <SelectItem value="admin_clinica">Admin de Clínica</SelectItem>
-                            <SelectItem value="admin_filial">Admin de Matriz</SelectItem>
+                            <SelectItem value="admin_matriz">Admin de Matriz</SelectItem>
                             <SelectItem value="admin_master">Admin Master</SelectItem>
                           </SelectContent>
                         </Select>
@@ -754,7 +754,7 @@ const Admin = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="none">Sem clínica</SelectItem>
-                                  {(clinicas || []).filter(c => !user.filial_id || c.filial_id === user.filial_id).map((c) => (
+                                  {(clinicas || []).filter(c => !user.filial_id || c.matriz_id === user.filial_id).map((c) => (
                                     <SelectItem key={c.id} value={c.id}>{c.nome_completo}</SelectItem>
                                   ))}
                                 </SelectContent>
@@ -763,11 +763,11 @@ const Admin = () => {
                             <TableCell>
                               <Badge variant={
                                user.role_extended === 'admin_master' ? 'default' : 
-                               user.role_extended === 'admin_filial' ? 'default' : 
+                               user.role_extended === 'admin_matriz' ? 'default' : 
                                user.role_extended === 'admin_clinica' ? 'default' : 'secondary'
                              }>
                                {user.role_extended === 'admin_master' ? 'Admin Master' :
-                                user.role_extended === 'admin_filial' ? 'Admin Matriz' :
+                                user.role_extended === 'admin_matriz' ? 'Admin Matriz' :
                                 user.role_extended === 'admin_clinica' ? 'Admin Clínica' : 'Dentista'}
                              </Badge>
                            </TableCell>
@@ -778,9 +778,9 @@ const Admin = () => {
                             <div className="flex items-center gap-2">
                                <Select
                                  value={user.role_extended}
-                                 onValueChange={(newRole: 'admin_master' | 'admin_filial' | 'admin_clinica' | 'dentist') => 
-                                   handleRoleChange(user.id, newRole)
-                                 }
+                                  onValueChange={(newRole: 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist') => 
+                                    handleRoleChange(user.id, newRole)
+                                  }
                                  disabled={user.id === profile?.id || updateUserRole.isPending}
                                >
                                  <SelectTrigger className="w-40">
@@ -789,7 +789,7 @@ const Admin = () => {
                                  <SelectContent>
                                    <SelectItem value="dentist">Dentista</SelectItem>
                                    <SelectItem value="admin_clinica">Admin Clínica</SelectItem>
-                                   <SelectItem value="admin_filial">Admin Matriz</SelectItem>
+                                   <SelectItem value="admin_matriz">Admin Matriz</SelectItem>
                                    <SelectItem value="admin_master">Admin Master</SelectItem>
                                  </SelectContent>
                                </Select>

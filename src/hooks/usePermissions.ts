@@ -1,6 +1,6 @@
 import { useProfile } from "./useProfile";
 
-export type UserRole = "admin_master" | "admin_filial" | "admin_clinica" | "dentist";
+export type UserRole = "admin_master" | "admin_matriz" | "admin_clinica" | "dentist";
 
 interface Permission {
   canAccess: (role?: UserRole) => boolean;
@@ -40,12 +40,12 @@ const PERMISSIONS: Record<string, Permission> = {
     path: "/dentistas"
   },
   clinicas: {
-    canAccess: (role) => role === "admin_master" || role === "admin_filial" || role === "admin_clinica",
+    canAccess: (role) => role === "admin_master" || role === "admin_matriz" || role === "admin_clinica",
     label: "Clínicas",
     path: "/clinicas"
   },
   matrizes: {
-    canAccess: (role) => role === "admin_master" || role === "admin_filial",
+    canAccess: (role) => role === "admin_master" || role === "admin_matriz",
     label: "Matrizes",
     path: "/matrizes"
   },
@@ -78,7 +78,7 @@ export const usePermissions = () => {
   };
 
   const isAdmin = () => {
-    return userRole === "admin_master" || userRole === "admin_filial" || userRole === "admin_clinica";
+    return userRole === "admin_master" || userRole === "admin_matriz" || userRole === "admin_clinica";
   };
 
   const isSuperAdmin = () => {

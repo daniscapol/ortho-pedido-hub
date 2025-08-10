@@ -22,7 +22,7 @@ interface DentistaFormData {
   complemento?: string;
   clinica_id?: string | null;
   role: 'admin' | 'dentist';
-  role_extended: 'admin_master' | 'admin_clinica' | 'admin_filial' | 'dentist';
+  role_extended: 'admin_master' | 'admin_clinica' | 'admin_matriz' | 'dentist';
   ativo: boolean;
 }
 

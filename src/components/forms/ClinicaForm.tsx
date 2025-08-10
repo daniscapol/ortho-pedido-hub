@@ -17,7 +17,7 @@ interface ClinicaFormData {
   estado: string;
   numero: string;
   complemento?: string;
-  filial_id?: string;
+  matriz_id?: string;
   ativo?: boolean;
 }
 
@@ -44,7 +44,7 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
         ...initialData,
       } as ClinicaFormData);
       if (typeof forceMatrizId !== 'undefined') {
-        setValue('filial_id', forceMatrizId ?? undefined);
+        setValue('matriz_id', forceMatrizId ?? undefined);
       }
     }
   }, [open, initialData, forceMatrizId, reset, setValue]);
@@ -173,9 +173,9 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
               />
             </div>
 
-            {/* Matriz selection - forced for admin_filial, selectable for admin_master */}
+            {/* Matriz selection - forced for admin_matriz, selectable for admin_master */}
             <div className="md:col-span-2">
-              <Label htmlFor="filial_id">Matriz</Label>
+              <Label htmlFor="matriz_id">Matriz</Label>
               {typeof forceMatrizId !== 'undefined' ? (
                 <Select value={forceMatrizId ?? 'none'} onValueChange={() => {}} disabled>
                   <SelectTrigger>
@@ -190,8 +190,8 @@ export const ClinicaForm = ({ open, onOpenChange, onSubmit, isLoading, initialDa
                 </Select>
               ) : (
                 <Select
-                  value={(watch('filial_id') ?? 'none') as string}
-                  onValueChange={(val) => setValue('filial_id', val === 'none' ? undefined : val)}
+                  value={(watch('matriz_id') ?? 'none') as string}
+                  onValueChange={(val) => setValue('matriz_id', val === 'none' ? undefined : val)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecionar matriz" />
