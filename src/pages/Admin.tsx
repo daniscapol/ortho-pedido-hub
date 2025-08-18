@@ -19,7 +19,7 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2 } from "lucide-react";
+import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2, Key } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
@@ -59,6 +59,8 @@ const Admin = () => {
     role_extended: 'dentist' as 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist'
   });
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwordChangeData, setPasswordChangeData] = useState({ userId: '', newPassword: '' });
   const updateOrderStatus = useUpdateOrderStatus();
 
   // Hook para matrizes
@@ -395,6 +397,31 @@ const Admin = () => {
     },
   })
 
+  // Mutation para alterar senha do usuário
+  const changeUserPassword = useMutation({
+    mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
+      const { error } = await supabase.functions.invoke('admin-change-password', {
+        body: { userId, newPassword },
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Senha alterada',
+        description: 'A senha do usuário foi alterada com sucesso.',
+      })
+      setShowChangePassword(false)
+      setPasswordChangeData({ userId: '', newPassword: '' })
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao alterar senha',
+        description: error?.message || 'Não foi possível alterar a senha.',
+        variant: 'destructive',
+      })
+    },
+  })
+
   // Verificar se o usuário é admin
   if (profileLoading) {
     return (
@@ -455,6 +482,19 @@ const Admin = () => {
 
   const handleDeleteUser = (userId: string) => {
     deleteUser.mutate(userId);
+  };
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordChangeData.newPassword || passwordChangeData.newPassword.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A senha deve ter pelo menos 6 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+    changeUserPassword.mutate(passwordChangeData);
   };
 
   const handleSendResetPassword = (email: string) => {
@@ -815,6 +855,18 @@ const Admin = () => {
                                   Liberar acesso
                                 </Button>
                               )}
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setPasswordChangeData({ userId: user.id, newPassword: '' });
+                                  setShowChangePassword(true);
+                                }}
+                                title="Redefinir senha do usuário"
+                              >
+                                <Key className="h-4 w-4" />
+                              </Button>
                               
                               {user.id !== profile?.id && (
                                 <AlertDialog>
@@ -1117,6 +1169,51 @@ const Admin = () => {
         )}
           </div>
         </main>
+
+        {/* Dialog para redefinir senha */}
+        <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Redefinir Senha</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Nova Senha</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  placeholder="Digite a nova senha"
+                  value={passwordChangeData.newPassword}
+                  onChange={(e) => setPasswordChangeData(prev => ({ ...prev, newPassword: e.target.value }))}
+                  required
+                  minLength={6}
+                />
+                <p className="text-sm text-muted-foreground">
+                  A senha deve ter pelo menos 6 caracteres
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowChangePassword(false);
+                    setPasswordChangeData({ userId: '', newPassword: '' });
+                  }}
+                  disabled={changeUserPassword.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={changeUserPassword.isPending}
+                >
+                  {changeUserPassword.isPending ? "Alterando..." : "Alterar Senha"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
