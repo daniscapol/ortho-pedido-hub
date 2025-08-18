@@ -79,7 +79,7 @@ const LoginForm = () => {
 
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
+      <div className="h-screen fixed inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4 overflow-hidden">
         <Card className="w-full max-w-md shadow-xl border-border/50">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -129,7 +129,7 @@ const LoginForm = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
+    <div className="h-screen fixed inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4 overflow-hidden">
       <Card className="w-full max-w-md shadow-xl border-border/50">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
