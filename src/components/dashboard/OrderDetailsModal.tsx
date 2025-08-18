@@ -80,8 +80,8 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
             <h3 className="font-semibold text-foreground">Informações do Dentista</h3>
             <div className="space-y-1 text-sm">
               <p><strong>Dentista:</strong> <span className="text-muted-foreground">{order.dentist}</span></p>
-              <p><strong>E-mail:</strong> <span className="text-muted-foreground">{order.profiles?.email || 'E-mail não disponível'}</span></p>
-              <p><strong>Telefone:</strong> <span className="text-muted-foreground">{order.profiles?.telefone || 'Telefone não disponível'}</span></p>
+              <p><strong>E-mail:</strong> <span className="text-muted-foreground">E-mail não disponível</span></p>
+              <p><strong>Telefone:</strong> <span className="text-muted-foreground">Telefone não disponível</span></p>
             </div>
           </div>
 

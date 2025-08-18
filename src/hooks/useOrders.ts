@@ -24,11 +24,6 @@ export interface Order {
     telefone_contato: string
     email_contato: string
   }
-  profiles?: {
-    name: string
-    email: string
-    telefone: string
-  }
   order_images?: Array<{
     id: string
     image_url: string
@@ -49,11 +44,6 @@ export const useOrders = () => {
             cpf,
             telefone_contato,
             email_contato
-          ),
-          profiles (
-            name,
-            email,
-            telefone
           ),
           order_images (
             id,
@@ -192,11 +182,6 @@ export const useOrdersForAdmin = () => {
             telefone_contato,
             email_contato
           ),
-          profiles (
-            name,
-            email,
-            telefone
-          ),
           order_images (
             id,
             image_url,
@@ -226,11 +211,6 @@ export const usePatientOrders = (patientId?: string) => {
             cpf,
             telefone_contato,
             email_contato
-          ),
-          profiles (
-            name,
-            email,
-            telefone
           ),
           order_images (
             id,
