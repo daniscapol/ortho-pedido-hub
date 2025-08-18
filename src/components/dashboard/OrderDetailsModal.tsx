@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Order } from "@/hooks/useOrders";
+import { useDentistProfile } from "@/hooks/useDentistProfile";
 import { useOrderItems } from "@/hooks/useOrderItems";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -17,6 +18,7 @@ interface OrderDetailsModalProps {
 const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) => {
   const navigate = useNavigate();
   const { data: orderItems = [] } = useOrderItems(order?.id);
+  const { data: dentistProfile } = useDentistProfile(order?.user_id);
   
   if (!order) return null;
 
@@ -80,8 +82,8 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
             <h3 className="font-semibold text-foreground">Informações do Dentista</h3>
             <div className="space-y-1 text-sm">
               <p><strong>Dentista:</strong> <span className="text-muted-foreground">{order.dentist}</span></p>
-              <p><strong>E-mail:</strong> <span className="text-muted-foreground">{order.dentist_profile?.email || 'E-mail não disponível'}</span></p>
-              <p><strong>Telefone:</strong> <span className="text-muted-foreground">{order.dentist_profile?.telefone || 'Telefone não disponível'}</span></p>
+              <p><strong>E-mail:</strong> <span className="text-muted-foreground">{dentistProfile?.email || 'E-mail não disponível'}</span></p>
+              <p><strong>Telefone:</strong> <span className="text-muted-foreground">{dentistProfile?.telefone || 'Telefone não disponível'}</span></p>
             </div>
           </div>
 
