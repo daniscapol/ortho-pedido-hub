@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, LayoutGrid, Users, Building2, Building, Calendar, Phone, Shield } from "lucide-react";
+import { Home, LayoutGrid, Users, Building2, Building, Calendar, Phone, Shield, LogOut } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 // Ícone customizado de dente
 const ToothIcon = ({ className, ...props }: { className?: string }) => (
@@ -30,6 +31,11 @@ const Sidebar = () => {
   const location = useLocation();
   const { data: profile } = useProfile();
   const { canAccess } = usePermissions();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   const allMenuItems = [
     {
@@ -150,6 +156,18 @@ const Sidebar = () => {
             </Button>
           </div>
         )}
+
+        {/* Botão de Sair */}
+        <div className="mt-6 pt-4 border-t border-slate-600">
+          <Button
+            variant="ghost"
+            className="w-full justify-start h-10 text-sm text-red-300 hover:bg-red-600/20 hover:text-red-200"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
+        </div>
 
       </div>
     </aside>
