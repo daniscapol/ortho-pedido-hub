@@ -174,7 +174,7 @@ const LoginForm = () => {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-1 top-1 h-8 w-8 p-0"
+                  className="absolute right-0 top-0 h-full w-10 p-0 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
