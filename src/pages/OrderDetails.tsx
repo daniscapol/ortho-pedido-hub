@@ -13,6 +13,7 @@ import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
 import { useProfile } from "@/hooks/useProfile";
+import { useDentistProfile } from "@/hooks/useDentistProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -35,6 +36,7 @@ const OrderDetails = () => {
 
   const order = orders?.find(o => o.id === id);
   const { data: orderItems = [] } = useOrderItems(id);
+  const { data: dentistProfile } = useDentistProfile(order?.user_id);
   const isAdmin = profile?.role === 'admin';
 
   const getStatusBadge = (status: string) => {
@@ -278,6 +280,29 @@ const OrderDetails = () => {
             </CardContent>
           </Card>
 
+          {/* Informações do Dentista */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações do Dentista</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Nome</p>
+                  <p className="font-medium">{order.dentist}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">E-mail</p>
+                  <p className="text-sm">{dentistProfile?.email || 'E-mail não disponível'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Telefone</p>
+                  <p className="text-sm">{dentistProfile?.telefone || 'Telefone não disponível'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Detalhes do Pedido */}
           <Card>
             <CardHeader>
@@ -286,10 +311,6 @@ const OrderDetails = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Dentista</p>
-                    <p>{order.dentist}</p>
-                  </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Prioridade</p>
                     <Badge variant="outline">{order.priority}</Badge>
