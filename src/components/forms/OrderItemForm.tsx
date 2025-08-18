@@ -191,7 +191,7 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mb-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm mb-2">
                     {item.material && (
                       <div>
                         <span className="text-muted-foreground">Material:</span> {item.material}
@@ -202,9 +202,6 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
                         <span className="text-muted-foreground">Cor:</span> {item.color}
                       </div>
                     )}
-                    <div>
-                      <span className="text-muted-foreground">Qtd:</span> {item.quantity}
-                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-1 mb-2">
@@ -275,28 +272,15 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
 
                 {selectedProductData && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="product_name">Nome do Produto</Label>
-                        <Input
-                          id="product_name"
-                          value={currentItem.product_name}
-                          disabled
-                          className="bg-muted"
-                          placeholder="Selecione um produto acima"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="quantity">Quantidade</Label>
-                        <Input
-                          id="quantity"
-                          type="number"
-                          min="1"
-                          value={currentItem.quantity}
-                          onChange={(e) => setCurrentItem(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="product_name">Nome do Produto</Label>
+                      <Input
+                        id="product_name"
+                        value={currentItem.product_name}
+                        disabled
+                        className="bg-muted"
+                        placeholder="Selecione um produto acima"
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
