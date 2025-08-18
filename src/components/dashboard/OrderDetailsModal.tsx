@@ -108,7 +108,6 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
                        {item.color && (
                          <div><strong>Cor:</strong> <span className="text-muted-foreground">{item.color}</span></div>
                        )}
-                       <div><strong>Qtd:</strong> <span className="text-muted-foreground">{item.quantity}</span></div>
                      </div>
 
                     {item.selected_teeth.length > 0 && (
