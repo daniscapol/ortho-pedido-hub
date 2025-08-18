@@ -68,7 +68,7 @@ const Odontogram = ({
             <p className="text-sm text-muted-foreground mb-2">Arcada Superior</p>
             <div className="flex justify-center">
               <div className="grid grid-cols-8 gap-1">
-                {upperTeeth.slice(0, 8).reverse().map(tooth => (
+                {upperTeeth.slice(0, 8).map(tooth => (
                   <ToothButton key={tooth} number={tooth} />
                 ))}
               </div>
@@ -89,7 +89,7 @@ const Odontogram = ({
             <p className="text-sm text-muted-foreground mb-2">Arcada Inferior</p>
             <div className="flex justify-center">
               <div className="grid grid-cols-8 gap-1">
-                {lowerTeeth.slice(0, 8).reverse().map(tooth => (
+                {lowerTeeth.slice(0, 8).map(tooth => (
                   <ToothButton key={tooth} number={tooth} />
                 ))}
               </div>
