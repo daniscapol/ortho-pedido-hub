@@ -29,6 +29,11 @@ export interface Order {
     image_url: string
     annotations?: any
   }>
+  dentist_profile?: {
+    email: string
+    telefone: string
+    nome_completo: string
+  }
 }
 
 export const useOrders = () => {
@@ -49,6 +54,11 @@ export const useOrders = () => {
             id,
             image_url,
             annotations
+          ),
+          dentist_profile:profiles!orders_user_id_fkey (
+            email,
+            telefone,
+            nome_completo
           )
         `)
         .order('created_at', { ascending: false })
