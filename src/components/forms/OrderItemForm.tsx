@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,6 +136,34 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
       }));
     }
   };
+
+  // Auto-selecionar quando houver apenas uma opção
+  useEffect(() => {
+    if (compatibleTipos.length === 1 && !currentItem.prosthesis_type) {
+      setCurrentItem(prev => ({
+        ...prev,
+        prosthesis_type: compatibleTipos[0].nome_tipo
+      }));
+    }
+  }, [compatibleTipos, currentItem.prosthesis_type]);
+
+  useEffect(() => {
+    if (compatibleMaterials.length === 1 && !currentItem.material) {
+      setCurrentItem(prev => ({
+        ...prev,
+        material: compatibleMaterials[0].nome_material
+      }));
+    }
+  }, [compatibleMaterials, currentItem.material]);
+
+  useEffect(() => {
+    if (compatibleColors.length === 1 && !currentItem.color) {
+      setCurrentItem(prev => ({
+        ...prev,
+        color: compatibleColors[0].codigo_cor
+      }));
+    }
+  }, [compatibleColors, currentItem.color]);
 
   // Agrupar produtos por categoria
   const groupedProducts = products.reduce((acc, product) => {
