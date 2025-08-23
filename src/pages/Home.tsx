@@ -186,7 +186,7 @@ const Home = () => {
             {/* Orders columns */}
             <div className={`grid gap-6 ${isAdminMaster ? 'grid-cols-3' : 'grid-cols-1'}`}>
               {/* Pedidos Solicitados */}
-              <div>
+              <div className="flex flex-col">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-1 w-8 bg-yellow-500 rounded-full"></div>
                   <h2 className="text-lg font-semibold text-foreground">
@@ -197,7 +197,7 @@ const Home = () => {
                   </Badge>
                 </div>
                 
-                <div className="space-y-3 min-h-[400px]">
+                <div className="space-y-3 min-h-[400px] flex-grow">
                   {isLoading ? (
                     <div className="text-center py-8 text-muted-foreground">
                       Carregando...
@@ -217,82 +217,84 @@ const Home = () => {
                   )}
                 </div>
                 
-                {/* Paginação centralizada abaixo dos cards */}
+                {/* Paginação fixa no final da coluna */}
                 {totalPagesSolicitados > 1 && (
-                  <div className="flex justify-center mt-6 pt-4 border-t border-border">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            onClick={() => setCurrentPageSolicitados(Math.max(1, currentPageSolicitados - 1))}
-                            className={currentPageSolicitados === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
-                        </PaginationItem>
-                        
-                        {/* Primeira página */}
-                        {currentPageSolicitados > 3 && (
-                          <>
-                            <PaginationItem>
-                              <PaginationLink
-                                onClick={() => setCurrentPageSolicitados(1)}
-                                className="cursor-pointer"
-                              >
-                                1
-                              </PaginationLink>
-                            </PaginationItem>
-                            {currentPageSolicitados > 4 && (
-                              <PaginationItem>
-                                <span className="px-3 py-2 text-sm">...</span>
-                              </PaginationItem>
-                            )}
-                          </>
-                        )}
-                        
-                        {/* Páginas próximas à atual */}
-                        {Array.from({ length: Math.min(5, totalPagesSolicitados) }, (_, i) => {
-                          const pageNum = Math.max(1, Math.min(totalPagesSolicitados - 4, currentPageSolicitados - 2)) + i;
-                          if (pageNum > totalPagesSolicitados) return null;
+                  <div className="mt-auto pt-6 border-t border-border">
+                    <div className="flex justify-center">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() => setCurrentPageSolicitados(Math.max(1, currentPageSolicitados - 1))}
+                              className={currentPageSolicitados === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                          </PaginationItem>
                           
-                          return (
-                            <PaginationItem key={pageNum}>
-                              <PaginationLink
-                                onClick={() => setCurrentPageSolicitados(pageNum)}
-                                isActive={currentPageSolicitados === pageNum}
-                                className="cursor-pointer"
-                              >
-                                {pageNum}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
-                        }).filter(Boolean)}
-                        
-                        {/* Última página */}
-                        {currentPageSolicitados < totalPagesSolicitados - 2 && (
-                          <>
-                            {currentPageSolicitados < totalPagesSolicitados - 3 && (
+                          {/* Primeira página */}
+                          {currentPageSolicitados > 3 && (
+                            <>
                               <PaginationItem>
-                                <span className="px-3 py-2 text-sm">...</span>
+                                <PaginationLink
+                                  onClick={() => setCurrentPageSolicitados(1)}
+                                  className="cursor-pointer"
+                                >
+                                  1
+                                </PaginationLink>
                               </PaginationItem>
-                            )}
-                            <PaginationItem>
-                              <PaginationLink
-                                onClick={() => setCurrentPageSolicitados(totalPagesSolicitados)}
-                                className="cursor-pointer"
-                              >
-                                {totalPagesSolicitados}
-                              </PaginationLink>
-                            </PaginationItem>
-                          </>
-                        )}
-                        
-                        <PaginationItem>
-                          <PaginationNext
-                            onClick={() => setCurrentPageSolicitados(Math.min(totalPagesSolicitados, currentPageSolicitados + 1))}
-                            className={currentPageSolicitados === totalPagesSolicitados ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
+                              {currentPageSolicitados > 4 && (
+                                <PaginationItem>
+                                  <span className="px-3 py-2 text-sm">...</span>
+                                </PaginationItem>
+                              )}
+                            </>
+                          )}
+                          
+                          {/* Páginas próximas à atual */}
+                          {Array.from({ length: Math.min(5, totalPagesSolicitados) }, (_, i) => {
+                            const pageNum = Math.max(1, Math.min(totalPagesSolicitados - 4, currentPageSolicitados - 2)) + i;
+                            if (pageNum > totalPagesSolicitados) return null;
+                            
+                            return (
+                              <PaginationItem key={pageNum}>
+                                <PaginationLink
+                                  onClick={() => setCurrentPageSolicitados(pageNum)}
+                                  isActive={currentPageSolicitados === pageNum}
+                                  className="cursor-pointer"
+                                >
+                                  {pageNum}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          }).filter(Boolean)}
+                          
+                          {/* Última página */}
+                          {currentPageSolicitados < totalPagesSolicitados - 2 && (
+                            <>
+                              {currentPageSolicitados < totalPagesSolicitados - 3 && (
+                                <PaginationItem>
+                                  <span className="px-3 py-2 text-sm">...</span>
+                                </PaginationItem>
+                              )}
+                              <PaginationItem>
+                                <PaginationLink
+                                  onClick={() => setCurrentPageSolicitados(totalPagesSolicitados)}
+                                  className="cursor-pointer"
+                                >
+                                  {totalPagesSolicitados}
+                                </PaginationLink>
+                              </PaginationItem>
+                            </>
+                          )}
+                          
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() => setCurrentPageSolicitados(Math.min(totalPagesSolicitados, currentPageSolicitados + 1))}
+                              className={currentPageSolicitados === totalPagesSolicitados ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
                   </div>
                 )}
               </div>
