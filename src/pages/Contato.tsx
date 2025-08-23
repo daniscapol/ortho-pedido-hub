@@ -21,19 +21,7 @@ const Contato = () => {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
-          <div className="flex-1 flex items-center justify-center px-6">
-            <div className="flex items-center gap-4 flex-1 max-w-4xl">
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <Input
-                    placeholder="Como podemos ajudar?"
-                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500 focus:ring-slate-500"
-                  />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                </div>
-              </div>
-            </div>
-            
+          <div className="flex-1 flex items-center justify-end px-6">
             <div className="flex items-center gap-4">
               <NotificationDropdown />
               
