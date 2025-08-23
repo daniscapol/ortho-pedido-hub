@@ -21,7 +21,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
+import { useOrders, useCreateOrder, useUpdateOrderStatus, useOrdersForAdmin, usePatientOrders, useCreateOrderForDentist, useUniqueDentists } from "@/hooks/useOrders";
 import { Search, Eye, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2, Key, User, LogOut, Zap } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { ProductsManager } from "@/components/admin/ProductsManager";
@@ -196,8 +196,14 @@ const Admin = () => {
     retryDelay: 2000,
   });
 
-  // Buscar todos os pedidos para admin
-  const { data: ordersData, isLoading: ordersLoading } = useOrdersForAdmin(currentPage, itemsPerPage);
+  // Buscar todos os pedidos para admin com filtros
+  const { data: ordersData, isLoading: ordersLoading } = useOrdersForAdmin(currentPage, itemsPerPage, {
+    searchTerm,
+    statusFilter,
+    priorityFilter,
+    dentistFilter,
+    dateFilter
+  });
   const orders = ordersData?.orders || [];
   const totalOrdersCount = ordersData?.totalCount || 0;
   const totalOrdersPages = ordersData?.totalPages || 0;
@@ -572,48 +578,11 @@ const Admin = () => {
     );
   };
 
-  // Filtrar pedidos com paginação
-  const filteredOrders = orders?.filter((order) => {
-    const matchesSearch = 
-      order.patients?.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.dentist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.prosthesis_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.id.includes(searchTerm);
-    
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || order.priority === priorityFilter;
-    const matchesDentist = dentistFilter === "all" || order.dentist?.toLowerCase().includes(dentistFilter.toLowerCase());
-    
-    const matchesDate = () => {
-      if (dateFilter === "all") return true;
-      const orderDate = new Date(order.created_at);
-      const now = new Date();
-      
-      switch (dateFilter) {
-        case "today":
-          return orderDate.toDateString() === now.toDateString();
-        case "week":
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          return orderDate >= weekAgo;
-        case "month":
-          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          return orderDate >= monthAgo;
-        default:
-          return true;
-      }
-    };
-    
-    return matchesSearch && matchesStatus && matchesPriority && matchesDentist && matchesDate();
-  }) || [];
+  // Buscar dentistas únicos para o filtro
+  const { data: uniqueDentists } = useUniqueDentists();
 
-  // Implementar paginação
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
-
-  // Obter dentistas únicos para o filtro
-  const uniqueDentists = orders ? [...new Set(orders.map(order => order.dentist).filter(Boolean))] : [];
+  // Os dados já vêm filtrados e paginados do backend
+  const paginatedOrders = orders;
 
   return (
     <div className="min-h-screen bg-background">
@@ -812,7 +781,7 @@ const Admin = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos Dentistas</SelectItem>
-                      {uniqueDentists.map((dentist) => (
+                      {(uniqueDentists || []).map((dentist) => (
                         <SelectItem key={dentist} value={dentist}>
                           {dentist}
                         </SelectItem>
@@ -968,12 +937,12 @@ const Admin = () => {
                    </TableBody>
                  </Table>
                  
-                 {/* Paginação */}
-                 {totalPages > 1 && (
-                   <div className="flex items-center justify-between mt-4">
-                     <div className="text-sm text-muted-foreground">
-                       Mostrando {startIndex + 1} a {Math.min(endIndex, filteredOrders.length)} de {filteredOrders.length} pedidos
-                     </div>
+                  {/* Paginação */}
+                  {totalOrdersPages > 1 && (
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="text-sm text-muted-foreground">
+                        Página {currentPage} de {totalOrdersPages} ({totalOrdersCount} pedidos no total)
+                      </div>
                      <div className="flex items-center space-x-2">
                        <Button
                          variant="outline"
