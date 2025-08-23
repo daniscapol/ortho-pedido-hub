@@ -168,11 +168,14 @@ export const useUpdateOrderStatus = () => {
   })
 }
 
-export const useOrdersForAdmin = () => {
+export const useOrdersForAdmin = (page: number = 1, limit: number = 50) => {
   return useQuery({
-    queryKey: ['admin-orders'],
+    queryKey: ['admin-orders', page, limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const start = (page - 1) * limit
+      const end = start + limit - 1
+
+      const { data, error, count } = await supabase
         .from('orders')
         .select(`
           *,
@@ -187,11 +190,16 @@ export const useOrdersForAdmin = () => {
             image_url,
             annotations
           )
-        `)
+        `, { count: 'exact' })
+        .range(start, end)
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data as Order[]
+      return { 
+        orders: data as Order[], 
+        totalCount: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
+      }
     },
   })
 }

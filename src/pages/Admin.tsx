@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,11 @@ const Admin = () => {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwordChangeData, setPasswordChangeData] = useState({ userId: '', newPassword: '' });
+  // Reset page quando filtros mudarem
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, priorityFilter, dentistFilter, dateFilter]);
+  
   const updateOrderStatus = useUpdateOrderStatus();
 
   const handleLogout = async () => {
@@ -192,7 +197,10 @@ const Admin = () => {
   });
 
   // Buscar todos os pedidos para admin
-  const { data: orders, isLoading: ordersLoading } = useOrdersForAdmin();
+  const { data: ordersData, isLoading: ordersLoading } = useOrdersForAdmin(currentPage, itemsPerPage);
+  const orders = ordersData?.orders || [];
+  const totalOrdersCount = ordersData?.totalCount || 0;
+  const totalOrdersPages = ordersData?.totalPages || 0;
 
   // Mutation para alterar role do usuário
   const updateUserRole = useMutation({
@@ -752,7 +760,7 @@ const Admin = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle>Gerenciamento de Pedidos</CardTitle>
                   <div className="text-sm text-muted-foreground">
-                    {filteredOrders.length} pedidos encontrados
+                    {totalOrdersCount} pedidos encontrados (Página {currentPage} de {totalOrdersPages})
                   </div>
                 </div>
                 
@@ -971,14 +979,14 @@ const Admin = () => {
                          variant="outline"
                          size="sm"
                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                         disabled={currentPage === 1}
-                       >
-                         Anterior
-                       </Button>
-                       
-                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                         const pageNum = Math.max(1, currentPage - 2) + i;
-                         if (pageNum > totalPages) return null;
+                          disabled={currentPage === 1}
+                        >
+                          Anterior
+                        </Button>
+                        
+                        {Array.from({ length: Math.min(5, totalOrdersPages) }, (_, i) => {
+                          const pageNum = Math.max(1, currentPage - 2) + i;
+                          if (pageNum > totalOrdersPages) return null;
                          
                          return (
                            <Button
@@ -992,14 +1000,14 @@ const Admin = () => {
                          );
                        })}
                        
-                       <Button
-                         variant="outline"
-                         size="sm"
-                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                         disabled={currentPage === totalPages}
-                       >
-                         Próximo
-                       </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalOrdersPages))}
+                          disabled={currentPage === totalOrdersPages}
+                        >
+                          Próximo
+                        </Button>
                      </div>
                    </div>
                   )}
