@@ -39,14 +39,11 @@ const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    console.log('🔄 Debounce: valor atual:', value);
     const handler = setTimeout(() => {
-      console.log('✅ Debounce: valor enviado para busca:', value);
       setDebouncedValue(value);
     }, delay);
 
     return () => {
-      console.log('🚫 Debounce: cancelado');
       clearTimeout(handler);
     };
   }, [value, delay]);
