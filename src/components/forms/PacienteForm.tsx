@@ -47,7 +47,9 @@ export const PacienteForm = ({ open, onOpenChange, onSubmit, isLoading }: Pacien
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <Label htmlFor="nome_completo">Nome Completo *</Label>
+              <Label htmlFor="nome_completo">
+                Nome Completo <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="nome_completo"
                 {...register("nome_completo", { required: "Nome completo é obrigatório" })}
@@ -59,7 +61,9 @@ export const PacienteForm = ({ open, onOpenChange, onSubmit, isLoading }: Pacien
             </div>
 
             <div>
-              <Label htmlFor="cpf">CPF *</Label>
+              <Label htmlFor="cpf">
+                CPF <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="cpf"
                 {...register("cpf", { required: "CPF é obrigatório" })}
@@ -71,7 +75,9 @@ export const PacienteForm = ({ open, onOpenChange, onSubmit, isLoading }: Pacien
             </div>
 
             <div>
-              <Label htmlFor="telefone_contato">Telefone *</Label>
+              <Label htmlFor="telefone_contato">
+                Telefone <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="telefone_contato"
                 {...register("telefone_contato", { required: "Telefone é obrigatório" })}
@@ -83,7 +89,9 @@ export const PacienteForm = ({ open, onOpenChange, onSubmit, isLoading }: Pacien
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="email_contato">Email *</Label>
+              <Label htmlFor="email_contato">
+                Email <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="email_contato"
                 type="email"
