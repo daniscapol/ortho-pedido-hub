@@ -252,10 +252,10 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
         }
       }
 
-      // Para busca por texto, fazemos apenas nos campos diretos (ID e dentist)
+      // Para busca por texto, incluimos ID, dentist e nome do paciente
       if (filters?.searchTerm) {
         const term = filters.searchTerm.toLowerCase()
-        query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%`)
+        query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%,patients.nome_completo.ilike.%${term}%`)
       }
 
       const { data, error, count } = await query
@@ -264,20 +264,8 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
 
       if (error) throw error
       
-      let orders = data as Order[]
-      
-      // Se há termo de busca, filtrar também por nome do paciente no frontend
-      if (filters?.searchTerm && orders.length > 0) {
-        const term = filters.searchTerm.toLowerCase()
-        orders = orders.filter(order => 
-          order.id.toLowerCase().includes(term) ||
-          order.dentist?.toLowerCase().includes(term) ||
-          order.patients?.nome_completo?.toLowerCase().includes(term)
-        )
-      }
-      
       return { 
-        orders, 
+        orders: data as Order[], 
         totalCount: count || 0,
         totalPages: Math.ceil((count || 0) / limit)
       }
