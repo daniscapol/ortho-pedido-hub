@@ -966,10 +966,11 @@ const Admin = () => {
                        </Button>
                      </div>
                    </div>
-                 )}
-               )}
-             </CardContent>
-           </Card>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
         ) : activeTab === "users" ? (
           /* Gerenciamento de Usuários */
           <Card>
