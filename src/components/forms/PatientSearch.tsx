@@ -2,28 +2,18 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePatients, useCreatePatient, useDentistsForPatients, Patient } from "@/hooks/usePatients";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserCheck } from "lucide-react";
+import { usePatients, useCreatePatient, Patient } from "@/hooks/usePatients";
 import { useProfile } from "@/hooks/useProfile";
+import { PacienteForm } from "@/components/forms/PacienteForm";
 
 const PatientSearch = ({ onPatientSelect, autoSelectAfterCreate = true }: { onPatientSelect: (patient: Patient | null) => void, autoSelectAfterCreate?: boolean }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewForm, setShowNewForm] = useState(false);
-  const [newPatient, setNewPatient] = useState({
-    name: "",
-    cpf: "",
-    phone: "",
-    email: "",
-    dentist_id: ""
-  });
 
   const { data: patients, isLoading } = usePatients(searchTerm);
   const { data: allPatients, isLoading: isLoadingAll } = usePatients('');
-  const { data: dentists } = useDentistsForPatients();
   const { data: profile } = useProfile();
   const createPatient = useCreatePatient();
 
@@ -35,21 +25,17 @@ const PatientSearch = ({ onPatientSelect, autoSelectAfterCreate = true }: { onPa
     return patient.dentist_id === profile?.id;
   });
 
-  const handleCreatePatient = async () => {
+  const handleCreatePatient = async (data: { nome_completo: string; cpf: string; telefone_contato: string; email_contato: string; observacoes?: string; ativo: boolean }) => {
     try {
       const result = await createPatient.mutateAsync({
-        nome_completo: newPatient.name,
-        cpf: newPatient.cpf,
-        telefone_contato: newPatient.phone,
-        email_contato: newPatient.email,
-        dentist_id: newPatient.dentist_id || (profile?.role === 'dentist' ? profile.id : '')
+        ...data,
+        dentist_id: profile?.role === 'dentist' ? profile.id : '',
       });
       
       if (autoSelectAfterCreate) {
         onPatientSelect(result);
       }
       setShowNewForm(false);
-      setNewPatient({ name: "", cpf: "", phone: "", email: "", dentist_id: "" });
     } catch (error) {
       console.error('Erro ao criar paciente:', error);
     }
@@ -57,88 +43,12 @@ const PatientSearch = ({ onPatientSelect, autoSelectAfterCreate = true }: { onPa
 
   if (showNewForm) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Novo Paciente</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome Completo</Label>
-              <Input
-                id="name"
-                value={newPatient.name}
-                onChange={(e) => setNewPatient(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Nome do paciente"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="cpf">CPF</Label>
-              <Input
-                id="cpf"
-                value={newPatient.cpf}
-                onChange={(e) => setNewPatient(prev => ({ ...prev, cpf: e.target.value }))}
-                placeholder="000.000.000-00"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefone</Label>
-              <Input
-                id="phone"
-                value={newPatient.phone}
-                onChange={(e) => setNewPatient(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="(00) 00000-0000"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={newPatient.email}
-                onChange={(e) => setNewPatient(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="email@exemplo.com"
-              />
-            </div>
-            
-            {profile?.role === 'admin' && (
-              <div className="space-y-2">
-                <Label htmlFor="dentist">Dentista Responsável</Label>
-                <Select onValueChange={(value) => setNewPatient(prev => ({ ...prev, dentist_id: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um dentista" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dentists?.map((dentist) => (
-                      <SelectItem key={dentist.id} value={dentist.id}>
-                      <div className="flex items-center gap-2">
-                        <UserCheck className="h-4 w-4" />
-                        {dentist.nome_completo || dentist.email}
-                      </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-          
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleCreatePatient} 
-              disabled={!newPatient.name || !newPatient.cpf || createPatient.isPending}
-            >
-              {createPatient.isPending ? "Criando..." : "Criar Paciente"}
-            </Button>
-            <Button variant="outline" onClick={() => setShowNewForm(false)}>
-              Cancelar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <PacienteForm 
+        open={showNewForm} 
+        onOpenChange={setShowNewForm}
+        onSubmit={handleCreatePatient}
+        isLoading={createPatient.isPending}
+      />
     );
   }
 

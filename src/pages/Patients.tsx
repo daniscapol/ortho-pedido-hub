@@ -21,6 +21,7 @@ import { useProfile } from "@/hooks/useProfile"
 import { useAuth } from "@/components/auth/AuthProvider"
 import { useNavigate } from "react-router-dom"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { PacienteForm } from "@/components/forms/PacienteForm"
 
 const patientSchema = z.object({
   nome_completo: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -37,86 +38,37 @@ const Patients = () => {
   const { signOut } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [isNewPatientOpen, setIsNewPatientOpen] = useState(false)
-  const [editingPatient, setEditingPatient] = useState<Patient | null>(null)
   const [selectedPatientHistory, setSelectedPatientHistory] = useState<Patient | null>(null)
   
   const { data: patients, isLoading } = usePatients(searchTerm)
   const { data: patientOrders } = usePatientOrders(selectedPatientHistory?.id)
-  const { data: dentists } = useDentistsForPatients()
   const { data: profile } = useProfile()
   const createPatient = useCreatePatient()
-  const updatePatient = useUpdatePatient()
   const { toast } = useToast()
 
   const handleLogout = async () => {
     await signOut()
   }
 
-  const form = useForm<PatientFormData>({
-    resolver: zodResolver(patientSchema),
-    defaultValues: {
-      nome_completo: "",
-      cpf: "",
-      telefone_contato: "",
-      email_contato: "",
-      dentist_id: "",
-    },
-  })
-
-  // Preseleciona o dentista atual para criação de paciente por dentistas
-  useEffect(() => {
-    if (isNewPatientOpen && !editingPatient && profile?.role === 'dentist' && profile?.id) {
-      form.setValue('dentist_id', profile.id)
-    }
-  }, [isNewPatientOpen, editingPatient, profile, form])
-
-  const onSubmit = async (data: PatientFormData) => {
+  const handleCreatePatient = async (data: { nome_completo: string; cpf: string; telefone_contato: string; email_contato: string; observacoes?: string; ativo: boolean }) => {
     try {
-      if (editingPatient) {
-        await updatePatient.mutateAsync({
-          id: editingPatient.id,
-          nome_completo: data.nome_completo,
-          cpf: data.cpf,
-          telefone_contato: data.telefone_contato,
-          email_contato: data.email_contato,
-          dentist_id: data.dentist_id,
-        })
-      } else {
-        await createPatient.mutateAsync({
-          nome_completo: data.nome_completo,
-          cpf: data.cpf,
-          telefone_contato: data.telefone_contato,
-          email_contato: data.email_contato,
-          dentist_id: data.dentist_id,
-        })
-      }
-      form.reset()
-      setIsNewPatientOpen(false)
-      setEditingPatient(null)
+      await createPatient.mutateAsync({
+        ...data,
+        dentist_id: profile?.role === 'dentist' ? profile.id : '',
+      });
+      toast({
+        title: "Sucesso",
+        description: "Paciente criado com sucesso!",
+      });
     } catch (error) {
+      console.error('Erro ao criar paciente:', error);
       toast({
         title: "Erro",
-        description: "Erro ao salvar paciente",
+        description: "Erro ao criar paciente",
         variant: "destructive",
-      })
+      });
     }
-  }
-
-  const handleEdit = (patient: Patient) => {
-    setEditingPatient(patient)
-    form.setValue("nome_completo", patient.nome_completo)
-    form.setValue("cpf", patient.cpf)
-    form.setValue("telefone_contato", patient.telefone_contato)
-    form.setValue("email_contato", patient.email_contato)
-    form.setValue("dentist_id", patient.dentist_id || "")
-    setIsNewPatientOpen(true)
-  }
-
-  const handleCloseDialog = () => {
-    setIsNewPatientOpen(false)
-    setEditingPatient(null)
-    form.reset()
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -175,145 +127,17 @@ const Patients = () => {
                 <p className="text-gray-600 mt-1">Gerencie os pacientes do consultório</p>
               </div>
               
-              <Dialog open={isNewPatientOpen} onOpenChange={setIsNewPatientOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setIsNewPatientOpen(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Paciente
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingPatient ? "Editar Paciente" : "Novo Paciente"}
-                    </DialogTitle>
-                    <DialogDescription>
-                      {editingPatient 
-                        ? "Atualize as informações do paciente." 
-                        : "Adicione um novo paciente ao sistema."
-                      }
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="nome_completo"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome Completo</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Nome completo" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="cpf"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CPF</FormLabel>
-                            <FormControl>
-                              <Input placeholder="000.000.000-00" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="telefone_contato"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Telefone</FormLabel>
-                            <FormControl>
-                              <Input placeholder="(11) 99999-9999" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="email_contato"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="email@exemplo.com" type="email" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="dentist_id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Dentista Responsável</FormLabel>
-                            {profile?.role === 'dentist' ? (
-                              <Select value={field.value || profile?.id || ''} onValueChange={() => {}}>
-                                <FormControl>
-                                  <SelectTrigger disabled>
-                                    <SelectValue placeholder="Dentista" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {(field.value || profile?.id) && (
-                                    <SelectItem value={(field.value || profile?.id) as string}>
-                                      <div className="flex items-center gap-2">
-                                        <UserCheck className="h-4 w-4" />
-                                        {dentists?.find(d => d.id === (field.value || profile?.id))?.nome_completo 
-                                          || dentists?.find(d => d.id === (field.value || profile?.id))?.email 
-                                          || profile?.name 
-                                          || profile?.email 
-                                          || 'Dentista'}
-                                      </div>
-                                    </SelectItem>
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione um dentista" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {dentists?.map((dentist) => (
-                                    <SelectItem key={dentist.id} value={dentist.id}>
-                                      <div className="flex items-center gap-2">
-                                        <UserCheck className="h-4 w-4" />
-                                        {dentist.nome_completo || dentist.email}
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )}
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <DialogFooter>
-                        <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                          Cancelar
-                        </Button>
-                        <Button type="submit" disabled={createPatient.isPending || updatePatient.isPending}>
-                          {(createPatient.isPending || updatePatient.isPending)
-                            ? "Salvando..." 
-                            : editingPatient ? "Atualizar" : "Criar"
-                          }
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
+              <Button onClick={() => setIsNewPatientOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Paciente
+              </Button>
+              
+              <PacienteForm 
+                open={isNewPatientOpen} 
+                onOpenChange={setIsNewPatientOpen}
+                onSubmit={handleCreatePatient}
+                isLoading={createPatient.isPending}
+              />
             </div>
 
             <Card>
@@ -386,22 +210,14 @@ const Patients = () => {
                            </TableCell>
                            <TableCell>
                              <div className="flex items-center space-x-1">
-                               <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 onClick={() => setSelectedPatientHistory(patient)}
-                                 title="Ver Histórico"
-                               >
-                                 <FileText className="w-4 h-4" />
-                               </Button>
-                               <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 onClick={() => handleEdit(patient)}
-                                 title="Editar Paciente"
-                               >
-                                 <Edit className="w-4 h-4" />
-                               </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedPatientHistory(patient)}
+                                  title="Ver Histórico"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </Button>
                              </div>
                            </TableCell>
                         </TableRow>
