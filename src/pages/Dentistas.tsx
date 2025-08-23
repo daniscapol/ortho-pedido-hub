@@ -7,7 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone, UserPlus, Edit, MoreHorizontal, Trash2, Key } from "lucide-react";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone, UserPlus, Edit, MoreHorizontal, Trash2, Key, Filter, X } from "lucide-react";
 import { useDentists, useUpdateDentist, Dentist } from "@/hooks/useDentists";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -113,6 +114,9 @@ const Dentistas = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [clinicaFilter, setClinicaFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [editingDentist, setEditingDentist] = useState<Dentist | null>(null);
   const [userPasswordDialog, setUserPasswordDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
@@ -301,33 +305,76 @@ const deleteUser = useMutation({
     }
   };
 
-  // Filtrar dentistas baseado na busca
+  // Filtrar dentistas baseado nos filtros
   const filteredDentists = useMemo(() => {
     if (!dentists) return [];
     
+    let filtered = dentists;
+    
+    // Filtro por busca
     if (searchQuery.trim()) {
-      return dentists.filter(dentist => 
+      filtered = filtered.filter(dentist => 
         dentist.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dentist.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        dentist.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dentist.cro?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     
-    return dentists;
-  }, [dentists, searchQuery]);
+    // Filtro por status ativo/inativo
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(dentist => {
+        const isActive = dentist.ativo !== false;
+        return statusFilter === "active" ? isActive : !isActive;
+      });
+    }
+    
+    // Filtro por clínica
+    if (clinicaFilter !== "all") {
+      filtered = filtered.filter(dentist => dentist.clinica_id === clinicaFilter);
+    }
+    
+    // Filtro por data de cadastro
+    if (dateFilter !== "all") {
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (dateFilter) {
+        case "today":
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case "week":
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case "month":
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case "quarter":
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = new Date(0);
+      }
+      
+      filtered = filtered.filter(dentist => 
+        new Date(dentist.created_at) >= startDate
+      );
+    }
+    
+    return filtered;
+  }, [dentists, searchQuery, statusFilter, clinicaFilter, dateFilter]);
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Sidebar />
+    <div className="h-screen bg-background flex overflow-hidden">
+      <div className="sticky top-0 h-screen">
+        <Sidebar />
+      </div>
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">          
           <div className="flex-1 flex items-center justify-end px-6">
-            
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700">
-                <Bell className="w-5 h-5" />
-              </Button>
+              <NotificationDropdown />
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -336,7 +383,7 @@ const deleteUser = useMutation({
                     <div className="text-left">
                       <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
                       <div className="text-xs text-slate-300">
-                        SB Prótese Odontológica - {profile?.role === 'admin' ? 'Matriz Zone Sul' : 'Dentista'}
+                        SB Prótese Odontológica - {profile?.role_extended === 'admin_master' ? 'Admin Master' : 'Usuário'}
                       </div>
                     </div>
                   </Button>
@@ -358,137 +405,210 @@ const deleteUser = useMutation({
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                <UserCheck className="w-4 h-4 text-primary-foreground" />
+        <div className="flex-1 flex overflow-hidden">
+          <main className="flex-1 p-6 overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
+                  <UserCheck className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <h1 className="text-xl font-semibold text-foreground">
+                  {profile?.role === 'admin' || profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica' 
+                    ? 'Gerenciamento de Dentistas' 
+                    : 'Meu Perfil'
+                  }
+                </h1>
               </div>
-              <h1 className="text-xl font-semibold text-foreground">
-                {profile?.role === 'admin' || profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica' 
-                  ? 'Gerenciamento de Dentistas' 
-                  : 'Meu Perfil'
-                }
-              </h1>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-sm">
-                {filteredDentists.length} {profile?.role === 'admin' 
-                  ? `dentista${filteredDentists.length !== 1 ? 's' : ''}` 
-                  : 'perfil'
-                }
-              </Badge>
               
-              {/* Apenas admins podem criar dentistas */}
-              {(profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
-                profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_matriz') && (
-                <>
-                  <Button 
-                    onClick={() => setShowCreateUser(true)}
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className="text-sm">
+                  {filteredDentists.length} {profile?.role === 'admin' 
+                    ? `dentista${filteredDentists.length !== 1 ? 's' : ''}` 
+                    : 'perfil'
+                  }
+                </Badge>
+                
+                {/* Apenas admins podem criar dentistas */}
+                {(profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
+                  profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_matriz') && (
+                  <>
+                    <Button 
+                      onClick={() => setShowCreateUser(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      Novo Dentista
+                    </Button>
+                    <DentistaForm
+                      open={showCreateUser}
+                      onOpenChange={setShowCreateUser}
+                      onSubmit={handleCreateDentist}
+                      isLoading={createDentist.isPending}
+                      canCreateAdmin={profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica'}
+                      forceClinicaId={profile?.role_extended === 'admin_clinica' ? (profile?.clinica_id ?? null) : undefined}
+                      clinics={clinicas?.map(c => ({ id: c.id, nome_completo: c.nome_completo }))}
+                    />
+                    <DentistaForm
+                      open={!!editingDentist}
+                      onOpenChange={(open) => !open && setEditingDentist(null)}
+                      onSubmit={handleUpdateDentist}
+                      isLoading={updateDentist.isPending}
+                      canCreateAdmin={profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica'}
+                      forceClinicaId={profile?.role_extended === 'admin_clinica' ? (profile?.clinica_id ?? null) : undefined}
+                      clinics={clinicas?.map(c => ({ id: c.id, nome_completo: c.nome_completo }))}
+                      editingDentist={editingDentist ? {
+                        id: editingDentist.id,
+                        nome_completo: editingDentist.name || editingDentist.nome_completo || '',
+                        email: editingDentist.email || '',
+                        cro: editingDentist.cro || '',
+                        cpf: editingDentist.cpf || '',
+                        telefone: editingDentist.telefone || '',
+                        endereco: editingDentist.endereco || '',
+                        cep: editingDentist.cep || '',
+                        cidade: editingDentist.cidade || '',
+                        estado: editingDentist.estado || '',
+                        numero: editingDentist.numero || '',
+                        complemento: editingDentist.complemento || '',
+                        clinica_id: editingDentist.clinica_id || null,
+                        ativo: editingDentist.ativo ?? true
+                      } : null}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Filters Section */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Filtros e Busca
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Buscar por nome, email ou CRO..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Status</SelectItem>
+                      <SelectItem value="active">Ativos</SelectItem>
+                      <SelectItem value="inactive">Inativos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={clinicaFilter} onValueChange={setClinicaFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Clínica" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas Clínicas</SelectItem>
+                      {clinicas?.map((clinica) => (
+                        <SelectItem key={clinica.id} value={clinica.id}>
+                          {clinica.nome_completo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={dateFilter} onValueChange={setDateFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todo período</SelectItem>
+                      <SelectItem value="today">Hoje</SelectItem>
+                      <SelectItem value="week">Última semana</SelectItem>
+                      <SelectItem value="month">Último mês</SelectItem>
+                      <SelectItem value="quarter">Últimos 3 meses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("all");
+                      setClinicaFilter("all");
+                      setDateFilter("all");
+                    }}
                     className="flex items-center gap-2"
                   >
-                    <UserPlus className="h-4 w-4" />
-                    Novo Dentista
+                    <X className="h-4 w-4" />
+                    Limpar
                   </Button>
-                  <DentistaForm
-                    open={showCreateUser}
-                    onOpenChange={setShowCreateUser}
-                    onSubmit={handleCreateDentist}
-                    isLoading={createDentist.isPending}
-                    canCreateAdmin={profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica'}
-                    forceClinicaId={profile?.role_extended === 'admin_clinica' ? (profile?.clinica_id ?? null) : undefined}
-                    clinics={clinicas?.map(c => ({ id: c.id, nome_completo: c.nome_completo }))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Dentists Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-32"></div>
+                          <div className="h-3 bg-gray-200 rounded w-24"></div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-gray-200 rounded w-full"></div>
+                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : filteredDentists.length > 0 ? (
+                filteredDentists.map((dentist) => (
+                  <DentistCard 
+                    key={dentist.id} 
+                    dentist={dentist} 
+                    onClick={() => handleDentistClick(dentist)}
+                    onEdit={handleEditDentist}
+                    onChangePassword={(dentist) => setUserPasswordDialog({ open: true, user: dentist })}
+                    onResetPassword={(email) => resetUserPassword.mutate(email)}
+                    onDelete={(dentist) => setDeleteUserDialog({ open: true, user: dentist })}
+                    canEdit={profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
+                            profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_matriz'}
                   />
-                  <DentistaForm
-                    open={!!editingDentist}
-                    onOpenChange={(open) => !open && setEditingDentist(null)}
-                    onSubmit={handleUpdateDentist}
-                    isLoading={updateDentist.isPending}
-                    canCreateAdmin={profile?.role_extended === 'admin_master' || profile?.role_extended === 'admin_clinica'}
-                    forceClinicaId={profile?.role_extended === 'admin_clinica' ? (profile?.clinica_id ?? null) : undefined}
-                    clinics={clinicas?.map(c => ({ id: c.id, nome_completo: c.nome_completo }))}
-                    editingDentist={editingDentist ? {
-                      id: editingDentist.id,
-                      nome_completo: editingDentist.name || editingDentist.nome_completo || '',
-                      email: editingDentist.email || '',
-                      cro: editingDentist.cro || '',
-                      cpf: editingDentist.cpf || '',
-                      telefone: editingDentist.telefone || '',
-                      endereco: editingDentist.endereco || '',
-                      cep: editingDentist.cep || '',
-                      cidade: editingDentist.cidade || '',
-                      estado: editingDentist.estado || '',
-                      numero: editingDentist.numero || '',
-                      complemento: editingDentist.complemento || '',
-                      clinica_id: editingDentist.clinica_id || null,
-                      ativo: editingDentist.ativo ?? true
-                    } : null}
-                  />
-                </>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <UserCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">
+                    {searchQuery || statusFilter !== "all" || clinicaFilter !== "all" || dateFilter !== "all" 
+                      ? 'Nenhum dentista encontrado' 
+                      : 'Nenhum dentista cadastrado'
+                    }
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {searchQuery || statusFilter !== "all" || clinicaFilter !== "all" || dateFilter !== "all"
+                      ? 'Tente ajustar os filtros para encontrar dentistas.' 
+                      : 'Quando dentistas se cadastrarem, eles aparecerão aqui.'
+                    }
+                  </p>
+                </div>
               )}
             </div>
-          </div>
-
-          {/* Search and filters section */}
-          <div className="flex items-center gap-4 mb-6">
-            <Button variant="ghost" className="text-foreground">
-              {profile?.role === 'admin' ? 'Lista de Dentistas' : 'Informações do Perfil'}
-            </Button>
-          </div>
-
-          {/* Dentists Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-32"></div>
-                        <div className="h-3 bg-gray-200 rounded w-24"></div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 rounded w-full"></div>
-                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : filteredDentists.length > 0 ? (
-              filteredDentists.map((dentist) => (
-                <DentistCard 
-                  key={dentist.id} 
-                  dentist={dentist} 
-                  onClick={() => handleDentistClick(dentist)}
-                  onEdit={handleEditDentist}
-                  onChangePassword={(dentist) => setUserPasswordDialog({ open: true, user: dentist })}
-                  onResetPassword={(email) => resetUserPassword.mutate(email)}
-                  onDelete={(dentist) => setDeleteUserDialog({ open: true, user: dentist })}
-                  canEdit={profile?.role === 'admin' || profile?.role_extended === 'admin_master' || 
-                          profile?.role_extended === 'admin_clinica' || profile?.role_extended === 'admin_matriz'}
-                />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <UserCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  {searchQuery ? 'Nenhum dentista encontrado' : 'Nenhum dentista cadastrado'}
-                </h3>
-                <p className="text-muted-foreground">
-                  {searchQuery 
-                    ? 'Tente ajustar sua pesquisa para encontrar dentistas.' 
-                    : 'Quando dentistas se cadastrarem, eles aparecerão aqui.'
-                  }
-                </p>
-              </div>
-            )}
-          </div>
-        </main>
+          </main>
+        </div>
 
         {/* Change Password Dialog */}
         <Dialog open={userPasswordDialog.open} onOpenChange={(open) => setUserPasswordDialog({ open, user: open ? userPasswordDialog.user : null })}>
