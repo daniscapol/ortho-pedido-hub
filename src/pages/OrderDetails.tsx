@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings } from "lucide-react";
+import { User, LogOut, Settings, Edit } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import OrderTimeline from "@/components/order/OrderTimeline";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
@@ -14,7 +15,9 @@ import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
 import { useProfile } from "@/hooks/useProfile";
 import { useDentistProfile } from "@/hooks/useDentistProfile";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getStatusOptions, getStatusColor, getStatusLabel, canChangeStatus, MASTER_STATUS_OPTIONS } from "@/lib/status-config";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/lib/supabase";
@@ -25,7 +28,9 @@ const OrderDetails = () => {
   const { data: orders, isLoading: ordersLoading } = useOrders();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { signOut } = useAuth();
+  const { isSuperAdmin } = usePermissions();
   const updateOrderStatus = useUpdateOrderStatus();
+  const isAdminMaster = isSuperAdmin();
 
   // Enable real-time notifications
   useRealtimeNotifications();
@@ -40,29 +45,15 @@ const OrderDetails = () => {
   const isAdmin = profile?.role === 'admin';
 
   const getStatusBadge = (status: string) => {
-    const colors = {
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      producao: "bg-blue-100 text-blue-800 border-blue-200",
-      pronto: "bg-green-100 text-green-800 border-green-200", 
-      entregue: "bg-gray-100 text-gray-800 border-gray-200"
-    };
-
-    const labels = {
-      pending: "Pendente",
-      producao: "Produção",
-      pronto: "Pronto",
-      entregue: "Entregue"
-    };
-
     return (
-      <Badge className={`text-lg px-4 py-2 ${colors[status as keyof typeof colors] || colors.pending}`}>
-        {labels[status as keyof typeof labels] || status}
+      <Badge className={`text-lg px-4 py-2 ${getStatusColor(status)}`}>
+        {getStatusLabel(status, isAdminMaster)}
       </Badge>
     );
   };
 
   const handleStatusChange = (newStatus: string) => {
-    if (!order) return;
+    if (!order || !canChangeStatus(isAdminMaster)) return;
     updateOrderStatus.mutate({ id: order.id, status: newStatus });
   };
 
@@ -233,7 +224,7 @@ const OrderDetails = () => {
               <Button variant="outline" onClick={() => navigate("/")}>
                 ← Voltar
               </Button>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-3xl font-bold text-foreground">
                   Pedido #{order.id.slice(-8)}
                 </h1>
@@ -241,6 +232,32 @@ const OrderDetails = () => {
                   Criado em {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                 </p>
               </div>
+              
+              {/* Botão para alterar status - apenas admin master */}
+              {isAdminMaster && canChangeStatus(isAdminMaster) && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">Alterar Status:</span>
+                  <Select
+                    value={order.status}
+                    onValueChange={handleStatusChange}
+                    disabled={updateOrderStatus.isPending}
+                  >
+                    <SelectTrigger className="w-60">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MASTER_STATUS_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${option.color.split(' ')[0]}`} />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
         <div className="max-w-4xl mx-auto space-y-6">
