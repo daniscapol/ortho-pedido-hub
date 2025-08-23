@@ -48,7 +48,7 @@ interface User {
 const Admin = () => {
   const navigate = useNavigate();
   const { data: profile, isLoading: profileLoading } = useProfile();
-  const { signOut } = useAuth();
+  const { signOut, session, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -154,17 +154,35 @@ const Admin = () => {
     queryKey: ['admin-users'],
     queryFn: async () => {
       console.log('🔍 Fetching users...');
-      const { data, error } = await supabase.functions.invoke('admin-list-users');
-      if (error) {
-        console.error('❌ Error fetching users:', error);
-        throw error;
+      console.log('🔍 Profile:', profile);
+      console.log('🔍 Session:', session);
+      
+      if (!profile || profile.role_extended !== 'admin_master') {
+        console.log('❌ User is not admin_master:', profile?.role_extended);
+        throw new Error('Acesso negado: apenas admin_master pode listar usuários');
       }
-      console.log('✅ Users data received:', data);
-      return (data?.users || []) as User[];
+
+      try {
+        const { data, error } = await supabase.functions.invoke('admin-list-users');
+        
+        if (error) {
+          console.error('❌ Edge function error:', error);
+          throw new Error(`Erro na função: ${error.message || 'Função retornou erro'}`);
+        }
+        
+        console.log('✅ Users data received:', data);
+        return (data?.users || []) as User[];
+      } catch (err: any) {
+        console.error('❌ Complete error details:', err);
+        throw err;
+      }
     },
-    enabled: !!profile && profile?.role_extended === 'admin_master',
-    retry: 3,
-    retryDelay: 1000,
+    enabled: !!profile && !!session && profile?.role_extended === 'admin_master',
+    retry: (failureCount, error) => {
+      console.log('🔄 Query retry:', failureCount, error.message);
+      return failureCount < 2; // Só tenta 2 vezes
+    },
+    retryDelay: 2000,
   });
 
   // Buscar todos os pedidos para admin
@@ -438,7 +456,7 @@ const Admin = () => {
   })
 
   // Verificar se o usuário é admin
-  if (profileLoading) {
+  if (profileLoading || authLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="fixed left-0 top-0 z-30 h-screen">
@@ -791,6 +809,22 @@ const Admin = () => {
                       <Skeleton className="h-8 w-32" />
                     </div>
                   ))}
+                </div>
+              ) : !users ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    Erro ao carregar usuários. Verifique suas permissões.
+                  </p>
+                  <Button 
+                    onClick={() => refetchUsers()} 
+                    variant="outline"
+                  >
+                    Tentar Novamente
+                  </Button>
+                </div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Nenhum usuário encontrado.</p>
                 </div>
               ) : (
                 <Table>
