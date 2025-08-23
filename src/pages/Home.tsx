@@ -12,19 +12,23 @@ import { Search, Bell, User, LogOut, Settings, Plus, Download, LayoutGrid } from
 import { useOrders } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import * as XLSX from 'xlsx';
 import { Order } from "@/hooks/useOrders";
+import { MASTER_STATUS_OPTIONS } from "@/lib/status-config";
 
 const Home = () => {
   const { data: orders, isLoading } = useOrders();
   const { data: profile, isLoading: isProfileLoading } = useProfile();
   const { signOut } = useAuth();
+  const { isSuperAdmin } = usePermissions();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const isAdminMaster = isSuperAdmin();
 
   // Enable real-time notifications
   useRealtimeNotifications();
@@ -111,17 +115,25 @@ const Home = () => {
   };
 
   // Separar pedidos por status
-  const ordersPending = filteredOrders.filter(order => 
-    order.status === "pending"
+  const ordersSolicitados = filteredOrders.filter(order => 
+    order.status === "pedido_solicitado"
   );
   
-  const ordersInProduction = filteredOrders.filter(order => 
-    order.status === "producao"
+  const ordersEmAndamento = filteredOrders.filter(order => 
+    order.status === "baixado_verificado" || 
+    order.status === "projeto_realizado" || 
+    order.status === "projeto_modelo_realizado"
   );
   
-  const ordersCompleted = filteredOrders.filter(order => 
-    order.status === "pronto" || order.status === "entregue"
+  const ordersFinalizando = filteredOrders.filter(order => 
+    order.status === "aguardando_entrega" || 
+    order.status === "entregue"
   );
+
+  // Para usuários não admin master, mostrar todos os pedidos na primeira coluna
+  const displayOrdersSolicitados = isAdminMaster ? ordersSolicitados : filteredOrders;
+  const displayOrdersEmAndamento = isAdminMaster ? ordersEmAndamento : [];
+  const displayOrdersFinalizando = isAdminMaster ? ordersFinalizando : [];
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -207,16 +219,16 @@ const Home = () => {
 
 
             {/* Orders columns */}
-            <div className="grid grid-cols-3 gap-6">
-              {/* Pendente */}
+            <div className={`grid gap-6 ${isAdminMaster ? 'grid-cols-3' : 'grid-cols-1'}`}>
+              {/* Pedidos Solicitados */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-1 w-8 bg-yellow-500 rounded-full"></div>
                   <h2 className="text-lg font-semibold text-foreground">
-                    Pendente
+                    {isAdminMaster ? 'Pedidos Solicitados' : 'Meus Pedidos'}
                   </h2>
                   <Badge variant="secondary" className="ml-2">
-                    {ordersPending.length}
+                    {displayOrdersSolicitados.length}
                   </Badge>
                 </div>
                 
@@ -225,8 +237,8 @@ const Home = () => {
                     <div className="text-center py-8 text-muted-foreground">
                       Carregando...
                     </div>
-                  ) : ordersPending.length > 0 ? (
-                    ordersPending.map((order) => (
+                  ) : displayOrdersSolicitados.length > 0 ? (
+                    displayOrdersSolicitados.map((order) => (
                       <OrderCard 
                         key={order.id} 
                         order={order} 
@@ -235,77 +247,81 @@ const Home = () => {
                     ))
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
-                      Nenhum pedido pendente
+                      Nenhum pedido encontrado
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Em Produção */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-1 w-8 bg-blue-500 rounded-full"></div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Em Produção
-                  </h2>
-                  <Badge variant="secondary" className="ml-2">
-                    {ordersInProduction.length}
-                  </Badge>
+              {/* Em Andamento (só para admin master) */}
+              {isAdminMaster && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="h-1 w-8 bg-blue-500 rounded-full"></div>
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Em Andamento
+                    </h2>
+                    <Badge variant="secondary" className="ml-2">
+                      {displayOrdersEmAndamento.length}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {isLoading ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Carregando...
+                      </div>
+                    ) : displayOrdersEmAndamento.length > 0 ? (
+                      displayOrdersEmAndamento.map((order) => (
+                        <OrderCard 
+                          key={order.id} 
+                          order={order} 
+                          onClick={() => handleOrderClick(order)}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Nenhum pedido em andamento
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
-                <div className="space-y-3">
-                  {isLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Carregando...
-                    </div>
-                  ) : ordersInProduction.length > 0 ? (
-                    ordersInProduction.map((order) => (
-                      <OrderCard 
-                        key={order.id} 
-                        order={order} 
-                        onClick={() => handleOrderClick(order)}
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Nenhum pedido em produção
-                    </div>
-                  )}
-                </div>
-              </div>
+              )}
 
-              {/* Concluído */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-1 w-8 bg-green-500 rounded-full"></div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Concluído
-                  </h2>
-                  <Badge variant="secondary" className="ml-2">
-                    {ordersCompleted.length}
-                  </Badge>
+              {/* Finalizando (só para admin master) */}
+              {isAdminMaster && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="h-1 w-8 bg-green-500 rounded-full"></div>
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Finalizando
+                    </h2>
+                    <Badge variant="secondary" className="ml-2">
+                      {displayOrdersFinalizando.length}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {isLoading ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Carregando...
+                      </div>
+                    ) : displayOrdersFinalizando.length > 0 ? (
+                      displayOrdersFinalizando.map((order) => (
+                        <OrderCard 
+                          key={order.id} 
+                          order={order} 
+                          onClick={() => handleOrderClick(order)}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Nenhum pedido finalizando
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
-                <div className="space-y-3">
-                  {isLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Carregando...
-                    </div>
-                  ) : ordersCompleted.length > 0 ? (
-                    ordersCompleted.map((order) => (
-                      <OrderCard 
-                        key={order.id} 
-                        order={order} 
-                        onClick={() => handleOrderClick(order)}
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Nenhum pedido concluído
-                    </div>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           </main>
 
