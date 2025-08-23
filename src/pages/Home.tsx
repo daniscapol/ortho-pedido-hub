@@ -219,9 +219,9 @@ const Home = () => {
                 
                 {/* Paginação fixa no final da coluna */}
                 {totalPagesSolicitados > 1 && (
-                  <div className="mt-auto pt-6 border-t border-border">
-                    <div className="flex justify-center">
-                      <Pagination>
+                  <div className="mt-auto pt-8 border-t border-border">
+                    <div className="flex justify-center w-full">
+                      <Pagination className="mx-auto">
                         <PaginationContent>
                           <PaginationItem>
                             <PaginationPrevious
