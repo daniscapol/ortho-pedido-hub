@@ -88,176 +88,65 @@ const Home = () => {
     console.log("📊 Exportando", filteredOrders.length, "pedidos");
 
     try {
-      // Aba 1: Resumo dos Pedidos
+      // Aba 1: Resumo dos Pedidos - SIMPLIFICADO PARA TESTE
       console.log("📋 Criando aba de resumo...");
-      const ordersData = filteredOrders.map(order => ({
-        "ID do Pedido": order.id,
-        "Data de Criação": format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
-        "Data de Atualização": format(new Date(order.updated_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
-        "Paciente": order.patients?.nome_completo || "N/A",
-        "CPF do Paciente": order.patients?.cpf || "N/A",
-        "Email do Paciente": order.patients?.email_contato || "N/A",
-        "Telefone do Paciente": order.patients?.telefone_contato || "N/A",
-        "Dentista": order.dentist,
-        "Tipo de Prótese": order.prosthesis_type,
-        "Material": order.material || "N/A",
-        "Cor": order.color || "N/A",
-        "Status": getStatusLabel(order.status, isAdminMaster),
-        "Prioridade": order.priority,
-        "Prazo": format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR }),
-        "Dentes Selecionados": order.selected_teeth?.join(", ") || "N/A",
-        "Endereço de Entrega": order.delivery_address || "N/A",
-        "Observações": order.observations || "N/A"
-      }));
-
-      console.log("✅ Aba de resumo criada com", ordersData.length, "registros");
-
-      // Aba 2: Pedidos com Items Detalhados
-      console.log("🔍 Buscando items dos pedidos...");
-      const detailedData = [];
       
-      for (const order of filteredOrders) {
+      const ordersData = [];
+      
+      for (let i = 0; i < filteredOrders.length; i++) {
+        const order = filteredOrders[i];
+        console.log(`📝 Processando pedido ${i + 1}/${filteredOrders.length}: ${order.id}`);
+        
         try {
-          console.log("🔍 Buscando items do pedido:", order.id);
-          // Buscar items do pedido
-          const { data: orderItems, error } = await supabase
-            .from("order_items")
-            .select("*")
-            .eq("order_id", order.id);
-
-          if (error) {
-            console.error("❌ Erro ao buscar items:", error);
-            throw error;
-          }
-
-          console.log("📦 Items encontrados:", orderItems?.length || 0);
-
-          if (orderItems && orderItems.length > 0) {
-            // Para cada item, criar uma linha
-            orderItems.forEach((item, index) => {
-              detailedData.push({
-                "ID do Pedido": order.id,
-                "Data de Criação": format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
-                "Data de Atualização": format(new Date(order.updated_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
-                "Paciente": order.patients?.nome_completo || "N/A",
-                "CPF do Paciente": order.patients?.cpf || "N/A",
-                "Email do Paciente": order.patients?.email_contato || "N/A",
-                "Telefone do Paciente": order.patients?.telefone_contato || "N/A",
-                "Dentista": order.dentist,
-                "Status": getStatusLabel(order.status, isAdminMaster),
-                "Prioridade": order.priority,
-                "Prazo": format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR }),
-                "Endereço de Entrega": order.delivery_address || "N/A",
-                "Item #": index + 1,
-                "Nome do Produto": item.product_name,
-                "Tipo de Prótese": item.prosthesis_type,
-                "Material do Item": item.material || "N/A",
-                "Cor do Item": item.color || "N/A",
-                "Quantidade": item.quantity,
-                "Dentes Selecionados": item.selected_teeth?.join(", ") || "N/A",
-                "Observações do Item": item.observations || "N/A",
-                "Observações Gerais": order.observations || "N/A"
-              });
-            });
-          } else {
-            // Se não tem items, criar linha básica do pedido
-            detailedData.push({
-              "ID do Pedido": order.id,
-              "Data de Criação": format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
-              "Data de Atualização": format(new Date(order.updated_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
-              "Paciente": order.patients?.nome_completo || "N/A",
-              "CPF do Paciente": order.patients?.cpf || "N/A",
-              "Email do Paciente": order.patients?.email_contato || "N/A",
-              "Telefone do Paciente": order.patients?.telefone_contato || "N/A",
-              "Dentista": order.dentist,
-              "Status": getStatusLabel(order.status, isAdminMaster),
-              "Prioridade": order.priority,
-              "Prazo": format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR }),
-              "Endereço de Entrega": order.delivery_address || "N/A",
-              "Item #": "N/A",
-              "Nome do Produto": order.prosthesis_type,
-              "Tipo de Prótese": order.prosthesis_type,
-              "Material do Item": order.material || "N/A",
-              "Cor do Item": order.color || "N/A",
-              "Quantidade": 1,
-              "Dentes Selecionados": order.selected_teeth?.join(", ") || "N/A",
-              "Observações do Item": "N/A",
-              "Observações Gerais": order.observations || "N/A"
-            });
-          }
-        } catch (itemError) {
-          console.error("❌ Erro ao processar pedido:", order.id, itemError);
-          // Em caso de erro, adicionar linha básica
-          detailedData.push({
-            "ID do Pedido": order.id,
-            "Data de Criação": format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
-            "Data de Atualização": format(new Date(order.updated_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+          const orderData = {
+            "ID do Pedido": order.id || "N/A",
             "Paciente": order.patients?.nome_completo || "N/A",
-            "CPF do Paciente": order.patients?.cpf || "N/A",
-            "Email do Paciente": order.patients?.email_contato || "N/A",
-            "Telefone do Paciente": order.patients?.telefone_contato || "N/A",
-            "Dentista": order.dentist,
-            "Status": getStatusLabel(order.status, isAdminMaster),
-            "Prioridade": order.priority,
-            "Prazo": format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR }),
-            "Endereço de Entrega": order.delivery_address || "N/A",
-            "Item #": "Erro",
-            "Nome do Produto": order.prosthesis_type,
-            "Tipo de Prótese": order.prosthesis_type,
-            "Material do Item": order.material || "N/A",
-            "Cor do Item": order.color || "N/A",
-            "Quantidade": 1,
-            "Dentes Selecionados": order.selected_teeth?.join(", ") || "N/A",
-            "Observações do Item": "Erro ao carregar items",
-            "Observações Gerais": order.observations || "N/A"
+            "Dentista": order.dentist || "N/A",
+            "Status": order.status || "N/A",
+            "Prioridade": order.priority || "N/A"
+          };
+          
+          ordersData.push(orderData);
+          console.log(`✅ Pedido ${i + 1} processado com sucesso`);
+        } catch (orderError) {
+          console.error(`❌ Erro ao processar pedido ${i + 1}:`, orderError);
+          // Adicionar linha de erro
+          ordersData.push({
+            "ID do Pedido": order.id || `Erro-${i}`,
+            "Paciente": "Erro",
+            "Dentista": "Erro", 
+            "Status": "Erro",
+            "Prioridade": "Erro"
           });
         }
       }
 
-      console.log("✅ Items processados. Total de linhas detalhadas:", detailedData.length);
+      console.log("✅ Aba de resumo criada com", ordersData.length, "registros");
 
-      // Criar workbook com duas abas
-      console.log("📊 Criando workbook Excel...");
+      // Criar workbook simples apenas com resumo
+      console.log("📊 Criando workbook Excel simples...");
       const workbook = XLSX.utils.book_new();
 
-      // Verificar se temos dados antes de criar as planilhas
       if (ordersData.length === 0) {
-        throw new Error("Nenhum dado para exportar na aba de resumo");
+        throw new Error("Nenhum dado foi processado para exportar");
       }
 
-      if (detailedData.length === 0) {
-        throw new Error("Nenhum dado para exportar na aba detalhada");
-      }
-
-      // Aba 1: Resumo dos Pedidos
+      // Apenas a aba de resumo por enquanto
       console.log("📋 Criando planilha de resumo...");
       const ordersWorksheet = XLSX.utils.json_to_sheet(ordersData);
-      const ordersColWidths = Object.keys(ordersData[0]).map(key => ({
-        wch: Math.max(key.length, 15)
-      }));
-      ordersWorksheet["!cols"] = ordersColWidths;
       XLSX.utils.book_append_sheet(workbook, ordersWorksheet, "Resumo dos Pedidos");
-
-      // Aba 2: Pedidos Detalhados
-      console.log("📋 Criando planilha detalhada...");
-      const detailedWorksheet = XLSX.utils.json_to_sheet(detailedData);
-      const detailedColWidths = Object.keys(detailedData[0]).map(key => ({
-        wch: Math.max(key.length, 15)
-      }));
-      detailedWorksheet["!cols"] = detailedColWidths;
-      XLSX.utils.book_append_sheet(workbook, detailedWorksheet, "Pedidos com Items");
 
       // Baixar arquivo
       console.log("💾 Iniciando download do arquivo...");
-      const fileName = `pedidos_dashboard_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
+      const fileName = `pedidos_simples_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
       console.log("📁 Nome do arquivo:", fileName);
       
       XLSX.writeFile(workbook, fileName);
       console.log("✅ Download iniciado com sucesso!");
 
       toast({
-        title: "Exportação concluída",
-        description: "Arquivo Excel gerado com duas abas: Resumo dos Pedidos e Pedidos com Items",
+        title: "Exportação concluída", 
+        description: `Arquivo Excel gerado com ${ordersData.length} pedidos`,
       });
 
     } catch (error) {
