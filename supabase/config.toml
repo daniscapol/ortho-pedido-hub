@@ -71,9 +71,6 @@ inspector_port = 8083
 [functions.admin-change-password]
 verify_jwt = false
 
-[functions.create-stress-test-data]
-verify_jwt = false
-
 [functions.reset-password]
 verify_jwt = false
 
