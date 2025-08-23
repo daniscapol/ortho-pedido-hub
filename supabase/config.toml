@@ -47,8 +47,8 @@ image_transformation = { enabled = true }
 [auth]
 enabled = true
 port = 54326
-site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+site_url = "https://ortho-pedido-hub.lovable.app"
+additional_redirect_urls = ["https://127.0.0.1:3000", "https://ortho-pedido-hub.lovable.app"]
 jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 refresh_token_reuse_interval = 10
