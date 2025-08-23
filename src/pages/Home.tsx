@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { Order } from "@/hooks/useOrders";
 import { MASTER_STATUS_OPTIONS } from "@/lib/status-config";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+
 
 const Home = () => {
   const { data: orders, isLoading } = useOrders();
@@ -30,9 +30,8 @@ const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isAdminMaster = isSuperAdmin();
 
-  // Paginação
-  const itemsPerPage = 5; // Menos itens por página para dashboard
-  const [currentPageSolicitados, setCurrentPageSolicitados] = useState(1);
+  // Configuração de cards por coluna
+  const cardsPerColumn = 5;
 
   // Enable real-time notifications
   useRealtimeNotifications();
@@ -97,16 +96,10 @@ const Home = () => {
   const displayOrdersEmAndamento = isAdminMaster ? ordersEmAndamento : [];
   const displayOrdersFinalizando = isAdminMaster ? ordersFinalizando : [];
 
-  // Paginação - calcular dados apenas para a primeira coluna principal
-  const totalPagesSolicitados = Math.ceil(displayOrdersSolicitados.length / itemsPerPage);
-  const paginatedOrdersSolicitados = displayOrdersSolicitados.slice(
-    (currentPageSolicitados - 1) * itemsPerPage,
-    currentPageSolicitados * itemsPerPage
-  );
-
-  // Para as outras colunas, mostrar apenas os primeiros itens (sem paginação)
-  const limitedOrdersAndamento = displayOrdersEmAndamento.slice(0, itemsPerPage);
-  const limitedOrdersFinalizando = displayOrdersFinalizando.slice(0, itemsPerPage);
+  // Limitar todos os cards ao mesmo número para manter altura uniforme
+  const limitedOrdersSolicitados = displayOrdersSolicitados.slice(0, cardsPerColumn);
+  const limitedOrdersAndamento = displayOrdersEmAndamento.slice(0, cardsPerColumn);
+  const limitedOrdersFinalizando = displayOrdersFinalizando.slice(0, cardsPerColumn);
 
 
   return (
@@ -184,7 +177,7 @@ const Home = () => {
 
 
             {/* Orders columns */}
-            <div className={`grid gap-6 ${isAdminMaster ? 'grid-cols-3' : 'grid-cols-1'}`}>
+            <div className={`grid gap-6 ${isAdminMaster ? 'grid-cols-3' : 'grid-cols-1'} h-[600px]`}>
               {/* Pedidos Solicitados */}
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-2 mb-4">
@@ -197,14 +190,13 @@ const Home = () => {
                   </Badge>
                 </div>
                 
-                {/* Cards container */}
-                <div className="space-y-3 mb-8">
+                <div className="space-y-3 flex-1 overflow-y-auto">
                   {isLoading ? (
                     <div className="text-center py-8 text-muted-foreground">
                       Carregando...
                     </div>
-                  ) : paginatedOrdersSolicitados.length > 0 ? (
-                    paginatedOrdersSolicitados.map((order) => (
+                  ) : limitedOrdersSolicitados.length > 0 ? (
+                    limitedOrdersSolicitados.map((order) => (
                       <OrderCard 
                         key={order.id} 
                         order={order} 
@@ -216,95 +208,17 @@ const Home = () => {
                       Nenhum pedido encontrado
                     </div>
                   )}
-                </div>
-                
-                {/* Paginação separada no final */}
-                {totalPagesSolicitados > 1 && (
-                  <div className="mt-auto">
-                    <div className="border-t border-border pt-4 mb-4">
-                      <div className="flex justify-center">
-                        <Pagination>
-                          <PaginationContent>
-                            <PaginationItem>
-                              <PaginationPrevious
-                                onClick={() => setCurrentPageSolicitados(Math.max(1, currentPageSolicitados - 1))}
-                                className={currentPageSolicitados === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                              />
-                            </PaginationItem>
-                            
-                            {/* Primeira página */}
-                            {currentPageSolicitados > 3 && (
-                              <>
-                                <PaginationItem>
-                                  <PaginationLink
-                                    onClick={() => setCurrentPageSolicitados(1)}
-                                    className="cursor-pointer"
-                                  >
-                                    1
-                                  </PaginationLink>
-                                </PaginationItem>
-                                {currentPageSolicitados > 4 && (
-                                  <PaginationItem>
-                                    <span className="px-3 py-2 text-sm">...</span>
-                                  </PaginationItem>
-                                )}
-                              </>
-                            )}
-                            
-                            {/* Páginas próximas à atual */}
-                            {Array.from({ length: Math.min(5, totalPagesSolicitados) }, (_, i) => {
-                              const pageNum = Math.max(1, Math.min(totalPagesSolicitados - 4, currentPageSolicitados - 2)) + i;
-                              if (pageNum > totalPagesSolicitados) return null;
-                              
-                              return (
-                                <PaginationItem key={pageNum}>
-                                  <PaginationLink
-                                    onClick={() => setCurrentPageSolicitados(pageNum)}
-                                    isActive={currentPageSolicitados === pageNum}
-                                    className="cursor-pointer"
-                                  >
-                                    {pageNum}
-                                  </PaginationLink>
-                                </PaginationItem>
-                              );
-                            }).filter(Boolean)}
-                            
-                            {/* Última página */}
-                            {currentPageSolicitados < totalPagesSolicitados - 2 && (
-                              <>
-                                {currentPageSolicitados < totalPagesSolicitados - 3 && (
-                                  <PaginationItem>
-                                    <span className="px-3 py-2 text-sm">...</span>
-                                  </PaginationItem>
-                                )}
-                                <PaginationItem>
-                                  <PaginationLink
-                                    onClick={() => setCurrentPageSolicitados(totalPagesSolicitados)}
-                                    className="cursor-pointer"
-                                  >
-                                    {totalPagesSolicitados}
-                                  </PaginationLink>
-                                </PaginationItem>
-                              </>
-                            )}
-                            
-                            <PaginationItem>
-                              <PaginationNext
-                                onClick={() => setCurrentPageSolicitados(Math.min(totalPagesSolicitados, currentPageSolicitados + 1))}
-                                className={currentPageSolicitados === totalPagesSolicitados ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                              />
-                            </PaginationItem>
-                          </PaginationContent>
-                        </Pagination>
-                      </div>
+                  {displayOrdersSolicitados.length > cardsPerColumn && (
+                    <div className="text-center text-sm text-muted-foreground py-4">
+                      +{displayOrdersSolicitados.length - cardsPerColumn} mais pedidos
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Em Andamento (só para admin master) */}
               {isAdminMaster && (
-                <div>
+                <div className="flex flex-col h-full">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="h-1 w-8 bg-blue-500 rounded-full"></div>
                     <h2 className="text-lg font-semibold text-foreground">
@@ -315,31 +229,36 @@ const Home = () => {
                     </Badge>
                   </div>
                   
-                   <div className="space-y-3">
-                     {isLoading ? (
-                       <div className="text-center py-8 text-muted-foreground">
-                         Carregando...
-                       </div>
-                     ) : limitedOrdersAndamento.length > 0 ? (
-                       limitedOrdersAndamento.map((order) => (
-                         <OrderCard 
-                           key={order.id} 
-                           order={order} 
-                           onClick={() => handleOrderClick(order)}
-                         />
-                       ))
-                     ) : (
-                       <div className="text-center py-8 text-muted-foreground">
-                         Nenhum pedido em andamento
-                        </div>
-                      )}
-                   </div>
+                  <div className="space-y-3 flex-1 overflow-y-auto">
+                    {isLoading ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Carregando...
+                      </div>
+                    ) : limitedOrdersAndamento.length > 0 ? (
+                      limitedOrdersAndamento.map((order) => (
+                        <OrderCard 
+                          key={order.id} 
+                          order={order} 
+                          onClick={() => handleOrderClick(order)}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Nenhum pedido em andamento
+                      </div>
+                    )}
+                    {displayOrdersEmAndamento.length > cardsPerColumn && (
+                      <div className="text-center text-sm text-muted-foreground py-4">
+                        +{displayOrdersEmAndamento.length - cardsPerColumn} mais pedidos
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
               {/* Finalizando (só para admin master) */}
               {isAdminMaster && (
-                <div>
+                <div className="flex flex-col h-full">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="h-1 w-8 bg-green-500 rounded-full"></div>
                     <h2 className="text-lg font-semibold text-foreground">
@@ -350,25 +269,30 @@ const Home = () => {
                     </Badge>
                   </div>
                   
-                   <div className="space-y-3">
-                     {isLoading ? (
-                       <div className="text-center py-8 text-muted-foreground">
-                         Carregando...
-                       </div>
-                     ) : limitedOrdersFinalizando.length > 0 ? (
-                       limitedOrdersFinalizando.map((order) => (
-                         <OrderCard 
-                           key={order.id} 
-                           order={order} 
-                           onClick={() => handleOrderClick(order)}
-                         />
-                       ))
-                     ) : (
-                       <div className="text-center py-8 text-muted-foreground">
-                         Nenhum pedido finalizando
-                        </div>
-                      )}
-                   </div>
+                  <div className="space-y-3 flex-1 overflow-y-auto">
+                    {isLoading ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Carregando...
+                      </div>
+                    ) : limitedOrdersFinalizando.length > 0 ? (
+                      limitedOrdersFinalizando.map((order) => (
+                        <OrderCard 
+                          key={order.id} 
+                          order={order} 
+                          onClick={() => handleOrderClick(order)}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Nenhum pedido finalizando
+                      </div>
+                    )}
+                    {displayOrdersFinalizando.length > cardsPerColumn && (
+                      <div className="text-center text-sm text-muted-foreground py-4">
+                        +{displayOrdersFinalizando.length - cardsPerColumn} mais pedidos
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
