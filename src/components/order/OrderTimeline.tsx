@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrderTimeline } from "@/hooks/useOrderTimeline";
-import { Clock, Plus, RefreshCw } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getStatusColor, getStatusLabel } from "@/lib/status-config";
+import { Clock, Plus, RefreshCw, CheckCircle, FileCheck, Truck, Package } from "lucide-react";
 
 interface OrderTimelineProps {
   orderId: string;
@@ -12,32 +14,48 @@ interface OrderTimelineProps {
 
 const OrderTimeline = ({ orderId }: OrderTimelineProps) => {
   const { data: timeline, isLoading } = useOrderTimeline(orderId);
+  const { isSuperAdmin } = usePermissions();
+  const isAdminMaster = isSuperAdmin();
 
   const getStatusInfo = (status: string) => {
     const statusConfig = {
-      pending: {
-        label: "Pendente",
-        color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      pedido_solicitado: {
+        label: getStatusLabel(status, isAdminMaster),
+        color: getStatusColor(status),
         icon: Clock
       },
-      producao: {
-        label: "Em Produção",
-        color: "bg-blue-100 text-blue-800 border-blue-200",
-        icon: RefreshCw
+      baixado_verificado: {
+        label: getStatusLabel(status, isAdminMaster),
+        color: getStatusColor(status),
+        icon: CheckCircle
       },
-      pronto: {
-        label: "Pronto",
-        color: "bg-green-100 text-green-800 border-green-200",
-        icon: Plus
+      projeto_realizado: {
+        label: getStatusLabel(status, isAdminMaster),
+        color: getStatusColor(status),
+        icon: FileCheck
+      },
+      projeto_modelo_realizado: {
+        label: getStatusLabel(status, isAdminMaster),
+        color: getStatusColor(status),
+        icon: Package
+      },
+      aguardando_entrega: {
+        label: getStatusLabel(status, isAdminMaster),
+        color: getStatusColor(status),
+        icon: Truck
       },
       entregue: {
-        label: "Entregue",
-        color: "bg-gray-100 text-gray-800 border-gray-200",
-        icon: Plus
+        label: getStatusLabel(status, isAdminMaster),
+        color: getStatusColor(status),
+        icon: CheckCircle
       }
     };
 
-    return statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return statusConfig[status as keyof typeof statusConfig] || {
+      label: getStatusLabel(status, isAdminMaster),
+      color: getStatusColor(status),
+      icon: Clock
+    };
   };
 
   const getActionLabel = (action: string) => {
