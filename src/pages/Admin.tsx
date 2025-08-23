@@ -561,7 +561,7 @@ const Admin = () => {
       
       <div className="ml-48 flex flex-col">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-40">
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-30">          
           <div className="flex-1 flex items-center justify-end px-6">
             <div className="flex items-center gap-4">
               <NotificationDropdown />
