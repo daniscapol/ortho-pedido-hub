@@ -252,13 +252,11 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
         }
       }
 
-      // Para busca por texto, incluimos ID, dentist e nome do paciente
+      // Para busca por texto, primeiro tentamos nos campos diretos
       if (filters?.searchTerm) {
         const term = filters.searchTerm.toLowerCase()
-        console.log('🔍 Termo de busca:', term)
-        console.log('🔍 Query antes do OR:', query)
-        query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%,patients.nome_completo.ilike.%${term}%`)
-        console.log('🔍 Query após OR:', query)
+        // Busca apenas nos campos diretos da tabela orders (PostgREST não suporta OR em relacionamentos)
+        query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%`)
       }
 
       const { data, error, count } = await query
@@ -267,10 +265,91 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
 
       if (error) throw error
       
+      let orders = data as Order[]
+      let totalCount = count || 0
+
+      // Se há termo de busca, fazer uma segunda busca por nome do paciente e combinar resultados
+      if (filters?.searchTerm) {
+        const term = filters.searchTerm.toLowerCase()
+        
+        try {
+          // Segunda query para buscar por nome do paciente
+          let patientQuery = supabase
+            .from('orders')
+            .select(`
+              *,
+              patients!inner (
+                nome_completo,
+                cpf,
+                telefone_contato,
+                email_contato
+              ),
+              order_images (
+                id,
+                image_url,
+                annotations
+              )
+            `, { count: 'exact' })
+            .ilike('patients.nome_completo', `%${term}%`)
+
+          // Aplicar os mesmos filtros básicos
+          if (filters?.statusFilter && filters.statusFilter !== 'all') {
+            patientQuery = patientQuery.eq('status', filters.statusFilter)
+          }
+
+          if (filters?.priorityFilter && filters.priorityFilter !== 'all') {
+            patientQuery = patientQuery.eq('priority', filters.priorityFilter)
+          }
+
+          if (filters?.dentistFilter && filters.dentistFilter !== 'all') {
+            patientQuery = patientQuery.eq('dentist', filters.dentistFilter)
+          }
+
+          if (filters?.dateFilter && filters.dateFilter !== 'all') {
+            const now = new Date()
+            let startDate: Date
+
+            switch (filters.dateFilter) {
+              case 'today':
+                startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+                patientQuery = patientQuery.gte('created_at', startDate.toISOString())
+                break
+              case 'week':
+                startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+                patientQuery = patientQuery.gte('created_at', startDate.toISOString())
+                break
+              case 'month':
+                startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+                patientQuery = patientQuery.gte('created_at', startDate.toISOString())
+                break
+            }
+          }
+
+          const { data: patientOrders, count: patientCount } = await patientQuery
+            .range(start, end)
+            .order('created_at', { ascending: false })
+
+          // Combinar resultados removendo duplicatas
+          const combinedOrders = [...orders, ...(patientOrders || [])];
+          const uniqueOrders = combinedOrders.filter((order, index, self) => 
+            index === self.findIndex((o) => o.id === order.id)
+          );
+          
+          // Reordenar por data de criação
+          uniqueOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          
+          orders = uniqueOrders.slice(0, limit);
+          totalCount = Math.max(totalCount, (patientCount || 0));
+        } catch (patientError) {
+          // Se a busca por paciente falhar, usar apenas os resultados diretos
+          console.error('Erro na busca por paciente:', patientError);
+        }
+      }
+      
       return { 
-        orders: data as Order[], 
-        totalCount: count || 0,
-        totalPages: Math.ceil((count || 0) / limit)
+        orders, 
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit)
       }
     },
   })
