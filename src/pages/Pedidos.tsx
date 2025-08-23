@@ -629,7 +629,12 @@ const Pedidos = () => {
                                   />
                                 </TableCell>
                                 <TableCell className="font-mono text-sm">
-                                  {order.id.slice(0, 8)}...
+                                  <button 
+                                    className="text-primary hover:text-primary/80 underline cursor-pointer"
+                                    onClick={() => navigate(`/pedido/${order.id}`)}
+                                  >
+                                    {order.id.slice(0, 8)}...
+                                  </button>
                                 </TableCell>
                                 <TableCell>
                                   {format(new Date(order.created_at), 'dd/MM/yy', { locale: ptBR })}
