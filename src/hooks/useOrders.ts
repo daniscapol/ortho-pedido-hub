@@ -255,8 +255,10 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
       // Para busca por texto, primeiro tentamos nos campos diretos
       if (filters?.searchTerm) {
         const term = filters.searchTerm.toLowerCase()
+        console.log('🔍 Termo de busca:', term)
         // Busca apenas nos campos diretos da tabela orders (PostgREST não suporta OR em relacionamentos)
         query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%`)
+        console.log('🔍 Query direta criada')
       }
 
       const { data, error, count } = await query
@@ -271,6 +273,7 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
       // Se há termo de busca, fazer uma segunda busca por nome do paciente e combinar resultados
       if (filters?.searchTerm) {
         const term = filters.searchTerm.toLowerCase()
+        console.log('🔍 Fazendo busca por paciente com termo:', term)
         
         try {
           // Segunda query para buscar por nome do paciente
@@ -292,17 +295,22 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
             `, { count: 'exact' })
             .ilike('patients.nome_completo', `%${term}%`)
 
+          console.log('🔍 Query de paciente criada')
+
           // Aplicar os mesmos filtros básicos
           if (filters?.statusFilter && filters.statusFilter !== 'all') {
             patientQuery = patientQuery.eq('status', filters.statusFilter)
+            console.log('🔍 Filtro de status aplicado:', filters.statusFilter)
           }
 
           if (filters?.priorityFilter && filters.priorityFilter !== 'all') {
             patientQuery = patientQuery.eq('priority', filters.priorityFilter)
+            console.log('🔍 Filtro de prioridade aplicado:', filters.priorityFilter)
           }
 
           if (filters?.dentistFilter && filters.dentistFilter !== 'all') {
             patientQuery = patientQuery.eq('dentist', filters.dentistFilter)
+            console.log('🔍 Filtro de dentista aplicado:', filters.dentistFilter)
           }
 
           if (filters?.dateFilter && filters.dateFilter !== 'all') {
@@ -323,11 +331,17 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
                 patientQuery = patientQuery.gte('created_at', startDate.toISOString())
                 break
             }
+            console.log('🔍 Filtro de data aplicado:', filters.dateFilter)
           }
 
+          console.log('🔍 Executando query de paciente...')
           const { data: patientOrders, count: patientCount } = await patientQuery
             .range(start, end)
             .order('created_at', { ascending: false })
+
+          console.log('🔍 Resultados da busca por paciente:', patientOrders?.length, 'pedidos')
+          console.log('🔍 Count de paciente:', patientCount)
+          console.log('🔍 Resultados diretos:', orders.length, 'pedidos')
 
           // Combinar resultados removendo duplicatas
           const combinedOrders = [...orders, ...(patientOrders || [])];
@@ -335,14 +349,18 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
             index === self.findIndex((o) => o.id === order.id)
           );
           
+          console.log('🔍 Pedidos combinados únicos:', uniqueOrders.length)
+          
           // Reordenar por data de criação
           uniqueOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
           
           orders = uniqueOrders.slice(0, limit);
           totalCount = Math.max(totalCount, (patientCount || 0));
+          
+          console.log('🔍 Total final:', orders.length, 'pedidos')
         } catch (patientError) {
           // Se a busca por paciente falhar, usar apenas os resultados diretos
-          console.error('Erro na busca por paciente:', patientError);
+          console.error('❌ Erro na busca por paciente:', patientError);
         }
       }
       
