@@ -795,32 +795,26 @@ const Admin = () => {
               ) : (
                 <Table>
                   <TableHeader>
-                     <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Verificação</TableHead>
-                        <TableHead>Matriz</TableHead>
-                        <TableHead>Clínica</TableHead>
-                        <TableHead>Função</TableHead>
-                        <TableHead>Criado em</TableHead>
-                        <TableHead>Ações</TableHead>
-                      </TableRow>
+                      <TableRow>
+                         <TableHead>Nome</TableHead>
+                         <TableHead>Email</TableHead>
+                         <TableHead>Matriz</TableHead>
+                         <TableHead>Clínica</TableHead>
+                         <TableHead>Função</TableHead>
+                         <TableHead>Criado em</TableHead>
+                         <TableHead>Ações</TableHead>
+                       </TableRow>
                    </TableHeader>
                    <TableBody>
                      {users?.map((user) => (
                        <TableRow key={user.id}>
-                         <TableCell className="font-medium">
-                           {user.name || 'Nome não informado'}
-                         </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {user.email || 'Email não informado'}
+                          <TableCell className="font-medium">
+                            {user.name || 'Nome não informado'}
                           </TableCell>
-                          <TableCell>
-                            <Badge variant={user.email_verified ? 'default' : 'secondary'}>
-                              {user.email_verified ? 'Verificado' : 'Não verificado'}
-                            </Badge>
-                          </TableCell>
-                           <TableCell>
+                           <TableCell className="text-sm text-muted-foreground">
+                             {user.email || 'Email não informado'}
+                           </TableCell>
+                            <TableCell>
                              <Select
                                value={user.filial_id ?? 'none'}
                                onValueChange={(val: string) =>
