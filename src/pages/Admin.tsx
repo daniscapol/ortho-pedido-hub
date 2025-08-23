@@ -639,30 +639,6 @@ const Admin = () => {
         {/* Navegação por Abas */}
         <div className="flex gap-2 mb-6 flex-wrap">
           <Button 
-            variant={activeTab === "overview" ? "default" : "outline"}
-            onClick={() => setActiveTab("overview")}
-            className="flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            Visão Geral
-          </Button>
-          <Button 
-            variant={activeTab === "users" ? "default" : "outline"}
-            onClick={() => setActiveTab("users")}
-            className="flex items-center gap-2"
-          >
-            <Users className="h-4 w-4" />
-            Usuários
-          </Button>
-          <Button 
-            variant={activeTab === "analytics" ? "default" : "outline"}
-            onClick={() => setActiveTab("analytics")}
-            className="flex items-center gap-2"
-          >
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </Button>
-          <Button 
             variant={activeTab === "products" ? "default" : "outline"}
             onClick={() => setActiveTab("products")}
             className="flex items-center gap-2"
@@ -685,6 +661,30 @@ const Admin = () => {
           >
             <Settings className="h-4 w-4" />
             Materiais
+          </Button>
+          <Button 
+            variant={activeTab === "overview" ? "default" : "outline"}
+            onClick={() => setActiveTab("overview")}
+            className="flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Visão Geral
+          </Button>
+          <Button 
+            variant={activeTab === "users" ? "default" : "outline"}
+            onClick={() => setActiveTab("users")}
+            className="flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Usuários
+          </Button>
+          <Button 
+            variant={activeTab === "analytics" ? "default" : "outline"}
+            onClick={() => setActiveTab("analytics")}
+            className="flex items-center gap-2"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Analytics
           </Button>
           <Button 
             variant={activeTab === "cores" ? "default" : "outline"}
