@@ -3,12 +3,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getStatusColor, getStatusLabel } from "@/lib/status-config";
 import { format, addDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 
 const AgendaSidebar = () => {
   const { data: orders } = useOrders();
+  const { isSuperAdmin } = usePermissions();
+  const isAdminMaster = isSuperAdmin();
   const [currentWeek, setCurrentWeek] = useState(new Date());
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
@@ -20,36 +24,6 @@ const AgendaSidebar = () => {
       const orderDate = new Date(order.deadline);
       return format(orderDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
     });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-warning/10 text-warning border-warning/20";
-      case "producao":
-        return "bg-primary/10 text-primary border-primary/20";
-      case "pronto":
-        return "bg-success/10 text-success border-success/20";
-      case "entregue":
-        return "bg-muted/10 text-muted-foreground border-muted/20";
-      default:
-        return "bg-secondary/10 text-secondary-foreground border-secondary/20";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "Pendente";
-      case "producao":
-        return "Em Produção";
-      case "pronto":
-        return "Pronto";
-      case "entregue":
-        return "Entregue";
-      default:
-        return status;
-    }
   };
 
   return (
@@ -114,7 +88,7 @@ const AgendaSidebar = () => {
                         variant="outline" 
                         className={`text-xs ${getStatusColor(order.status)}`}
                       >
-                        {getStatusLabel(order.status)}
+                        {getStatusLabel(order.status, isAdminMaster)}
                       </Badge>
                     </div>
                   ))}

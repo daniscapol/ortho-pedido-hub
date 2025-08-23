@@ -236,7 +236,7 @@ const NewOrderForm = () => {
         observations: formData.observations,
         delivery_address: formData.deliveryAddress,
         selected_teeth: [], // Vazio, pois cada item tem seus próprios dentes
-        status: "pending",
+        status: "pedido_solicitado", // Novo status inicial
         ...(useCustomUserId && { user_id: userId })
       };
 

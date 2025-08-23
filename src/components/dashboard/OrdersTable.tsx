@@ -4,35 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getStatusColor, getStatusLabel, canChangeStatus } from "@/lib/status-config";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const OrderRow = ({ order }: { order: any }) => {
   const { data: orderItems = [] } = useOrderItems(order.id);
   const updateOrderStatus = useUpdateOrderStatus();
+  const { isSuperAdmin } = usePermissions();
+  const isAdminMaster = isSuperAdmin();
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
+    if (!canChangeStatus(isAdminMaster)) return;
     updateOrderStatus.mutate({ id: orderId, status: newStatus });
   };
 
   const getStatusBadge = (status: string) => {
-    const colors = {
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      producao: "bg-blue-100 text-blue-800 border-blue-200",
-      pronto: "bg-green-100 text-green-800 border-green-200", 
-      entregue: "bg-gray-100 text-gray-800 border-gray-200"
-    };
-
-    const labels = {
-      pending: "Pendente",
-      producao: "Produção",
-      pronto: "Pronto",
-      entregue: "Entregue"
-    };
-
     return (
-      <Badge className={colors[status as keyof typeof colors] || colors.pending}>
-        {labels[status as keyof typeof labels] || status}
+      <Badge className={getStatusColor(status)}>
+        {getStatusLabel(status, isAdminMaster)}
       </Badge>
     );
   };
@@ -72,18 +63,21 @@ const OrderRow = ({ order }: { order: any }) => {
       </td>
       <td className="py-3 px-2">
         <div className="flex gap-2">
-          {order.status !== 'entregue' && (
+          {canChangeStatus(isAdminMaster) && order.status !== 'entregue' && (
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => {
                 const nextStatus = {
-                  pending: 'producao',
-                  producao: 'pronto',
-                  pronto: 'entregue'
+                  pedido_solicitado: 'baixado_verificado',
+                  baixado_verificado: 'projeto_realizado',
+                  projeto_realizado: 'projeto_modelo_realizado',
+                  projeto_modelo_realizado: 'aguardando_entrega',
+                  aguardando_entrega: 'entregue'
                 }[order.status] || order.status;
                 handleStatusChange(order.id, nextStatus);
               }}
+              disabled={updateOrderStatus.isPending}
             >
               Avançar
             </Button>

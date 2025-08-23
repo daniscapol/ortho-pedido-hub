@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, User, Package, MapPin } from "lucide-react";
 import { Order } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getStatusColor, getStatusLabel } from "@/lib/status-config";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -13,36 +15,8 @@ interface OrderCardProps {
 
 const OrderCard = ({ order, onClick }: OrderCardProps) => {
   const { data: orderItems = [] } = useOrderItems(order.id);
-  
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-warning text-warning-foreground";
-      case "producao":
-        return "bg-primary text-primary-foreground";
-      case "pronto":
-        return "bg-success text-success-foreground";
-      case "entregue":
-        return "bg-muted text-muted-foreground";
-      default:
-        return "bg-secondary text-secondary-foreground";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "Pendente";
-      case "producao":
-        return "Em Produção";
-      case "pronto":
-        return "Pronto";
-      case "entregue":
-        return "Entregue";
-      default:
-        return status;
-    }
-  };
+  const { isSuperAdmin } = usePermissions();
+  const isAdminMaster = isSuperAdmin();
 
   return (
     <Card className="mb-4 hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
@@ -55,7 +29,7 @@ const OrderCard = ({ order, onClick }: OrderCardProps) => {
             <p className="text-sm text-muted-foreground">#{order.id.slice(0, 8)}</p>
           </div>
           <Badge className={`text-xs font-medium ${getStatusColor(order.status)}`}>
-            {getStatusLabel(order.status)}
+            {getStatusLabel(order.status, isAdminMaster)}
           </Badge>
         </div>
 

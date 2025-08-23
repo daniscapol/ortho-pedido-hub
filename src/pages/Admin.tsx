@@ -28,6 +28,8 @@ import { ProductsManager } from "@/components/admin/ProductsManager";
 import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
 import { MateriaisManager } from "@/components/admin/MateriaisManager";
 import { CoresManager } from "@/components/admin/CoresManager";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getStatusOptions, getStatusColor, getStatusLabel, canChangeStatus } from "@/lib/status-config";
 import { CompatibilidadeManager } from "@/components/admin/CompatibilidadeManager";
 import { useMatrizes } from "@/hooks/useMatrizes";
 import { useClinicas } from "@/hooks/useClinicas";
@@ -544,27 +546,14 @@ const Admin = () => {
   };
 
   const handleOrderStatusChange = (orderId: string, newStatus: string) => {
+    if (!canChangeStatus(true)) return; // Only admin master can change status in Admin page
     updateOrderStatus.mutate({ id: orderId, status: newStatus });
   };
 
   const getStatusBadge = (status: string) => {
-    const colors = {
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      producao: "bg-blue-100 text-blue-800 border-blue-200",
-      pronto: "bg-green-100 text-green-800 border-green-200", 
-      entregue: "bg-gray-100 text-gray-800 border-gray-200"
-    };
-
-    const labels = {
-      pending: "Pendente",
-      producao: "Produção",
-      pronto: "Pronto",
-      entregue: "Entregue"
-    };
-
     return (
-      <Badge className={colors[status as keyof typeof colors] || colors.pending}>
-        {labels[status as keyof typeof labels] || status}
+      <Badge className={getStatusColor(status)}>
+        {getStatusLabel(status, true)} {/* Admin master always sees full labels */}
       </Badge>
     );
   };
@@ -1235,9 +1224,11 @@ const Admin = () => {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="pending">Pendente</SelectItem>
-                                <SelectItem value="producao">Produção</SelectItem>
-                                <SelectItem value="pronto">Pronto</SelectItem>
+                                <SelectItem value="pedido_solicitado">Pedido Solicitado</SelectItem>
+                                <SelectItem value="baixado_verificado">Baixado e verificado</SelectItem>
+                                <SelectItem value="projeto_realizado">Projeto Realizado</SelectItem>
+                                <SelectItem value="projeto_modelo_realizado">Projeto do modelo Realizado</SelectItem>
+                                <SelectItem value="aguardando_entrega">Aguardando entrega</SelectItem>
                                 <SelectItem value="entregue">Entregue</SelectItem>
                               </SelectContent>
                             </Select>

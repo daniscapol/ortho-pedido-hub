@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Order } from "@/hooks/useOrders";
 import { useDentistProfile } from "@/hooks/useDentistProfile";
 import { useOrderItems } from "@/hooks/useOrderItems";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getStatusColor, getStatusLabel } from "@/lib/status-config";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { X, MapPin } from "lucide-react";
@@ -19,38 +21,10 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
   const navigate = useNavigate();
   const { data: orderItems = [] } = useOrderItems(order?.id);
   const { data: dentistProfile } = useDentistProfile(order?.user_id);
+  const { isSuperAdmin } = usePermissions();
+  const isAdminMaster = isSuperAdmin();
   
   if (!order) return null;
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-warning text-warning-foreground";
-      case "producao":
-        return "bg-primary text-primary-foreground";
-      case "pronto":
-        return "bg-success text-success-foreground";
-      case "entregue":
-        return "bg-muted text-muted-foreground";
-      default:
-        return "bg-secondary text-secondary-foreground";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "Pendente";
-      case "producao":
-        return "Em Produção";
-      case "pronto":
-        return "Pronto";
-      case "entregue":
-        return "Entregue";
-      default:
-        return status;
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -64,7 +38,7 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
               Pedido: #{order.id.slice(0, 8)}
             </Badge>
             <Badge className={getStatusColor(order.status)}>
-              {getStatusLabel(order.status)}
+              {getStatusLabel(order.status, isAdminMaster)}
             </Badge>
           </div>
         </DialogHeader>
