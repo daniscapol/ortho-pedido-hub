@@ -270,117 +270,22 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
       let orders = data as Order[]
       let totalCount = count || 0
 
-      console.log('🔍 Primeira busca (diretos):', orders.length, 'pedidos encontrados')
-      
-      // Debug: mostrar alguns pedidos para entender a estrutura
-      if (orders.length > 0) {
-        console.log('🔍 Exemplo de pedido encontrado:', {
-          id: orders[0].id,
-          patients: orders[0].patients,
-          patient_name: orders[0].patients?.nome_completo
-        });
-      }
-
-      // Se há termo de busca, SEMPRE fazer busca por paciente também
-      if (filters?.searchTerm) {
-        const term = filters.searchTerm.toLowerCase()
-        console.log('🔍 Fazendo busca por paciente com termo:', term)
+      // Aplicar busca no frontend (igual à página Pedidos que funciona)
+      if (filters?.searchTerm && filters.searchTerm.trim()) {
+        const searchQuery = filters.searchTerm.trim().toLowerCase()
+        console.log('🔍 Aplicando busca frontend para:', searchQuery)
         
-        try {
-          // Segunda query para buscar por nome do paciente
-          let patientQuery = supabase
-            .from('orders')
-            .select(`
-              *,
-              patients!inner (
-                nome_completo,
-                cpf,
-                telefone_contato,
-                email_contato
-              ),
-              order_images (
-                id,
-                image_url,
-                annotations
-              )
-            `, { count: 'exact' })
-            .ilike('patients.nome_completo', `%${term}%`)
-
-          console.log('🔍 Query de paciente criada para termo:', term)
-
-          // Aplicar os mesmos filtros básicos da primeira query
-          if (filters?.statusFilter && filters.statusFilter !== 'all') {
-            patientQuery = patientQuery.eq('status', filters.statusFilter)
-            console.log('🔍 Filtro status aplicado:', filters.statusFilter)
-          }
-
-          if (filters?.priorityFilter && filters.priorityFilter !== 'all') {
-            patientQuery = patientQuery.eq('priority', filters.priorityFilter)
-            console.log('🔍 Filtro prioridade aplicado:', filters.priorityFilter)
-          }
-
-          if (filters?.dentistFilter && filters.dentistFilter !== 'all') {
-            patientQuery = patientQuery.eq('dentist', filters.dentistFilter)
-            console.log('🔍 Filtro dentista aplicado:', filters.dentistFilter)
-          }
-
-          if (filters?.dateFilter && filters.dateFilter !== 'all') {
-            const now = new Date()
-            let startDate: Date
-
-            switch (filters.dateFilter) {
-              case 'today':
-                startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-                patientQuery = patientQuery.gte('created_at', startDate.toISOString())
-                break
-              case 'week':
-                startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-                patientQuery = patientQuery.gte('created_at', startDate.toISOString())
-                break
-              case 'month':
-                startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-                patientQuery = patientQuery.gte('created_at', startDate.toISOString())
-                break
-            }
-            console.log('🔍 Filtro data aplicado:', filters.dateFilter)
-          }
-
-          console.log('🔍 Executando busca por paciente...')
-          const { data: patientOrders, count: patientCount, error: patientError } = await patientQuery
-            .order('created_at', { ascending: false })
-
-          if (patientError) {
-            console.error('❌ Erro na query de paciente:', patientError)
-            throw patientError
-          }
-
-          console.log('🔍 Segunda busca (pacientes):', patientOrders?.length || 0, 'pedidos encontrados')
-          console.log('🔍 Count pacientes:', patientCount)
-
-          // Combinar resultados removendo duplicatas pelo ID
-          const allOrders = [...orders, ...(patientOrders || [])];
-          const uniqueOrdersMap = new Map();
-          
-          allOrders.forEach(order => {
-            uniqueOrdersMap.set(order.id, order);
-          });
-          
-          const uniqueOrders = Array.from(uniqueOrdersMap.values());
-          
-          console.log('🔍 Total único após combinação:', uniqueOrders.length, 'pedidos')
-          
-          // Reordenar por data de criação
-          uniqueOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-          
-          // Aplicar paginação ao resultado combinado
-          orders = uniqueOrders.slice(start, start + limit);
-          totalCount = uniqueOrders.length; // Total real dos resultados combinados
-          
-          console.log('🔍 Resultado final paginado:', orders.length, 'pedidos (de', totalCount, 'total)')
-        } catch (patientError) {
-          console.error('❌ Erro na busca por paciente:', patientError);
-          // Em caso de erro, manter apenas os resultados diretos
-        }
+        orders = orders.filter(order => 
+          order.patients?.nome_completo?.toLowerCase().includes(searchQuery) ||
+          order.dentist?.toLowerCase().includes(searchQuery) ||
+          order.prosthesis_type?.toLowerCase().includes(searchQuery) ||
+          order.id?.toLowerCase().includes(searchQuery)
+        );
+        
+        console.log('🔍 Resultados após busca frontend:', orders.length, 'de', data?.length || 0)
+        
+        // Atualizar contagem total baseada nos resultados filtrados
+        totalCount = orders.length;
       }
       
       return { 
