@@ -25,6 +25,7 @@ import { Order } from "@/hooks/useOrders";
 import { format, subDays, subWeeks, subMonths, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { DateRange } from "react-day-picker";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -210,35 +211,132 @@ const Pedidos = () => {
     };
   }, [filteredOrders, isAdminMaster]);
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     if (!filteredOrders.length) return;
 
-    const excelData = filteredOrders.map(order => ({
-      'ID do Pedido': order.id,
-      'Data de Criação': format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
-      'Paciente': order.patients?.nome_completo || 'N/A',
-      'CPF do Paciente': order.patients?.cpf || 'N/A',
-      'Dentista': order.dentist,
-      'Tipo de Prótese': order.prosthesis_type,
-      'Material': order.material || 'N/A',
-      'Cor': order.color || 'N/A',
-      'Status': order.status,
-      'Prioridade': order.priority,
-      'Prazo': format(new Date(order.deadline), 'dd/MM/yyyy', { locale: ptBR }),
-      'Observações': order.observations || 'N/A'
+    // Aba 1: Resumo dos Pedidos
+    const ordersData = filteredOrders.map(order => ({
+      "ID do Pedido": order.id,
+      "Data de Criação": format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+      "Paciente": order.patients?.nome_completo || "N/A",
+      "CPF do Paciente": order.patients?.cpf || "N/A",
+      "Dentista": order.dentist,
+      "Tipo de Prótese": order.prosthesis_type,
+      "Material": order.material || "N/A",
+      "Cor": order.color || "N/A",
+      "Status": getStatusLabel(order.status, isAdminMaster),
+      "Prioridade": order.priority,
+      "Prazo": format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR }),
+      "Observações": order.observations || "N/A"
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Pedidos');
+    // Aba 2: Pedidos com Items Detalhados
+    const detailedData = [];
+    
+    for (const order of filteredOrders) {
+      try {
+        // Buscar items do pedido
+        const { data: orderItems } = await supabase
+          .from("order_items")
+          .select("*")
+          .eq("order_id", order.id);
 
-    const colWidths = Object.keys(excelData[0]).map(key => ({
+        if (orderItems && orderItems.length > 0) {
+          // Para cada item, criar uma linha
+          orderItems.forEach((item, index) => {
+            detailedData.push({
+              "ID do Pedido": order.id,
+              "Data de Criação": format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+              "Paciente": order.patients?.nome_completo || "N/A",
+              "CPF do Paciente": order.patients?.cpf || "N/A",
+              "Dentista": order.dentist,
+              "Status": getStatusLabel(order.status, isAdminMaster),
+              "Prioridade": order.priority,
+              "Prazo": format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR }),
+              "Item #": index + 1,
+              "Nome do Produto": item.product_name,
+              "Tipo de Prótese": item.prosthesis_type,
+              "Material do Item": item.material || "N/A",
+              "Cor do Item": item.color || "N/A",
+              "Quantidade": item.quantity,
+              "Dentes Selecionados": item.selected_teeth?.join(", ") || "N/A",
+              "Observações do Item": item.observations || "N/A",
+              "Observações Gerais": order.observations || "N/A"
+            });
+          });
+        } else {
+          // Se não tem items, criar linha básica do pedido
+          detailedData.push({
+            "ID do Pedido": order.id,
+            "Data de Criação": format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+            "Paciente": order.patients?.nome_completo || "N/A",
+            "CPF do Paciente": order.patients?.cpf || "N/A",
+            "Dentista": order.dentist,
+            "Status": getStatusLabel(order.status, isAdminMaster),
+            "Prioridade": order.priority,
+            "Prazo": format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR }),
+            "Item #": "N/A",
+            "Nome do Produto": order.prosthesis_type,
+            "Tipo de Prótese": order.prosthesis_type,
+            "Material do Item": order.material || "N/A",
+            "Cor do Item": order.color || "N/A",
+            "Quantidade": 1,
+            "Dentes Selecionados": order.selected_teeth?.join(", ") || "N/A",
+            "Observações do Item": "N/A",
+            "Observações Gerais": order.observations || "N/A"
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao buscar items do pedido:", error);
+        // Em caso de erro, adicionar linha básica
+        detailedData.push({
+          "ID do Pedido": order.id,
+          "Data de Criação": format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+          "Paciente": order.patients?.nome_completo || "N/A",
+          "CPF do Paciente": order.patients?.cpf || "N/A",
+          "Dentista": order.dentist,
+          "Status": getStatusLabel(order.status, isAdminMaster),
+          "Prioridade": order.priority,
+          "Prazo": format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR }),
+          "Item #": "Erro",
+          "Nome do Produto": order.prosthesis_type,
+          "Tipo de Prótese": order.prosthesis_type,
+          "Material do Item": order.material || "N/A",
+          "Cor do Item": order.color || "N/A",
+          "Quantidade": 1,
+          "Dentes Selecionados": order.selected_teeth?.join(", ") || "N/A",
+          "Observações do Item": "Erro ao carregar items",
+          "Observações Gerais": order.observations || "N/A"
+        });
+      }
+    }
+
+    // Criar workbook com duas abas
+    const workbook = XLSX.utils.book_new();
+
+    // Aba 1: Resumo dos Pedidos
+    const ordersWorksheet = XLSX.utils.json_to_sheet(ordersData);
+    const ordersColWidths = Object.keys(ordersData[0]).map(key => ({
       wch: Math.max(key.length, 15)
     }));
-    worksheet['!cols'] = colWidths;
+    ordersWorksheet["!cols"] = ordersColWidths;
+    XLSX.utils.book_append_sheet(workbook, ordersWorksheet, "Resumo dos Pedidos");
 
-    const fileName = `pedidos_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
+    // Aba 2: Pedidos Detalhados
+    const detailedWorksheet = XLSX.utils.json_to_sheet(detailedData);
+    const detailedColWidths = Object.keys(detailedData[0]).map(key => ({
+      wch: Math.max(key.length, 15)
+    }));
+    detailedWorksheet["!cols"] = detailedColWidths;
+    XLSX.utils.book_append_sheet(workbook, detailedWorksheet, "Pedidos com Items");
+
+    const fileName = `pedidos_completo_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
     XLSX.writeFile(workbook, fileName);
+
+    toast({
+      title: "Exportação concluída",
+      description: "Arquivo Excel gerado com duas abas: Resumo dos Pedidos e Pedidos com Items",
+    });
   };
 
   return (
