@@ -5,9 +5,9 @@ import { useToast } from '@/hooks/use-toast'
 export interface Patient {
   id: string
   nome_completo: string
-  cpf: string
-  telefone_contato: string
-  email_contato: string
+  cpf?: string
+  telefone_contato?: string
+  email_contato?: string
   dentist_id?: string
   clinica_id?: string
   matriz_id?: string
@@ -106,24 +106,26 @@ export const useCreatePatient = () => {
         mutable.cpf = digits.slice(0, 11)
       }
 
-      // Preflight: check duplicate CPF (friendly error)
-      const { data: existingByCpf } = await supabase
-        .from('patients')
-        .select('id')
-        .eq('cpf', mutable.cpf)
-        .limit(1)
-        .maybeSingle()
-      if (existingByCpf) {
-        const e = new Error('CPF já cadastrado para algum paciente visível a você') as any
-        e.code = '23505'
-        throw e
+      // Preflight: check duplicate CPF (friendly error) - only if CPF is provided
+      if (mutable.cpf) {
+        const { data: existingByCpf } = await supabase
+          .from('patients')
+          .select('id')
+          .eq('cpf', mutable.cpf)
+          .limit(1)
+          .maybeSingle()
+        if (existingByCpf) {
+          const e = new Error('CPF já cadastrado para algum paciente visível a você') as any
+          e.code = '23505'
+          throw e
+        }
       }
 
       const insertPayload = {
         nome_completo: mutable.nome_completo,
-        cpf: mutable.cpf,
-        telefone_contato: mutable.telefone_contato,
-        email_contato: mutable.email_contato,
+        cpf: mutable.cpf || null,
+        telefone_contato: mutable.telefone_contato || null,
+        email_contato: mutable.email_contato || null,
         observacoes: mutable.observacoes ?? null,
         ativo: mutable.ativo,
         dentist_id: mutable.dentist_id,
@@ -232,9 +234,9 @@ export const useUpdatePatient = () => {
 
       const updatePayload = {
         nome_completo: mutable.nome_completo,
-        cpf: mutable.cpf,
-        telefone_contato: mutable.telefone_contato,
-        email_contato: mutable.email_contato,
+        cpf: mutable.cpf || null,
+        telefone_contato: mutable.telefone_contato || null,
+        email_contato: mutable.email_contato || null,
         observacoes: mutable.observacoes ?? null,
         ativo: typeof mutable.ativo === 'undefined' ? true : mutable.ativo,
         dentist_id: mutable.dentist_id,

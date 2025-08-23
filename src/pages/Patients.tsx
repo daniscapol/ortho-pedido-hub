@@ -50,7 +50,7 @@ const Patients = () => {
     await signOut()
   }
 
-  const handleCreatePatient = async (data: { nome_completo: string; cpf: string; telefone_contato: string; email_contato: string; observacoes?: string; ativo: boolean }) => {
+  const handleCreatePatient = async (data: { nome_completo: string; cpf?: string; telefone_contato?: string; email_contato?: string; observacoes?: string; ativo: boolean }) => {
     try {
       await createPatient.mutateAsync({
         ...data,
@@ -192,9 +192,9 @@ const Patients = () => {
                                </button>
                              </div>
                            </TableCell>
-                           <TableCell>{patient.cpf}</TableCell>
-                           <TableCell>{patient.telefone_contato}</TableCell>
-                           <TableCell>{patient.email_contato}</TableCell>
+                           <TableCell>{patient.cpf || 'Não informado'}</TableCell>
+                           <TableCell>{patient.telefone_contato || 'Não informado'}</TableCell>
+                           <TableCell>{patient.email_contato || 'Não informado'}</TableCell>
                            <TableCell>
                              {patient.dentist ? (
                                <div className="flex items-center gap-2">
@@ -268,18 +268,18 @@ const Patients = () => {
                             <p className="text-sm text-muted-foreground">Nome</p>
                             <p className="font-medium">{selectedPatientHistory.nome_completo}</p>
                           </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">CPF</p>
-                            <p className="font-medium">{selectedPatientHistory.cpf}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Telefone</p>
-                            <p className="font-medium">{selectedPatientHistory.telefone_contato}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Email</p>
-                            <p className="font-medium">{selectedPatientHistory.email_contato}</p>
-                          </div>
+                           <div>
+                             <p className="text-sm text-muted-foreground">CPF</p>
+                             <p className="font-medium">{selectedPatientHistory.cpf || 'Não informado'}</p>
+                           </div>
+                           <div>
+                             <p className="text-sm text-muted-foreground">Telefone</p>
+                             <p className="font-medium">{selectedPatientHistory.telefone_contato || 'Não informado'}</p>
+                           </div>
+                           <div>
+                             <p className="text-sm text-muted-foreground">Email</p>
+                             <p className="font-medium">{selectedPatientHistory.email_contato || 'Não informado'}</p>
+                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Dentista Responsável</p>
                             <p className="font-medium">

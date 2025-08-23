@@ -25,7 +25,7 @@ const PatientSearch = ({ onPatientSelect, autoSelectAfterCreate = true }: { onPa
     return patient.dentist_id === profile?.id;
   });
 
-  const handleCreatePatient = async (data: { nome_completo: string; cpf: string; telefone_contato: string; email_contato: string; observacoes?: string; ativo: boolean }) => {
+  const handleCreatePatient = async (data: { nome_completo: string; cpf?: string; telefone_contato?: string; email_contato?: string; observacoes?: string; ativo: boolean }) => {
     try {
       const result = await createPatient.mutateAsync({
         ...data,
@@ -104,9 +104,9 @@ const PatientSearch = ({ onPatientSelect, autoSelectAfterCreate = true }: { onPa
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-medium text-foreground">{patient.nome_completo}</h4>
-                          <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
-                          <p className="text-sm text-muted-foreground">Tel: {patient.telefone_contato}</p>
-                          <p className="text-sm text-muted-foreground">Email: {patient.email_contato}</p>
+                          <p className="text-sm text-muted-foreground">CPF: {patient.cpf || 'Não informado'}</p>
+                          <p className="text-sm text-muted-foreground">Tel: {patient.telefone_contato || 'Não informado'}</p>
+                          <p className="text-sm text-muted-foreground">Email: {patient.email_contato || 'Não informado'}</p>
                         </div>
                         <div className="text-right">
                           <Badge variant="outline">
@@ -167,9 +167,9 @@ const PatientSearch = ({ onPatientSelect, autoSelectAfterCreate = true }: { onPa
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-medium text-foreground">{patient.nome_completo}</h4>
-                          <p className="text-sm text-muted-foreground">CPF: {patient.cpf}</p>
-                          <p className="text-sm text-muted-foreground">Tel: {patient.telefone_contato}</p>
-                          <p className="text-sm text-muted-foreground">Email: {patient.email_contato}</p>
+                          <p className="text-sm text-muted-foreground">CPF: {patient.cpf || 'Não informado'}</p>
+                          <p className="text-sm text-muted-foreground">Tel: {patient.telefone_contato || 'Não informado'}</p>
+                          <p className="text-sm text-muted-foreground">Email: {patient.email_contato || 'Não informado'}</p>
                         </div>
                         <div className="text-right">
                           <Badge variant="outline">

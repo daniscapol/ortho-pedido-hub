@@ -9,9 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 interface PacienteFormData {
   nome_completo: string;
-  cpf: string;
-  telefone_contato: string;
-  email_contato: string;
+  cpf?: string;
+  telefone_contato?: string;
+  email_contato?: string;
   observacoes?: string;
   ativo: boolean;
 }
@@ -61,12 +61,10 @@ export const PacienteForm = ({ open, onOpenChange, onSubmit, isLoading }: Pacien
             </div>
 
             <div>
-              <Label htmlFor="cpf">
-                CPF <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="cpf">CPF</Label>
               <Input
                 id="cpf"
-                {...register("cpf", { required: "CPF é obrigatório" })}
+                {...register("cpf")}
                 placeholder="000.000.000-00"
               />
               {errors.cpf && (
@@ -75,12 +73,10 @@ export const PacienteForm = ({ open, onOpenChange, onSubmit, isLoading }: Pacien
             </div>
 
             <div>
-              <Label htmlFor="telefone_contato">
-                Telefone <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="telefone_contato">Telefone</Label>
               <Input
                 id="telefone_contato"
-                {...register("telefone_contato", { required: "Telefone é obrigatório" })}
+                {...register("telefone_contato")}
                 placeholder="(11) 99999-9999"
               />
               {errors.telefone_contato && (
@@ -89,14 +85,11 @@ export const PacienteForm = ({ open, onOpenChange, onSubmit, isLoading }: Pacien
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="email_contato">
-                Email <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="email_contato">Email</Label>
               <Input
                 id="email_contato"
                 type="email"
                 {...register("email_contato", { 
-                  required: "Email é obrigatório",
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     message: "Email inválido"
