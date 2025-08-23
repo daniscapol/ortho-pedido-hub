@@ -22,7 +22,7 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2, Key, User, LogOut } from "lucide-react";
+import { Search, Eye, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2, Key, User, LogOut } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
@@ -56,7 +56,7 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("pedidos");
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [newUserData, setNewUserData] = useState({ 
     name: '', 
@@ -189,30 +189,6 @@ const Admin = () => {
 
   // Buscar todos os pedidos para admin
   const { data: orders, isLoading: ordersLoading } = useOrdersForAdmin();
-
-  // Buscar estatísticas dos pedidos
-  const { data: orderStats, isLoading: statsLoading } = useQuery({
-    queryKey: ['admin-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('status')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const stats = {
-        total: data.length,
-        pending: data.filter(o => o.status === 'pending').length,
-        producao: data.filter(o => o.status === 'producao').length,
-        pronto: data.filter(o => o.status === 'pronto').length,
-        entregue: data.filter(o => o.status === 'entregue').length,
-      };
-
-      return stats;
-    },
-    enabled: profile?.role_extended === 'admin_master',
-  });
 
   // Mutation para alterar role do usuário
   const updateUserRole = useMutation({
@@ -628,14 +604,6 @@ const Admin = () => {
         {/* Navegação por Abas */}
         <div className="flex gap-2 mb-6 flex-wrap">
           <Button 
-            variant={activeTab === "overview" ? "default" : "outline"}
-            onClick={() => setActiveTab("overview")}
-            className="flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            Visão Geral
-          </Button>
-          <Button 
             variant={activeTab === "pedidos" ? "default" : "outline"}
             onClick={() => setActiveTab("pedidos")}
             className="flex items-center gap-2"
@@ -727,7 +695,7 @@ const Admin = () => {
                   </div>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-40">
-                      <Filter className="h-4 w-4 mr-2" />
+                      <Settings className="h-4 w-4 mr-2" />
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1170,87 +1138,7 @@ const Admin = () => {
           <CompatibilidadeManager />
         ) : activeTab === "matrizes" ? (
           <FiliaisSection />
-        ) : (
-          <div className="space-y-6">
-            {/* Estatísticas dos Pedidos */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total de Pedidos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {statsLoading ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
-                  <div className="text-2xl font-bold">{orderStats?.total || 0}</div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Pendentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {statsLoading ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
-                  <div className="text-2xl font-bold text-yellow-600">{orderStats?.pending || 0}</div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Em Produção
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {statsLoading ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
-                  <div className="text-2xl font-bold text-blue-600">{orderStats?.producao || 0}</div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Prontos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {statsLoading ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
-                  <div className="text-2xl font-bold text-green-600">{orderStats?.pronto || 0}</div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Entregues
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {statsLoading ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
-                  <div className="text-2xl font-bold text-gray-600">{orderStats?.entregue || 0}</div>
-                )}
-              </CardContent>
-            </Card>
-            </div>
-          </div>
-        )}
+        ) : null}
         </div>
         </main>
 
