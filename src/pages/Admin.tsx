@@ -56,6 +56,10 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [dentistFilter, setDentistFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
   const [activeTab, setActiveTab] = useState("pedidos");
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [newUserData, setNewUserData] = useState({ 
@@ -534,19 +538,48 @@ const Admin = () => {
     );
   };
 
-  // Filtrar pedidos
+  // Filtrar pedidos com paginação
   const filteredOrders = orders?.filter((order) => {
     const matchesSearch = 
-      order.patients?.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.dentist.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.prosthesis_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.patients?.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.dentist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.prosthesis_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id.includes(searchTerm);
     
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || order.priority === priorityFilter;
+    const matchesDentist = dentistFilter === "all" || order.dentist?.toLowerCase().includes(dentistFilter.toLowerCase());
     
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+    const matchesDate = () => {
+      if (dateFilter === "all") return true;
+      const orderDate = new Date(order.created_at);
+      const now = new Date();
+      
+      switch (dateFilter) {
+        case "today":
+          return orderDate.toDateString() === now.toDateString();
+        case "week":
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return orderDate >= weekAgo;
+        case "month":
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          return orderDate >= monthAgo;
+        default:
+          return true;
+      }
+    };
+    
+    return matchesSearch && matchesStatus && matchesPriority && matchesDentist && matchesDate();
+  }) || [];
+
+  // Implementar paginação
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  // Obter dentistas únicos para o filtro
+  const uniqueDentists = orders ? [...new Set(orders.map(order => order.dentist).filter(Boolean))] : [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -681,33 +714,44 @@ const Admin = () => {
           /* Gerenciamento de Pedidos */
           <Card>
             <CardHeader>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <CardTitle>Gerenciamento de Pedidos</CardTitle>
-                <div className="flex flex-col md:flex-row gap-2">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle>Gerenciamento de Pedidos</CardTitle>
+                  <div className="text-sm text-muted-foreground">
+                    {filteredOrders.length} pedidos encontrados
+                  </div>
+                </div>
+                
+                {/* Filtros em linha */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       placeholder="Buscar por paciente, dentista ou ID..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 w-64"
+                      className="pl-9"
                     />
                   </div>
+                  
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger>
                       <Settings className="h-4 w-4 mr-2" />
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos Status</SelectItem>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="producao">Produção</SelectItem>
-                      <SelectItem value="pronto">Pronto</SelectItem>
+                      <SelectItem value="pedido_solicitado">Pedido Solicitado</SelectItem>
+                      <SelectItem value="baixado_verificado">Baixado e Verificado</SelectItem>
+                      <SelectItem value="projeto_realizado">Projeto Realizado</SelectItem>
+                      <SelectItem value="projeto_modelo_realizado">Projeto do Modelo Realizado</SelectItem>
+                      <SelectItem value="aguardando_entrega">Aguardando Entrega</SelectItem>
                       <SelectItem value="entregue">Entregue</SelectItem>
                     </SelectContent>
                   </Select>
+                  
                   <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger>
                       <SelectValue placeholder="Prioridade" />
                     </SelectTrigger>
                     <SelectContent>
@@ -718,6 +762,46 @@ const Admin = () => {
                       <SelectItem value="urgente">Urgente</SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  <Select value={dentistFilter} onValueChange={setDentistFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Dentista" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Dentistas</SelectItem>
+                      {uniqueDentists.map((dentist) => (
+                        <SelectItem key={dentist} value={dentist}>
+                          {dentist}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={dateFilter} onValueChange={setDateFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Data" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todo período</SelectItem>
+                      <SelectItem value="today">Hoje</SelectItem>
+                      <SelectItem value="week">Última semana</SelectItem>
+                      <SelectItem value="month">Último mês</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStatusFilter("all");
+                      setPriorityFilter("all");
+                      setDentistFilter("all");
+                      setDateFilter("all");
+                      setCurrentPage(1);
+                    }}
+                  >
+                    Limpar Filtros
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -734,24 +818,25 @@ const Admin = () => {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Imagem</TableHead>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead>Dentista</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Prioridade</TableHead>
-                      <TableHead>Prazo</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders?.map((order) => (
-                      <TableRow key={order.id}>
+                ) : (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Imagem</TableHead>
+                          <TableHead>ID</TableHead>
+                          <TableHead>Paciente</TableHead>
+                          <TableHead>Dentista</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Prioridade</TableHead>
+                          <TableHead>Prazo</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedOrders.map((order) => (
+                          <TableRow key={order.id}>
                         <TableCell>
                           {order.order_images && order.order_images.length > 0 ? (
                             <Dialog>
@@ -835,12 +920,56 @@ const Admin = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                     ))}
+                   </TableBody>
+                 </Table>
+                 
+                 {/* Paginação */}
+                 {totalPages > 1 && (
+                   <div className="flex items-center justify-between mt-4">
+                     <div className="text-sm text-muted-foreground">
+                       Mostrando {startIndex + 1} a {Math.min(endIndex, filteredOrders.length)} de {filteredOrders.length} pedidos
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                         disabled={currentPage === 1}
+                       >
+                         Anterior
+                       </Button>
+                       
+                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                         const pageNum = Math.max(1, currentPage - 2) + i;
+                         if (pageNum > totalPages) return null;
+                         
+                         return (
+                           <Button
+                             key={pageNum}
+                             variant={currentPage === pageNum ? "default" : "outline"}
+                             size="sm"
+                             onClick={() => setCurrentPage(pageNum)}
+                           >
+                             {pageNum}
+                           </Button>
+                         );
+                       })}
+                       
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                         disabled={currentPage === totalPages}
+                       >
+                         Próximo
+                       </Button>
+                     </div>
+                   </div>
+                 )}
+               )}
+             </CardContent>
+           </Card>
         ) : activeTab === "users" ? (
           /* Gerenciamento de Usuários */
           <Card>
