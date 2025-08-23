@@ -199,6 +199,8 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
   return useQuery({
     queryKey: ['admin-orders', page, limit, filters],
     queryFn: async () => {
+      console.log('🔍 Executando busca com filtros:', filters);
+      
       const start = (page - 1) * limit
       const end = start + limit - 1
 
@@ -253,8 +255,8 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
       }
 
       // Para busca por texto, fazemos apenas nos campos diretos (ID e dentist)
-      // A busca por nome do paciente será feita no frontend após receber os dados
       if (filters?.searchTerm) {
+        console.log('🔍 Aplicando filtro de busca:', filters.searchTerm);
         const term = filters.searchTerm.toLowerCase()
         query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%`)
       }
@@ -263,19 +265,26 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
         .range(start, end)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Erro na busca:', error);
+        throw error;
+      }
       
       let orders = data as Order[]
       
       // Se há termo de busca, filtrar também por nome do paciente no frontend
       if (filters?.searchTerm && orders.length > 0) {
         const term = filters.searchTerm.toLowerCase()
+        const originalLength = orders.length
         orders = orders.filter(order => 
           order.id.toLowerCase().includes(term) ||
           order.dentist?.toLowerCase().includes(term) ||
           order.patients?.nome_completo?.toLowerCase().includes(term)
         )
+        console.log(`🔍 Filtro frontend: ${originalLength} -> ${orders.length} resultados`);
       }
+      
+      console.log('✅ Busca concluída:', orders.length, 'pedidos encontrados');
       
       return { 
         orders, 
