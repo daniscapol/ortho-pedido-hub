@@ -8,10 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthProvider";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,7 +21,7 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2, Key } from "lucide-react";
+import { Search, Eye, Filter, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2, Key, User, LogOut } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
@@ -45,6 +47,7 @@ interface User {
 const Admin = () => {
   const navigate = useNavigate();
   const { data: profile, isLoading: profileLoading } = useProfile();
+  const { signOut } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -62,6 +65,10 @@ const Admin = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwordChangeData, setPasswordChangeData] = useState({ userId: '', newPassword: '' });
   const updateOrderStatus = useUpdateOrderStatus();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   // Hook para matrizes
   const { data: matrizes, isLoading: matrizesLoading } = useMatrizes();
@@ -552,7 +559,37 @@ const Admin = () => {
       </div>
       
       <div className="ml-48 flex flex-col">
-        <Header />
+        {/* Header */}
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-30">          
+          <div className="flex-1 flex items-center justify-end px-6">
+            <div className="flex items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
+                    <User className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
+                      <div className="text-xs text-slate-300">
+                        SB Prótese Odontológica - {profile?.role_extended === 'admin_master' ? 'Admin Master' : 'Usuário'}
+                      </div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
         
         <main className="flex-1 p-6">
           <div className="container mx-auto max-w-none">
