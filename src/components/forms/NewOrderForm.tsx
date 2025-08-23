@@ -38,10 +38,23 @@ const NewOrderForm = () => {
 
   // Definir admin master como dentista padrão quando aplicável
   useEffect(() => {
+    console.log('useEffect executado:', { 
+      profileLoaded: !!profile, 
+      roleExtended: profile?.role_extended, 
+      profileId: profile?.id, 
+      currentSelectedDentist: selectedDentist 
+    });
+    
     if (profile?.role_extended === 'admin_master' && profile?.id && !selectedDentist) {
+      console.log('Definindo admin master como selecionado:', profile.id);
       setSelectedDentist(profile.id);
     }
-  }, [profile, selectedDentist]);
+  }, [profile?.role_extended, profile?.id, selectedDentist]);
+
+  // Debug para acompanhar o estado dos dentistas
+  useEffect(() => {
+    console.log('Dentistas carregados:', dentists);
+  }, [dentists]);
 
   // Verifica se o usuário pode selecionar dentistas
   const canSelectDentist = profile?.role_extended === 'admin_master' || 

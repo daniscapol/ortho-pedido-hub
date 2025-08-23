@@ -65,81 +65,163 @@ export const useDentists = () => {
           updated_at
         `)
 
-      // Se for admin_master, mostrar todos os perfis com role_extended = 'dentist'
+      // Se for admin_master, mostrar todos os perfis com role_extended = 'dentist' + ele mesmo
       if (currentProfile?.role_extended === 'admin_master') {
-        console.log('User is admin_master, fetching all dentists')
-        query = query.eq('role_extended', 'dentist')
-      } 
-      // Se for admin_matriz (admin matriz), mostrar dentistas da sua matriz
-      else if (currentProfile?.role_extended === 'admin_matriz') {
-        console.log('User is admin_matriz, fetching dentists from their matriz')
-        // Buscar dentistas que pertencem a clínicas da sua matriz
-        const { data: userProfile } = await supabase
+        console.log('User is admin_master, fetching all dentists + admin master')
+        
+        // Buscar todos os dentistas
+        const { data: dentists, error: dentistsError } = await supabase
           .from('profiles')
-          .select('matriz_id')
+          .select(`
+            id,
+            name,
+            nome_completo,
+            email,
+            role,
+            role_extended,
+            cro,
+            cpf,
+            telefone,
+            endereco,
+            cep,
+            cidade,
+            estado,
+            numero,
+            complemento,
+            clinica_id,
+            matriz_id,
+            ativo,
+            created_at,
+            updated_at
+          `)
+          .eq('role_extended', 'dentist')
+          .order('name', { ascending: true })
+
+        if (dentistsError) throw dentistsError
+
+        // Buscar o próprio admin master
+        const { data: adminMaster, error: adminError } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            name,
+            nome_completo,
+            email,
+            role,
+            role_extended,
+            cro,
+            cpf,
+            telefone,
+            endereco,
+            cep,
+            cidade,
+            estado,
+            numero,
+            complemento,
+            clinica_id,
+            matriz_id,
+            ativo,
+            created_at,
+            updated_at
+          `)
           .eq('id', (await supabase.auth.getUser()).data.user?.id)
           .single()
+
+        if (adminError) throw adminError
+
+        // Combinar admin master + dentistas, colocando admin master no início
+        const allDentists = adminMaster ? [adminMaster, ...dentists] : dentists
         
-        if (userProfile?.matriz_id) {
-          query = query
-            .eq('role_extended', 'dentist')
-            .eq('matriz_id', userProfile.matriz_id)
-        } else {
-          // Se não tem matriz_id, não mostra nenhum dentista
-          query = query.eq('id', 'never-match')
-        }
-      }
-      // Se for admin_clinica, mostrar dentistas da sua clínica
-      else if (currentProfile?.role_extended === 'admin_clinica') {
-        console.log('User is admin_clinica, fetching dentists from their clinica')
-        const { data: userProfile } = await supabase
-          .from('profiles')
-          .select('clinica_id')
-          .eq('id', (await supabase.auth.getUser()).data.user?.id)
-          .single()
-        
-        if (userProfile?.clinica_id) {
-          query = query
-            .eq('role_extended', 'dentist')
-            .eq('clinica_id', userProfile.clinica_id)
-        } else {
-          // Se não tem clinica_id, não mostra nenhum dentista
-          query = query.eq('id', 'never-match')
-        }
-      }
-      // Se não for admin, mostrar apenas o próprio perfil
-      else {
-        console.log('User is not admin, fetching own profile')
-        query = query.eq('id', (await supabase.auth.getUser()).data.user?.id)
-      }
+        // Get order counts for each dentist
+        const dentistsWithCounts = await Promise.all(
+          allDentists.map(async (dentist) => {
+            const { count } = await supabase
+              .from('orders')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', dentist.id)
 
-      const { data, error } = await query.order('name', { ascending: true })
-
-      if (error) {
-        console.error('Error fetching dentists:', error)
-        throw error
-      }
-
-      console.log('Fetched dentists:', data)
-
-      // Get order counts for each dentist
-      const dentistsWithCounts = await Promise.all(
-        data.map(async (dentist) => {
-          const { count } = await supabase
-            .from('orders')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', dentist.id)
-
-          return {
-            ...dentist,
-            _count: {
-              orders: count || 0
+            return {
+              ...dentist,
+              _count: {
+                orders: count || 0
+              }
             }
-          }
-        })
-      )
+          })
+        )
 
-      return dentistsWithCounts as Dentist[]
+        console.log('Fetched dentists with admin master:', dentistsWithCounts)
+        return dentistsWithCounts as Dentist[]
+      }
+       // Se for admin_matriz (admin matriz), mostrar dentistas da sua matriz
+       else if (currentProfile?.role_extended === 'admin_matriz') {
+         console.log('User is admin_matriz, fetching dentists from their matriz')
+         // Buscar dentistas que pertencem a clínicas da sua matriz
+         const { data: userProfile } = await supabase
+           .from('profiles')
+           .select('matriz_id')
+           .eq('id', (await supabase.auth.getUser()).data.user?.id)
+           .single()
+         
+         if (userProfile?.matriz_id) {
+           query = query
+             .eq('role_extended', 'dentist')
+             .eq('matriz_id', userProfile.matriz_id)
+         } else {
+           // Se não tem matriz_id, não mostra nenhum dentista
+           query = query.eq('id', 'never-match')
+         }
+       }
+       // Se for admin_clinica, mostrar dentistas da sua clínica
+       else if (currentProfile?.role_extended === 'admin_clinica') {
+         console.log('User is admin_clinica, fetching dentists from their clinica')
+         const { data: userProfile } = await supabase
+           .from('profiles')
+           .select('clinica_id')
+           .eq('id', (await supabase.auth.getUser()).data.user?.id)
+           .single()
+         
+         if (userProfile?.clinica_id) {
+           query = query
+             .eq('role_extended', 'dentist')
+             .eq('clinica_id', userProfile.clinica_id)
+         } else {
+           // Se não tem clinica_id, não mostra nenhum dentista
+           query = query.eq('id', 'never-match')
+         }
+       }
+       // Se não for admin, mostrar apenas o próprio perfil
+       else {
+         console.log('User is not admin, fetching own profile')
+         query = query.eq('id', (await supabase.auth.getUser()).data.user?.id)
+       }
+
+       const { data, error } = await query.order('name', { ascending: true })
+
+       if (error) {
+         console.error('Error fetching dentists:', error)
+         throw error
+       }
+
+       console.log('Fetched dentists:', data)
+
+       // Get order counts for each dentist
+       const dentistsWithCounts = await Promise.all(
+         data.map(async (dentist) => {
+           const { count } = await supabase
+             .from('orders')
+             .select('*', { count: 'exact', head: true })
+             .eq('user_id', dentist.id)
+
+           return {
+             ...dentist,
+             _count: {
+               orders: count || 0
+             }
+           }
+         })
+       )
+
+       return dentistsWithCounts as Dentist[]
     },
   })
 }
