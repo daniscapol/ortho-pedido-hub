@@ -199,9 +199,7 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
   return useQuery({
     queryKey: ['admin-orders', page, limit, filters],
     queryFn: async () => {
-      const start = (page - 1) * limit
-      const end = start + limit - 1
-
+      // Buscar todos os dados primeiro (sem backend search)
       let query = supabase
         .from('orders')
         .select(`
@@ -217,9 +215,9 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
             image_url,
             annotations
           )
-        `, { count: 'exact' })
+        `)
 
-      // Aplicar filtros básicos
+      // Aplicar apenas filtros básicos no backend (não search)
       if (filters?.statusFilter && filters.statusFilter !== 'all') {
         query = query.eq('status', filters.statusFilter)
       }
@@ -252,46 +250,38 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
         }
       }
 
-      // Para busca por texto, primeiro tentamos nos campos diretos
-      if (filters?.searchTerm) {
-        const term = filters.searchTerm.toLowerCase()
-        console.log('🔍 Termo de busca:', term)
-        // Busca apenas nos campos diretos da tabela orders (PostgREST não suporta OR em relacionamentos)
-        query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%`)
-        console.log('🔍 Query direta criada')
-      }
-
-      const { data, error, count } = await query
-        .range(start, end)
-        .order('created_at', { ascending: false })
+      const { data, error } = await query.order('created_at', { ascending: false })
 
       if (error) throw error
       
-      let orders = data as Order[]
-      let totalCount = count || 0
+      let filteredOrders = data as Order[]
 
-      // Aplicar busca no frontend (igual à página Pedidos que funciona)
+      // Aplicar busca no frontend (exatamente como em Pedidos)
       if (filters?.searchTerm && filters.searchTerm.trim()) {
         const searchQuery = filters.searchTerm.trim().toLowerCase()
         console.log('🔍 Aplicando busca frontend para:', searchQuery)
         
-        orders = orders.filter(order => 
+        filteredOrders = filteredOrders.filter(order => 
           order.patients?.nome_completo?.toLowerCase().includes(searchQuery) ||
           order.dentist?.toLowerCase().includes(searchQuery) ||
           order.prosthesis_type?.toLowerCase().includes(searchQuery) ||
           order.id?.toLowerCase().includes(searchQuery)
         );
         
-        console.log('🔍 Resultados após busca frontend:', orders.length, 'de', data?.length || 0)
-        
-        // Atualizar contagem total baseada nos resultados filtrados
-        totalCount = orders.length;
+        console.log('🔍 Resultados após busca:', filteredOrders.length, 'de', data?.length || 0)
       }
       
+      // Aplicar paginação no frontend nos resultados filtrados
+      const totalCount = filteredOrders.length
+      const totalPages = Math.ceil(totalCount / limit)
+      const start = (page - 1) * limit
+      const end = start + limit
+      const paginatedOrders = filteredOrders.slice(start, end)
+      
       return { 
-        orders, 
+        orders: paginatedOrders, 
         totalCount,
-        totalPages: Math.ceil(totalCount / limit)
+        totalPages
       }
     },
   })
