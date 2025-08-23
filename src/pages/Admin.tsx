@@ -425,10 +425,12 @@ const Admin = () => {
   // Verificar se o usuário é admin
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-background flex">
-        <Sidebar />
+      <div className="min-h-screen bg-background">
+        <div className="fixed left-0 top-0 z-30 h-screen">
+          <Sidebar />
+        </div>
         
-        <div className="flex-1 flex flex-col">
+        <div className="ml-48 flex flex-col">
           <Header />
           
           <main className="flex-1 p-6">
@@ -441,10 +443,12 @@ const Admin = () => {
 
   if (profile?.role_extended !== 'admin_master') {
     return (
-      <div className="min-h-screen bg-background flex">
-        <Sidebar />
+      <div className="min-h-screen bg-background">
+        <div className="fixed left-0 top-0 z-30 h-screen">
+          <Sidebar />
+        </div>
         
-        <div className="flex-1 flex flex-col">
+        <div className="ml-48 flex flex-col">
           <Header />
           
           <main className="flex-1 p-6">
@@ -542,10 +546,12 @@ const Admin = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Sidebar />
+    <div className="min-h-screen bg-background">
+      <div className="fixed left-0 top-0 z-30 h-screen">
+        <Sidebar />
+      </div>
       
-      <div className="flex-1 flex flex-col">
+      <div className="ml-48 flex flex-col">
         <Header />
         
         <main className="flex-1 p-6">
