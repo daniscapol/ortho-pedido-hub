@@ -98,6 +98,11 @@ const OrderTimeline = ({ orderId }: OrderTimelineProps) => {
     );
   }
 
+  // Filter timeline events based on user role
+  const filteredTimeline = isAdminMaster 
+    ? timeline 
+    : timeline.filter(event => event.action === 'create');
+
   return (
     <Card>
       <CardHeader>
@@ -112,11 +117,11 @@ const OrderTimeline = ({ orderId }: OrderTimelineProps) => {
           <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-border"></div>
           
           <div className="space-y-6">
-            {timeline.map((event, index) => {
+            {filteredTimeline.map((event, index) => {
               const statusInfo = getStatusInfo(event.status);
               const Icon = statusInfo.icon;
               const isFirst = index === 0;
-              const isLast = index === timeline.length - 1;
+              const isLast = index === filteredTimeline.length - 1;
 
               return (
                 <div key={event.id} className="relative flex items-start space-x-4">
