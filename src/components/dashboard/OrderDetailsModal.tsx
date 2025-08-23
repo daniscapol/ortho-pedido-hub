@@ -33,13 +33,23 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
           <DialogTitle className="text-xl font-semibold text-left">
             {order.patients?.nome_completo}
           </DialogTitle>
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="outline" className="text-slate-600">
-              Pedido: #{order.id.slice(0, 8)}
-            </Badge>
-            <Badge className={getStatusColor(order.status)}>
-              {getStatusLabel(order.status, isAdminMaster)}
-            </Badge>
+          <div className="flex items-center justify-between gap-2 mt-2">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-slate-600">
+                Pedido: #{order.id.slice(0, 8)}
+              </Badge>
+              <Badge className={getStatusColor(order.status)}>
+                {getStatusLabel(order.status, isAdminMaster)}
+              </Badge>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose}>
+                Fechar
+              </Button>
+              <Button onClick={() => navigate(`/pedido/${order.id}`)}>
+                Ver detalhes completos
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
@@ -177,15 +187,6 @@ const OrderDetailsModal = ({ order, isOpen, onClose }: OrderDetailsModalProps) =
               <p><strong>E-mail:</strong> <span className="text-muted-foreground">{order.patients?.email_contato}</span></p>
             </div>
           </div>
-        </div>
-
-        <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
-          <Button variant="outline" onClick={onClose}>
-            Fechar
-          </Button>
-          <Button onClick={() => navigate(`/pedido/${order.id}`)}>
-            Ver detalhes completos
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
