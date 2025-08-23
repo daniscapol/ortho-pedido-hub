@@ -39,7 +39,8 @@ export const usePatients = (searchTerm?: string) => {
         .order('nome_completo')
 
       if (searchTerm) {
-        query = query.or(`nome_completo.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%`)
+        // Buscar por nome ou CPF (quando CPF não for nulo)
+        query = query.or(`nome_completo.ilike.%${searchTerm}%,and(cpf.not.is.null,cpf.ilike.%${searchTerm}%)`)
       }
 
       const { data, error } = await query
@@ -100,14 +101,16 @@ export const useCreatePatient = () => {
       // Default ativo
       if (typeof mutable.ativo === 'undefined') mutable.ativo = true
 
-      // Normalize CPF to digits and max 11 to satisfy DB varchar(14)
-      if (mutable.cpf) {
+      // Normalize CPF to digits and max 11 - only if CPF is provided
+      if (mutable.cpf && mutable.cpf.trim() !== '') {
         const digits = String(mutable.cpf).replace(/\D/g, '')
         mutable.cpf = digits.slice(0, 11)
+      } else {
+        mutable.cpf = null
       }
 
-      // Preflight: check duplicate CPF (friendly error) - only if CPF is provided
-      if (mutable.cpf) {
+      // Preflight: check duplicate CPF (friendly error) - only if CPF is provided and not empty
+      if (mutable.cpf && mutable.cpf.trim() !== '') {
         const { data: existingByCpf } = await supabase
           .from('patients')
           .select('id')
@@ -123,9 +126,9 @@ export const useCreatePatient = () => {
 
       const insertPayload = {
         nome_completo: mutable.nome_completo,
-        cpf: mutable.cpf || null,
-        telefone_contato: mutable.telefone_contato || null,
-        email_contato: mutable.email_contato || null,
+        cpf: mutable.cpf && mutable.cpf.trim() !== '' ? mutable.cpf : null,
+        telefone_contato: mutable.telefone_contato && mutable.telefone_contato.trim() !== '' ? mutable.telefone_contato : null,
+        email_contato: mutable.email_contato && mutable.email_contato.trim() !== '' ? mutable.email_contato : null,
         observacoes: mutable.observacoes ?? null,
         ativo: mutable.ativo,
         dentist_id: mutable.dentist_id,
@@ -210,14 +213,16 @@ export const useUpdatePatient = () => {
         mutable.filial_id = currentProfile.filial_id ?? currentProfile.matriz_id ?? mutable.filial_id
       }
 
-      // Normalize CPF to digits and max 11
-      if (mutable.cpf) {
+      // Normalize CPF to digits and max 11 - only if CPF is provided
+      if (mutable.cpf && mutable.cpf.trim() !== '') {
         const digits = String(mutable.cpf).replace(/\D/g, '')
         mutable.cpf = digits.slice(0, 11)
+      } else {
+        mutable.cpf = null
       }
 
-      // Preflight duplicate (excluding current id)
-      if (mutable.cpf) {
+      // Preflight duplicate (excluding current id) - only if CPF is provided and not empty
+      if (mutable.cpf && mutable.cpf.trim() !== '') {
         const { data: existingByCpf } = await supabase
           .from('patients')
           .select('id')
@@ -234,9 +239,9 @@ export const useUpdatePatient = () => {
 
       const updatePayload = {
         nome_completo: mutable.nome_completo,
-        cpf: mutable.cpf || null,
-        telefone_contato: mutable.telefone_contato || null,
-        email_contato: mutable.email_contato || null,
+        cpf: mutable.cpf && mutable.cpf.trim() !== '' ? mutable.cpf : null,
+        telefone_contato: mutable.telefone_contato && mutable.telefone_contato.trim() !== '' ? mutable.telefone_contato : null,
+        email_contato: mutable.email_contato && mutable.email_contato.trim() !== '' ? mutable.email_contato : null,
         observacoes: mutable.observacoes ?? null,
         ativo: typeof mutable.ativo === 'undefined' ? true : mutable.ativo,
         dentist_id: mutable.dentist_id,

@@ -561,43 +561,43 @@ export type Database = {
         Row: {
           ativo: boolean | null
           clinica_id: string | null
-          cpf: string
+          cpf: string | null
           created_at: string
           dentist_id: string | null
-          email_contato: string
+          email_contato: string | null
           filial_id: string | null
           id: string
           nome_completo: string
           observacoes: string | null
-          telefone_contato: string
+          telefone_contato: string | null
           updated_at: string
         }
         Insert: {
           ativo?: boolean | null
           clinica_id?: string | null
-          cpf: string
+          cpf?: string | null
           created_at?: string
           dentist_id?: string | null
-          email_contato: string
+          email_contato?: string | null
           filial_id?: string | null
           id?: string
           nome_completo: string
           observacoes?: string | null
-          telefone_contato: string
+          telefone_contato?: string | null
           updated_at?: string
         }
         Update: {
           ativo?: boolean | null
           clinica_id?: string | null
-          cpf?: string
+          cpf?: string | null
           created_at?: string
           dentist_id?: string | null
-          email_contato?: string
+          email_contato?: string | null
           filial_id?: string | null
           id?: string
           nome_completo?: string
           observacoes?: string | null
-          telefone_contato?: string
+          telefone_contato?: string | null
           updated_at?: string
         }
         Relationships: [
