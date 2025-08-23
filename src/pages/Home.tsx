@@ -331,13 +331,8 @@ const Home = () => {
                      ) : (
                        <div className="text-center py-8 text-muted-foreground">
                          Nenhum pedido em andamento
-                       </div>
-                     )}
-                     {displayOrdersEmAndamento.length > itemsPerPage && (
-                       <div className="text-center text-sm text-muted-foreground pt-2">
-                         Mostrando {limitedOrdersAndamento.length} de {displayOrdersEmAndamento.length} pedidos
-                       </div>
-                     )}
+                        </div>
+                      )}
                    </div>
                 </div>
               )}
@@ -371,13 +366,8 @@ const Home = () => {
                      ) : (
                        <div className="text-center py-8 text-muted-foreground">
                          Nenhum pedido finalizando
-                       </div>
-                     )}
-                     {displayOrdersFinalizando.length > itemsPerPage && (
-                       <div className="text-center text-sm text-muted-foreground pt-2">
-                         Mostrando {limitedOrdersFinalizando.length} de {displayOrdersFinalizando.length} pedidos
-                       </div>
-                     )}
+                        </div>
+                      )}
                    </div>
                 </div>
               )}
