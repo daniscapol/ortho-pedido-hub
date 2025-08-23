@@ -33,8 +33,6 @@ const Home = () => {
   // Paginação
   const itemsPerPage = 5; // Menos itens por página para dashboard
   const [currentPageSolicitados, setCurrentPageSolicitados] = useState(1);
-  const [currentPageAndamento, setCurrentPageAndamento] = useState(1);
-  const [currentPageFinalizando, setCurrentPageFinalizando] = useState(1);
 
   // Enable real-time notifications
   useRealtimeNotifications();
@@ -99,31 +97,23 @@ const Home = () => {
   const displayOrdersEmAndamento = isAdminMaster ? ordersEmAndamento : [];
   const displayOrdersFinalizando = isAdminMaster ? ordersFinalizando : [];
 
-  // Paginação - calcular dados para cada coluna
+  // Paginação - calcular dados apenas para a primeira coluna principal
   const totalPagesSolicitados = Math.ceil(displayOrdersSolicitados.length / itemsPerPage);
   const paginatedOrdersSolicitados = displayOrdersSolicitados.slice(
     (currentPageSolicitados - 1) * itemsPerPage,
     currentPageSolicitados * itemsPerPage
   );
 
-  const totalPagesAndamento = Math.ceil(displayOrdersEmAndamento.length / itemsPerPage);
-  const paginatedOrdersAndamento = displayOrdersEmAndamento.slice(
-    (currentPageAndamento - 1) * itemsPerPage,
-    currentPageAndamento * itemsPerPage
-  );
-
-  const totalPagesFinalizando = Math.ceil(displayOrdersFinalizando.length / itemsPerPage);
-  const paginatedOrdersFinalizando = displayOrdersFinalizando.slice(
-    (currentPageFinalizando - 1) * itemsPerPage,
-    currentPageFinalizando * itemsPerPage
-  );
+  // Para as outras colunas, mostrar apenas os primeiros itens (sem paginação)
+  const limitedOrdersAndamento = displayOrdersEmAndamento.slice(0, itemsPerPage);
+  const limitedOrdersFinalizando = displayOrdersFinalizando.slice(0, itemsPerPage);
 
   // Função para renderizar paginação
   const renderPagination = (totalPages: number, currentPage: number, setCurrentPage: (page: number) => void) => {
     if (totalPages <= 1) return null;
 
     return (
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-4 py-2">
         <Pagination>
           <PaginationContent>
             <PaginationItem>
@@ -132,6 +122,25 @@ const Home = () => {
                 className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
               />
             </PaginationItem>
+            
+            {/* Primeira página */}
+            {currentPage > 3 && (
+              <>
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(1)}
+                    className="cursor-pointer"
+                  >
+                    1
+                  </PaginationLink>
+                </PaginationItem>
+                {currentPage > 4 && (
+                  <PaginationItem>
+                    <span className="px-3 py-2 text-sm">...</span>
+                  </PaginationItem>
+                )}
+              </>
+            )}
             
             {/* Páginas próximas à atual */}
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -150,6 +159,25 @@ const Home = () => {
                 </PaginationItem>
               );
             }).filter(Boolean)}
+            
+            {/* Última página */}
+            {currentPage < totalPages - 2 && (
+              <>
+                {currentPage < totalPages - 3 && (
+                  <PaginationItem>
+                    <span className="px-3 py-2 text-sm">...</span>
+                  </PaginationItem>
+                )}
+                <PaginationItem>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(totalPages)}
+                    className="cursor-pointer"
+                  >
+                    {totalPages}
+                  </PaginationLink>
+                </PaginationItem>
+              </>
+            )}
             
             <PaginationItem>
               <PaginationNext
@@ -293,8 +321,8 @@ const Home = () => {
                        <div className="text-center py-8 text-muted-foreground">
                          Carregando...
                        </div>
-                     ) : paginatedOrdersAndamento.length > 0 ? (
-                       paginatedOrdersAndamento.map((order) => (
+                     ) : limitedOrdersAndamento.length > 0 ? (
+                       limitedOrdersAndamento.map((order) => (
                          <OrderCard 
                            key={order.id} 
                            order={order} 
@@ -306,10 +334,12 @@ const Home = () => {
                          Nenhum pedido em andamento
                        </div>
                      )}
+                     {displayOrdersEmAndamento.length > itemsPerPage && (
+                       <div className="text-center text-sm text-muted-foreground pt-2">
+                         Mostrando {limitedOrdersAndamento.length} de {displayOrdersEmAndamento.length} pedidos
+                       </div>
+                     )}
                    </div>
-                   
-                   {/* Paginação para Em Andamento */}
-                   {renderPagination(totalPagesAndamento, currentPageAndamento, setCurrentPageAndamento)}
                 </div>
               )}
 
@@ -331,8 +361,8 @@ const Home = () => {
                        <div className="text-center py-8 text-muted-foreground">
                          Carregando...
                        </div>
-                     ) : paginatedOrdersFinalizando.length > 0 ? (
-                       paginatedOrdersFinalizando.map((order) => (
+                     ) : limitedOrdersFinalizando.length > 0 ? (
+                       limitedOrdersFinalizando.map((order) => (
                          <OrderCard 
                            key={order.id} 
                            order={order} 
@@ -344,10 +374,12 @@ const Home = () => {
                          Nenhum pedido finalizando
                        </div>
                      )}
+                     {displayOrdersFinalizando.length > itemsPerPage && (
+                       <div className="text-center text-sm text-muted-foreground pt-2">
+                         Mostrando {limitedOrdersFinalizando.length} de {displayOrdersFinalizando.length} pedidos
+                       </div>
+                     )}
                    </div>
-                   
-                   {/* Paginação para Finalizando */}
-                   {renderPagination(totalPagesFinalizando, currentPageFinalizando, setCurrentPageFinalizando)}
                 </div>
               )}
             </div>
