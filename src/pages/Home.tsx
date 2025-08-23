@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { Order } from "@/hooks/useOrders";
 import { MASTER_STATUS_OPTIONS } from "@/lib/status-config";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 const Home = () => {
   const { data: orders, isLoading } = useOrders();
@@ -28,6 +29,12 @@ const Home = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isAdminMaster = isSuperAdmin();
+
+  // Paginação
+  const itemsPerPage = 5; // Menos itens por página para dashboard
+  const [currentPageSolicitados, setCurrentPageSolicitados] = useState(1);
+  const [currentPageAndamento, setCurrentPageAndamento] = useState(1);
+  const [currentPageFinalizando, setCurrentPageFinalizando] = useState(1);
 
   // Enable real-time notifications
   useRealtimeNotifications();
@@ -91,6 +98,70 @@ const Home = () => {
   const displayOrdersSolicitados = isAdminMaster ? ordersSolicitados : filteredOrders;
   const displayOrdersEmAndamento = isAdminMaster ? ordersEmAndamento : [];
   const displayOrdersFinalizando = isAdminMaster ? ordersFinalizando : [];
+
+  // Paginação - calcular dados para cada coluna
+  const totalPagesSolicitados = Math.ceil(displayOrdersSolicitados.length / itemsPerPage);
+  const paginatedOrdersSolicitados = displayOrdersSolicitados.slice(
+    (currentPageSolicitados - 1) * itemsPerPage,
+    currentPageSolicitados * itemsPerPage
+  );
+
+  const totalPagesAndamento = Math.ceil(displayOrdersEmAndamento.length / itemsPerPage);
+  const paginatedOrdersAndamento = displayOrdersEmAndamento.slice(
+    (currentPageAndamento - 1) * itemsPerPage,
+    currentPageAndamento * itemsPerPage
+  );
+
+  const totalPagesFinalizando = Math.ceil(displayOrdersFinalizando.length / itemsPerPage);
+  const paginatedOrdersFinalizando = displayOrdersFinalizando.slice(
+    (currentPageFinalizando - 1) * itemsPerPage,
+    currentPageFinalizando * itemsPerPage
+  );
+
+  // Função para renderizar paginação
+  const renderPagination = (totalPages: number, currentPage: number, setCurrentPage: (page: number) => void) => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center mt-4">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            
+            {/* Páginas próximas à atual */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+              if (pageNum > totalPages) return null;
+              
+              return (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(pageNum)}
+                    isActive={currentPage === pageNum}
+                    className="cursor-pointer"
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            }).filter(Boolean)}
+            
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
+    );
+  };
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -185,8 +256,8 @@ const Home = () => {
                     <div className="text-center py-8 text-muted-foreground">
                       Carregando...
                     </div>
-                  ) : displayOrdersSolicitados.length > 0 ? (
-                    displayOrdersSolicitados.map((order) => (
+                  ) : paginatedOrdersSolicitados.length > 0 ? (
+                    paginatedOrdersSolicitados.map((order) => (
                       <OrderCard 
                         key={order.id} 
                         order={order} 
@@ -199,6 +270,9 @@ const Home = () => {
                     </div>
                   )}
                 </div>
+                
+                {/* Paginação para Pedidos Solicitados */}
+                {renderPagination(totalPagesSolicitados, currentPageSolicitados, setCurrentPageSolicitados)}
               </div>
 
               {/* Em Andamento (só para admin master) */}
@@ -214,25 +288,28 @@ const Home = () => {
                     </Badge>
                   </div>
                   
-                  <div className="space-y-3">
-                    {isLoading ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Carregando...
-                      </div>
-                    ) : displayOrdersEmAndamento.length > 0 ? (
-                      displayOrdersEmAndamento.map((order) => (
-                        <OrderCard 
-                          key={order.id} 
-                          order={order} 
-                          onClick={() => handleOrderClick(order)}
-                        />
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Nenhum pedido em andamento
-                      </div>
-                    )}
-                  </div>
+                   <div className="space-y-3">
+                     {isLoading ? (
+                       <div className="text-center py-8 text-muted-foreground">
+                         Carregando...
+                       </div>
+                     ) : paginatedOrdersAndamento.length > 0 ? (
+                       paginatedOrdersAndamento.map((order) => (
+                         <OrderCard 
+                           key={order.id} 
+                           order={order} 
+                           onClick={() => handleOrderClick(order)}
+                         />
+                       ))
+                     ) : (
+                       <div className="text-center py-8 text-muted-foreground">
+                         Nenhum pedido em andamento
+                       </div>
+                     )}
+                   </div>
+                   
+                   {/* Paginação para Em Andamento */}
+                   {renderPagination(totalPagesAndamento, currentPageAndamento, setCurrentPageAndamento)}
                 </div>
               )}
 
@@ -249,25 +326,28 @@ const Home = () => {
                     </Badge>
                   </div>
                   
-                  <div className="space-y-3">
-                    {isLoading ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Carregando...
-                      </div>
-                    ) : displayOrdersFinalizando.length > 0 ? (
-                      displayOrdersFinalizando.map((order) => (
-                        <OrderCard 
-                          key={order.id} 
-                          order={order} 
-                          onClick={() => handleOrderClick(order)}
-                        />
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Nenhum pedido finalizando
-                      </div>
-                    )}
-                  </div>
+                   <div className="space-y-3">
+                     {isLoading ? (
+                       <div className="text-center py-8 text-muted-foreground">
+                         Carregando...
+                       </div>
+                     ) : paginatedOrdersFinalizando.length > 0 ? (
+                       paginatedOrdersFinalizando.map((order) => (
+                         <OrderCard 
+                           key={order.id} 
+                           order={order} 
+                           onClick={() => handleOrderClick(order)}
+                         />
+                       ))
+                     ) : (
+                       <div className="text-center py-8 text-muted-foreground">
+                         Nenhum pedido finalizando
+                       </div>
+                     )}
+                   </div>
+                   
+                   {/* Paginação para Finalizando */}
+                   {renderPagination(totalPagesFinalizando, currentPageFinalizando, setCurrentPageFinalizando)}
                 </div>
               )}
             </div>
