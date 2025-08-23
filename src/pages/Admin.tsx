@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
@@ -563,6 +564,8 @@ const Admin = () => {
         <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-30">          
           <div className="flex-1 flex items-center justify-end px-6">
             <div className="flex items-center gap-4">
+              <NotificationDropdown />
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-slate-700">
