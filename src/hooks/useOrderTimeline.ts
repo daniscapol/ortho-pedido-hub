@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useEffect } from "react";
 
 export interface TimelineEvent {
   id: string;
@@ -11,6 +12,35 @@ export interface TimelineEvent {
 }
 
 export const useOrderTimeline = (orderId: string) => {
+  const queryClient = useQueryClient();
+
+  // Setup realtime subscription para escutar mudanças na timeline
+  useEffect(() => {
+    if (!orderId) return;
+
+    const channel = supabase
+      .channel('audit_logs_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'audit_logs',
+          filter: `entity_id=eq.${orderId}`
+        },
+        (payload) => {
+          console.log('New audit log received:', payload);
+          // Invalidar a query para refetch os dados
+          queryClient.invalidateQueries({ queryKey: ["order-timeline", orderId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderId, queryClient]);
+
   return useQuery({
     queryKey: ["order-timeline", orderId],
     queryFn: async () => {
@@ -31,7 +61,7 @@ export const useOrderTimeline = (orderId: string) => {
           events.push({
             id: log.id,
             action: "create",
-            status: log.new_values?.status || "pending",
+            status: log.new_values?.status || "pedido_solicitado",
             created_at: log.created_at,
             user_id: log.user_id
           });
