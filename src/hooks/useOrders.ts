@@ -255,7 +255,10 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
       // Para busca por texto, incluimos ID, dentist e nome do paciente
       if (filters?.searchTerm) {
         const term = filters.searchTerm.toLowerCase()
+        console.log('🔍 Termo de busca:', term)
+        console.log('🔍 Query antes do OR:', query)
         query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%,patients.nome_completo.ilike.%${term}%`)
+        console.log('🔍 Query após OR:', query)
       }
 
       const { data, error, count } = await query
