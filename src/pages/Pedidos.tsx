@@ -53,7 +53,7 @@ const Pedidos = () => {
   const [quickDateFilter, setQuickDateFilter] = useState<string>("all");
   
   // Estados de visualização
-  const [viewMode, setViewMode] = useState<"table" | "grid" | "kanban">("table");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<{key: string; direction: "asc" | "desc"}>({key: "created_at", direction: "desc"});
   
@@ -554,10 +554,6 @@ const Pedidos = () => {
                           <Grid3X3 className="w-4 h-4" />
                           Cards
                         </TabsTrigger>
-                        <TabsTrigger value="kanban" className="gap-1">
-                          <Kanban className="w-4 h-4" />
-                          Kanban
-                        </TabsTrigger>
                       </TabsList>
                     </Tabs>
                   </div>
@@ -712,40 +708,6 @@ const Pedidos = () => {
                       </div>
                     )}
 
-                    {/* Kanban View */}
-                    {viewMode === "kanban" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {getStatusOptions(isAdminMaster).map((statusOption) => {
-                          const statusOrders = filteredOrders.filter(order => order.status === statusOption.value);
-                          
-                          return (
-                            <div key={statusOption.value} className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-medium">{statusOption.label}</h3>
-                                <Badge variant="secondary">{statusOrders.length}</Badge>
-                              </div>
-                              <div className="space-y-2 min-h-[400px]">
-                                {statusOrders.map((order) => (
-                                  <Card key={order.id} className="p-3 cursor-pointer hover:shadow-sm" onClick={() => navigate(`/pedido/${order.id}`)}>
-                                    <div className="space-y-2">
-                                      <div className="font-medium text-sm">{order.patients?.nome_completo}</div>
-                                      <div className="text-xs text-muted-foreground">{order.dentist}</div>
-                                      <div className="text-xs text-muted-foreground">{order.prosthesis_type}</div>
-                                      <div className="flex justify-between items-center">
-                                        {getPriorityBadge(order.priority)}
-                                        <div className="text-xs text-muted-foreground">
-                                          {format(new Date(order.deadline), 'dd/MM', { locale: ptBR })}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </Card>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
                   </>
                 ) : (
                   <div className="text-center py-12">
