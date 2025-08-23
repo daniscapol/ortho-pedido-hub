@@ -149,15 +149,22 @@ const Admin = () => {
     </Card>
   );
 
-// Buscar todos os usuários (com status de verificação)
+  // Buscar todos os usuários (com status de verificação)
   const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
+      console.log('🔍 Fetching users...');
       const { data, error } = await supabase.functions.invoke('admin-list-users');
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching users:', error);
+        throw error;
+      }
+      console.log('✅ Users data received:', data);
       return (data?.users || []) as User[];
     },
-    enabled: profile?.role_extended === 'admin_master',
+    enabled: !!profile && profile?.role_extended === 'admin_master',
+    retry: 3,
+    retryDelay: 1000,
   });
 
   // Buscar todos os pedidos para admin
@@ -450,6 +457,8 @@ const Admin = () => {
   }
 
   if (profile?.role_extended !== 'admin_master') {
+    console.log('🔒 Current profile:', profile);
+    console.log('🔒 Access denied - role:', profile?.role_extended, 'expected: admin_master');
     return (
       <div className="min-h-screen bg-background">
         <div className="fixed left-0 top-0 z-30 h-screen">
@@ -464,6 +473,9 @@ const Admin = () => {
               <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>
               <p className="text-muted-foreground mb-4">
                 Apenas administradores master podem acessar esta página.
+              </p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Sua função atual: {profile?.role_extended || 'não definida'}
               </p>
               <Button onClick={() => navigate("/")}>
                 Voltar ao Dashboard

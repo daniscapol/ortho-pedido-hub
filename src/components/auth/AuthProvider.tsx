@@ -55,7 +55,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      // Limpar dados locais primeiro
+      localStorage.removeItem('supabase.auth.token');
+      
+      // Fazer logout no Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Logout error:', error);
+        throw error;
+      }
+      
+      // Forçar limpeza de estado
+      setSession(null);
+      setUser(null);
+      
+      // Recarregar a página para garantir limpeza completa
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Mesmo com erro, limpar estado local
+      setSession(null);
+      setUser(null);
+      window.location.href = '/';
+    }
   }
 
   const signUp = async (email: string, password: string, userData?: any) => {
