@@ -34,6 +34,23 @@ import { CompatibilidadeManager } from "@/components/admin/CompatibilidadeManage
 import { useMatrizes } from "@/hooks/useMatrizes";
 import { useClinicas } from "@/hooks/useClinicas";
 
+// Hook personalizado para debounce
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 interface User {
   id: string;
   role_extended: 'admin_master' | 'admin_matriz' | 'admin_clinica' | 'dentist';
@@ -54,6 +71,7 @@ const Admin = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms de delay
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [dentistFilter, setDentistFilter] = useState("all");
@@ -74,7 +92,7 @@ const Admin = () => {
   // Reset page quando filtros mudarem
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, priorityFilter, dentistFilter, dateFilter]);
+  }, [debouncedSearchTerm, statusFilter, priorityFilter, dentistFilter, dateFilter]);
   
   const updateOrderStatus = useUpdateOrderStatus();
 
@@ -198,7 +216,7 @@ const Admin = () => {
 
   // Buscar todos os pedidos para admin com filtros
   const { data: ordersData, isLoading: ordersLoading } = useOrdersForAdmin(currentPage, itemsPerPage, {
-    searchTerm,
+    searchTerm: debouncedSearchTerm, // Usar o valor com debounce
     statusFilter,
     priorityFilter,
     dentistFilter,
