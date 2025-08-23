@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Plus, Search, Edit, User, FileText, CheckCircle, UserCheck, Settings, LogOut } from "lucide-react"
+import { Plus, Search, Edit, User, FileText, CheckCircle, UserCheck, Settings, LogOut, Filter, X } from "lucide-react"
 import { usePatients, useCreatePatient, useUpdatePatient, useDentistsForPatients, Patient } from "@/hooks/usePatients"
 import { useOrders, usePatientOrders } from "@/hooks/useOrders"
 import { useToast } from "@/hooks/use-toast"
@@ -22,6 +22,10 @@ import { useAuth } from "@/components/auth/AuthProvider"
 import { useNavigate } from "react-router-dom"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { PacienteForm } from "@/components/forms/PacienteForm"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 const patientSchema = z.object({
   nome_completo: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -40,11 +44,61 @@ const Patients = () => {
   const [isNewPatientOpen, setIsNewPatientOpen] = useState(false)
   const [selectedPatientHistory, setSelectedPatientHistory] = useState<Patient | null>(null)
   
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+  
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<string>("")
+  const [dentistFilter, setDentistFilter] = useState<string>("")
+  const [dateFrom, setDateFrom] = useState<Date>()
+  const [dateTo, setDateTo] = useState<Date>()
+  const [showFilters, setShowFilters] = useState(false)
+  
   const { data: patients, isLoading } = usePatients(searchTerm)
   const { data: patientOrders } = usePatientOrders(selectedPatientHistory?.id)
   const { data: profile } = useProfile()
+  const { data: dentists } = useDentistsForPatients()
   const createPatient = useCreatePatient()
   const { toast } = useToast()
+  
+  // Apply filters to patients data
+  const filteredPatients = patients?.filter((patient) => {
+    // Status filter
+    if (statusFilter && statusFilter !== "all") {
+      const isActive = patient.ativo ?? true
+      if (statusFilter === "active" && !isActive) return false
+      if (statusFilter === "inactive" && isActive) return false
+    }
+    
+    // Dentist filter
+    if (dentistFilter && dentistFilter !== "all") {
+      if (!patient.dentist_id || patient.dentist_id !== dentistFilter) return false
+    }
+    
+    // Date filter
+    if (dateFrom && new Date(patient.created_at) < dateFrom) return false
+    if (dateTo && new Date(patient.created_at) > dateTo) return false
+    
+    return true
+  }) || []
+  
+  // Pagination
+  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage)
+  const paginatedPatients = filteredPatients.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+  
+  const clearFilters = () => {
+    setStatusFilter("")
+    setDentistFilter("")
+    setDateFrom(undefined)
+    setDateTo(undefined)
+    setCurrentPage(1)
+  }
+  
+  const hasActiveFilters = statusFilter || dentistFilter || dateFrom || dateTo
 
   const handleLogout = async () => {
     await signOut()
@@ -82,10 +136,12 @@ const Patients = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="fixed inset-y-0 left-0 z-50">
+        <Sidebar />
+      </div>
+      <div className="flex-1 flex flex-col pl-64">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+        <header className="sticky top-0 z-40 bg-slate-800 border-b border-slate-700 h-16 flex">          
           <div className="flex-1 flex items-center justify-end px-6">
             
             <div className="flex items-center gap-4">
@@ -131,31 +187,139 @@ const Patients = () => {
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Paciente
               </Button>
-              
-              <PacienteForm 
-                open={isNewPatientOpen} 
-                onOpenChange={setIsNewPatientOpen}
-                onSubmit={handleCreatePatient}
-                isLoading={createPatient.isPending}
-              />
             </div>
+            
+            <PacienteForm 
+              open={isNewPatientOpen} 
+              onOpenChange={setIsNewPatientOpen}
+              onSubmit={handleCreatePatient}
+              isLoading={createPatient.isPending}
+            />
 
             <Card>
               <CardHeader>
                 <CardTitle>Lista de Pacientes</CardTitle>
                 <CardDescription>
-                  Visualize e gerencie todos os pacientes
+                  Visualize e gerencie todos os pacientes ({filteredPatients.length} {filteredPatients.length === 1 ? 'paciente encontrado' : 'pacientes encontrados'})
                 </CardDescription>
-                <div className="flex items-center space-x-2">
-                  <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar por nome ou CPF..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8"
-                    />
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1 max-w-sm">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar por nome ou CPF..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowFilters(!showFilters)}
+                      className={cn(
+                        "gap-2",
+                        hasActiveFilters && "border-blue-500 text-blue-600"
+                      )}
+                    >
+                      <Filter className="h-4 w-4" />
+                      Filtros
+                      {hasActiveFilters && (
+                        <Badge variant="secondary" className="ml-1 text-xs">
+                          {[statusFilter, dentistFilter, dateFrom, dateTo].filter(Boolean).length}
+                        </Badge>
+                      )}
+                    </Button>
+                    {hasActiveFilters && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Limpar
+                      </Button>
+                    )}
                   </div>
+                  
+                  {showFilters && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Status</label>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Dentista</label>
+                        <Select value={dentistFilter} onValueChange={setDentistFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            {dentists?.map((dentist) => (
+                              <SelectItem key={dentist.id} value={dentist.id}>
+                                {dentist.nome_completo || dentist.email}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Data Início</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                            >
+                              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Selecionar"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={dateFrom}
+                              onSelect={setDateFrom}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Data Fim</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                            >
+                              {dateTo ? format(dateTo, "dd/MM/yyyy") : "Selecionar"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={dateTo}
+                              onSelect={setDateTo}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -163,21 +327,23 @@ const Patients = () => {
                   <div className="flex items-center justify-center py-8">
                     <div className="text-muted-foreground">Carregando pacientes...</div>
                   </div>
-                ) : patients && patients.length > 0 ? (
-                  <Table>
-                     <TableHeader>
-                       <TableRow>
-                         <TableHead>Nome</TableHead>
-                         <TableHead>CPF</TableHead>
-                         <TableHead>Telefone</TableHead>
-                         <TableHead>Email</TableHead>
-                         <TableHead>Dentista Responsável</TableHead>
-                         <TableHead>Data de Cadastro</TableHead>
-                         <TableHead className="w-[100px]">Ações</TableHead>
-                       </TableRow>
-                     </TableHeader>
-                    <TableBody>
-                      {patients.map((patient) => (
+                ) : filteredPatients.length > 0 ? (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>CPF</TableHead>
+                          <TableHead>Telefone</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Dentista Responsável</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Data de Cadastro</TableHead>
+                          <TableHead className="w-[100px]">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedPatients.map((patient) => (
                         <TableRow key={patient.id}>
                            <TableCell className="font-medium">
                              <div className="flex items-center space-x-2">
@@ -203,11 +369,16 @@ const Patients = () => {
                                </div>
                              ) : (
                                <span className="text-muted-foreground">Não atribuído</span>
-                             )}
-                           </TableCell>
-                           <TableCell>
-                             {format(new Date(patient.created_at), "dd/MM/yyyy")}
-                           </TableCell>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={patient.ativo ? "default" : "secondary"}>
+                                {patient.ativo ? "Ativo" : "Inativo"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {format(new Date(patient.created_at), "dd/MM/yyyy")}
+                            </TableCell>
                            <TableCell>
                              <div className="flex items-center space-x-1">
                                 <Button
@@ -220,10 +391,49 @@ const Patients = () => {
                                 </Button>
                              </div>
                            </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-4">
+                        <div className="text-sm text-muted-foreground">
+                          Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredPatients.length)} de {filteredPatients.length} pacientes
+                        </div>
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious
+                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                              />
+                            </PaginationItem>
+                            
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(page)}
+                                  isActive={currentPage === page}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            ))}
+                            
+                            <PaginationItem>
+                              <PaginationNext
+                                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-8">
                     <User className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
