@@ -219,7 +219,7 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
           )
         `, { count: 'exact' })
 
-      // Aplicar filtros
+      // Aplicar filtros básicos
       if (filters?.statusFilter && filters.statusFilter !== 'all') {
         query = query.eq('status', filters.statusFilter)
       }
@@ -252,11 +252,11 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
         }
       }
 
+      // Para busca por texto, fazemos apenas nos campos diretos (ID e dentist)
+      // A busca por nome do paciente será feita no frontend após receber os dados
       if (filters?.searchTerm) {
-        // Para busca por texto em campos relacionados (patient name), fazemos uma busca mais específica
         const term = filters.searchTerm.toLowerCase()
-        // Usando textSearch para busca mais eficiente
-        query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%,patients.nome_completo.ilike.%${term}%`)
+        query = query.or(`id.ilike.%${term}%,dentist.ilike.%${term}%`)
       }
 
       const { data, error, count } = await query
@@ -264,8 +264,21 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
         .order('created_at', { ascending: false })
 
       if (error) throw error
+      
+      let orders = data as Order[]
+      
+      // Se há termo de busca, filtrar também por nome do paciente no frontend
+      if (filters?.searchTerm && orders.length > 0) {
+        const term = filters.searchTerm.toLowerCase()
+        orders = orders.filter(order => 
+          order.id.toLowerCase().includes(term) ||
+          order.dentist?.toLowerCase().includes(term) ||
+          order.patients?.nome_completo?.toLowerCase().includes(term)
+        )
+      }
+      
       return { 
-        orders: data as Order[], 
+        orders, 
         totalCount: count || 0,
         totalPages: Math.ceil((count || 0) / limit)
       }
