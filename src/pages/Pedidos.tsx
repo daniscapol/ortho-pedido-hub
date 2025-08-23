@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Search, Filter, Download, Plus, Eye, Edit, User, LogOut, Settings, MoreHorizontal, Calendar as CalendarIcon, Grid3X3, List, Kanban, Clock, CheckSquare, ArrowUpDown, X, TrendingUp, AlertTriangle, Package, CheckCircle } from "lucide-react";
-import { useOrders } from "@/hooks/useOrders";
+import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +37,7 @@ const Pedidos = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isSuperAdmin } = usePermissions();
+  const updateOrderStatus = useUpdateOrderStatus();
   
   const isAdminMaster = isSuperAdmin();
   
@@ -656,23 +657,59 @@ const Pedidos = () => {
                                         <MoreHorizontal className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => navigate(`/pedido/${order.id}`)}>
-                                        <Eye className="mr-2 h-4 w-4" />
-                                        Ver Detalhes
-                                      </DropdownMenuItem>
-                                      {profile?.role === 'admin' && (
-                                        <DropdownMenuItem onClick={() => {
-                                          toast({
-                                            title: "Ação rápida",
-                                            description: "Mudança de status implementada",
-                                          });
-                                        }}>
-                                          <Edit className="mr-2 h-4 w-4" />
-                                          Alterar Status
-                                        </DropdownMenuItem>
-                                      )}
-                                    </DropdownMenuContent>
+                                     <DropdownMenuContent align="end" className="z-50">
+                                       <DropdownMenuItem onClick={() => navigate(`/pedido/${order.id}`)}>
+                                         <Eye className="mr-2 h-4 w-4" />
+                                         Ver Detalhes
+                                       </DropdownMenuItem>
+                                       {profile?.role === 'admin' && (
+                                         <>
+                                           <DropdownMenuSeparator />
+                                           <div className="px-2 py-2">
+                                             <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                                               Alterar Status
+                                             </label>
+                                              <Select
+                                                value={order.status}
+                                                onValueChange={(newStatus) => {
+                                                  updateOrderStatus.mutate(
+                                                    { id: order.id, status: newStatus },
+                                                    {
+                                                      onSuccess: () => {
+                                                        toast({
+                                                          title: "Status atualizado",
+                                                          description: `Status alterado para: ${getStatusLabel(newStatus, isAdminMaster)}`,
+                                                        });
+                                                      },
+                                                      onError: (error) => {
+                                                        toast({
+                                                          title: "Erro",
+                                                          description: "Não foi possível atualizar o status do pedido.",
+                                                          variant: "destructive"
+                                                        });
+                                                      }
+                                                    }
+                                                  );
+                                                }}
+                                              >
+                                               <SelectTrigger className="w-full">
+                                                 <SelectValue />
+                                               </SelectTrigger>
+                                               <SelectContent className="z-50">
+                                                 {getStatusOptions(isAdminMaster).map((statusOption) => (
+                                                   <SelectItem key={statusOption.value} value={statusOption.value}>
+                                                     <div className="flex items-center gap-2">
+                                                       <div className={`w-2 h-2 rounded-full ${statusOption.color.split(' ')[0]}`} />
+                                                       {statusOption.label}
+                                                     </div>
+                                                   </SelectItem>
+                                                 ))}
+                                               </SelectContent>
+                                             </Select>
+                                           </div>
+                                         </>
+                                       )}
+                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 </TableCell>
                               </TableRow>
