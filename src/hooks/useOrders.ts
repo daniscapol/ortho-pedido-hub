@@ -270,7 +270,9 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
       let orders = data as Order[]
       let totalCount = count || 0
 
-      // Se há termo de busca, fazer uma segunda busca por nome do paciente e combinar resultados
+      console.log('🔍 Primeira busca (diretos):', orders.length, 'pedidos encontrados')
+
+      // Se há termo de busca, SEMPRE fazer busca por paciente também
       if (filters?.searchTerm) {
         const term = filters.searchTerm.toLowerCase()
         console.log('🔍 Fazendo busca por paciente com termo:', term)
@@ -295,22 +297,22 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
             `, { count: 'exact' })
             .ilike('patients.nome_completo', `%${term}%`)
 
-          console.log('🔍 Query de paciente criada')
+          console.log('🔍 Query de paciente criada para termo:', term)
 
-          // Aplicar os mesmos filtros básicos
+          // Aplicar os mesmos filtros básicos da primeira query
           if (filters?.statusFilter && filters.statusFilter !== 'all') {
             patientQuery = patientQuery.eq('status', filters.statusFilter)
-            console.log('🔍 Filtro de status aplicado:', filters.statusFilter)
+            console.log('🔍 Filtro status aplicado:', filters.statusFilter)
           }
 
           if (filters?.priorityFilter && filters.priorityFilter !== 'all') {
             patientQuery = patientQuery.eq('priority', filters.priorityFilter)
-            console.log('🔍 Filtro de prioridade aplicado:', filters.priorityFilter)
+            console.log('🔍 Filtro prioridade aplicado:', filters.priorityFilter)
           }
 
           if (filters?.dentistFilter && filters.dentistFilter !== 'all') {
             patientQuery = patientQuery.eq('dentist', filters.dentistFilter)
-            console.log('🔍 Filtro de dentista aplicado:', filters.dentistFilter)
+            console.log('🔍 Filtro dentista aplicado:', filters.dentistFilter)
           }
 
           if (filters?.dateFilter && filters.dateFilter !== 'all') {
@@ -331,36 +333,44 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
                 patientQuery = patientQuery.gte('created_at', startDate.toISOString())
                 break
             }
-            console.log('🔍 Filtro de data aplicado:', filters.dateFilter)
+            console.log('🔍 Filtro data aplicado:', filters.dateFilter)
           }
 
-          console.log('🔍 Executando query de paciente...')
-          const { data: patientOrders, count: patientCount } = await patientQuery
-            .range(start, end)
+          console.log('🔍 Executando busca por paciente...')
+          const { data: patientOrders, count: patientCount, error: patientError } = await patientQuery
             .order('created_at', { ascending: false })
 
-          console.log('🔍 Resultados da busca por paciente:', patientOrders?.length, 'pedidos')
-          console.log('🔍 Count de paciente:', patientCount)
-          console.log('🔍 Resultados diretos:', orders.length, 'pedidos')
+          if (patientError) {
+            console.error('❌ Erro na query de paciente:', patientError)
+            throw patientError
+          }
 
-          // Combinar resultados removendo duplicatas
-          const combinedOrders = [...orders, ...(patientOrders || [])];
-          const uniqueOrders = combinedOrders.filter((order, index, self) => 
-            index === self.findIndex((o) => o.id === order.id)
-          );
+          console.log('🔍 Segunda busca (pacientes):', patientOrders?.length || 0, 'pedidos encontrados')
+          console.log('🔍 Count pacientes:', patientCount)
+
+          // Combinar resultados removendo duplicatas pelo ID
+          const allOrders = [...orders, ...(patientOrders || [])];
+          const uniqueOrdersMap = new Map();
           
-          console.log('🔍 Pedidos combinados únicos:', uniqueOrders.length)
+          allOrders.forEach(order => {
+            uniqueOrdersMap.set(order.id, order);
+          });
+          
+          const uniqueOrders = Array.from(uniqueOrdersMap.values());
+          
+          console.log('🔍 Total único após combinação:', uniqueOrders.length, 'pedidos')
           
           // Reordenar por data de criação
           uniqueOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
           
-          orders = uniqueOrders.slice(0, limit);
-          totalCount = Math.max(totalCount, (patientCount || 0));
+          // Aplicar paginação ao resultado combinado
+          orders = uniqueOrders.slice(start, start + limit);
+          totalCount = uniqueOrders.length; // Total real dos resultados combinados
           
-          console.log('🔍 Total final:', orders.length, 'pedidos')
+          console.log('🔍 Resultado final paginado:', orders.length, 'pedidos (de', totalCount, 'total)')
         } catch (patientError) {
-          // Se a busca por paciente falhar, usar apenas os resultados diretos
           console.error('❌ Erro na busca por paciente:', patientError);
+          // Em caso de erro, manter apenas os resultados diretos
         }
       }
       
