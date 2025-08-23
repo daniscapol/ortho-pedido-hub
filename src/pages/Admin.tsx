@@ -639,30 +639,6 @@ const Admin = () => {
         {/* Navegação por Abas */}
         <div className="flex gap-2 mb-6 flex-wrap">
           <Button 
-            variant={activeTab === "products" ? "default" : "outline"}
-            onClick={() => setActiveTab("products")}
-            className="flex items-center gap-2"
-          >
-            <Package className="h-4 w-4" />
-            Produtos
-          </Button>
-          <Button 
-            variant={activeTab === "tipos" ? "default" : "outline"}
-            onClick={() => setActiveTab("tipos")}
-            className="flex items-center gap-2"
-          >
-            <Layers className="h-4 w-4" />
-            Tipos de Prótese
-          </Button>
-          <Button 
-            variant={activeTab === "materiais" ? "default" : "outline"}
-            onClick={() => setActiveTab("materiais")}
-            className="flex items-center gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            Materiais
-          </Button>
-          <Button 
             variant={activeTab === "overview" ? "default" : "outline"}
             onClick={() => setActiveTab("overview")}
             className="flex items-center gap-2"
@@ -685,6 +661,30 @@ const Admin = () => {
           >
             <BarChart3 className="h-4 w-4" />
             Analytics
+          </Button>
+          <Button 
+            variant={activeTab === "products" ? "default" : "outline"}
+            onClick={() => setActiveTab("products")}
+            className="flex items-center gap-2"
+          >
+            <Package className="h-4 w-4" />
+            Produtos
+          </Button>
+          <Button 
+            variant={activeTab === "tipos" ? "default" : "outline"}
+            onClick={() => setActiveTab("tipos")}
+            className="flex items-center gap-2"
+          >
+            <Layers className="h-4 w-4" />
+            Tipos de Prótese
+          </Button>
+          <Button 
+            variant={activeTab === "materiais" ? "default" : "outline"}
+            onClick={() => setActiveTab("materiais")}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Materiais
           </Button>
           <Button 
             variant={activeTab === "cores" ? "default" : "outline"}
