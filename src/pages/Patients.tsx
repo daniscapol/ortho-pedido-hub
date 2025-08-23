@@ -136,12 +136,11 @@ const Patients = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <div className="fixed inset-y-0 left-0 z-50">
-        <Sidebar />
-      </div>
-      <div className="flex-1 flex flex-col pl-64">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-slate-800 border-b border-slate-700 h-16 flex">          
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
           <div className="flex-1 flex items-center justify-end px-6">
             
             <div className="flex items-center gap-4">
