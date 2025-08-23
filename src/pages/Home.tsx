@@ -17,11 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import * as XLSX from 'xlsx';
 import { Order } from "@/hooks/useOrders";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { getStatusLabel } from "@/lib/status-config";
+import { MASTER_STATUS_OPTIONS } from "@/lib/status-config";
 
 const Home = () => {
   const { data: orders, isLoading } = useOrders();
@@ -29,7 +25,6 @@ const Home = () => {
   const { signOut } = useAuth();
   const { isSuperAdmin } = usePermissions();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,99 +72,46 @@ const Home = () => {
     return filtered;
   }, [orders, profile, searchQuery, isProfileLoading]);
 
-  const exportToExcel = async () => {
-    console.log("🔍 Iniciando exportação Excel...");
-    
+  const exportToExcel = () => {
     if (!filteredOrders.length) {
-      console.log("❌ Nenhum pedido para exportar");
       return;
     }
 
-    console.log("📊 Exportando", filteredOrders.length, "pedidos");
+    // Preparar dados para exportação
+    const excelData = filteredOrders.map(order => ({
+      'ID do Pedido': order.id,
+      'Data de Criação': new Date(order.created_at).toLocaleDateString('pt-BR'),
+      'Data de Atualização': new Date(order.updated_at).toLocaleDateString('pt-BR'),
+      'Paciente': order.patients?.nome_completo || 'N/A',
+      'CPF do Paciente': order.patients?.cpf || 'N/A',
+      'Email do Paciente': order.patients?.email_contato || 'N/A',
+      'Telefone do Paciente': order.patients?.telefone_contato || 'N/A',
+      'Dentista': order.dentist,
+      'Tipo de Prótese': order.prosthesis_type,
+      'Material': order.material || 'N/A',
+      'Cor': order.color || 'N/A',
+      'Status': order.status,
+      'Prioridade': order.priority,
+      'Prazo': order.deadline,
+      'Dentes Selecionados': order.selected_teeth?.join(', ') || 'N/A',
+      'Endereço de Entrega': order.delivery_address || 'N/A',
+      'Observações': order.observations || 'N/A'
+    }));
 
-    try {
-      // Aba 1: Resumo dos Pedidos - SIMPLIFICADO PARA TESTE
-      console.log("📋 Criando aba de resumo...");
-      
-      const ordersData = [];
-      
-      for (let i = 0; i < filteredOrders.length; i++) {
-        const order = filteredOrders[i];
-        console.log(`📝 Processando pedido ${i + 1}/${filteredOrders.length}: ${order.id}`);
-        
-        try {
-          const orderData = {
-            "ID do Pedido": order.id || "N/A",
-            "Paciente": order.patients?.nome_completo || "N/A",
-            "Dentista": order.dentist || "N/A",
-            "Status": order.status || "N/A",
-            "Prioridade": order.priority || "N/A"
-          };
-          
-          ordersData.push(orderData);
-          console.log(`✅ Pedido ${i + 1} processado com sucesso`);
-        } catch (orderError) {
-          console.error(`❌ Erro ao processar pedido ${i + 1}:`, orderError);
-          // Adicionar linha de erro
-          ordersData.push({
-            "ID do Pedido": order.id || `Erro-${i}`,
-            "Paciente": "Erro",
-            "Dentista": "Erro", 
-            "Status": "Erro",
-            "Prioridade": "Erro"
-          });
-        }
-      }
+    // Criar planilha
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Pedidos');
 
-      console.log("✅ Aba de resumo criada com", ordersData.length, "registros");
+    // Ajustar largura das colunas
+    const colWidths = Object.keys(excelData[0]).map(key => ({
+      wch: Math.max(key.length, 15)
+    }));
+    worksheet['!cols'] = colWidths;
 
-      // Criar workbook simples apenas com resumo
-      console.log("📊 Criando workbook Excel simples...");
-      const workbook = XLSX.utils.book_new();
-
-      if (ordersData.length === 0) {
-        throw new Error("Nenhum dado foi processado para exportar");
-      }
-
-      // Apenas a aba de resumo por enquanto
-      console.log("📋 Criando planilha de resumo...");
-      const ordersWorksheet = XLSX.utils.json_to_sheet(ordersData);
-      XLSX.utils.book_append_sheet(workbook, ordersWorksheet, "Resumo dos Pedidos");
-
-      // Baixar arquivo usando blob
-      console.log("💾 Criando blob para download...");
-      const fileName = `pedidos_simples_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
-      console.log("📁 Nome do arquivo:", fileName);
-      
-      // Criar blob do workbook
-      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([wbout], { type: 'application/octet-stream' });
-      
-      // Criar URL e forçar download
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      console.log("✅ Download forçado com sucesso!");
-
-      toast({
-        title: "Exportação concluída", 
-        description: `Arquivo Excel gerado com ${ordersData.length} pedidos`,
-      });
-
-    } catch (error) {
-      console.error("❌ Erro durante exportação:", error);
-      toast({
-        title: "Erro na exportação",
-        description: `Falha ao gerar arquivo Excel: ${error.message}`,
-        variant: "destructive"
-      });
-    }
+    // Baixar arquivo
+    const fileName = `pedidos_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
 
   // Separar pedidos por status
