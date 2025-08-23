@@ -44,8 +44,8 @@ export const NotificationDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative text-white hover:bg-slate-700">
-          <Bell className="w-5 h-5" />
+        <Button variant="ghost" size="icon" className="relative text-white hover:bg-slate-700 border border-slate-600">
+          <Bell className="w-5 h-5 text-white" />
           {unreadCount > 0 && (
             <Badge 
               variant="destructive" 
