@@ -273,8 +273,10 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
           </CardHeader>
            <CardContent className="space-y-4">
              <div className="space-y-4">
-               <div className="space-y-2">
-                 <Label htmlFor="product_select">Selecionar Produto</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="product_select">
+                    Selecionar Produto <span className="text-red-500">*</span>
+                  </Label>
                  <Select value={selectedProduct} onValueChange={handleProductChange}>
                    <SelectTrigger>
                      <SelectValue placeholder="Selecione um produto do catálogo" />
@@ -313,7 +315,9 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="prosthesis_type">Tipo de Prótese</Label>
+                        <Label htmlFor="prosthesis_type">
+                          Tipo de Prótese <span className="text-red-500">*</span>
+                        </Label>
                         <Select 
                           value={currentItem.prosthesis_type} 
                           onValueChange={(value) => setCurrentItem(prev => ({ ...prev, prosthesis_type: value }))}
@@ -378,7 +382,9 @@ const OrderItemForm = ({ onAddItem, onRemoveItem, onEditItem, items, showOdontog
             {showOdontogram && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Selecionar Dentes</Label>
+                  <Label>
+                    Selecionar Dentes <span className="text-red-500">*</span>
+                  </Label>
                   
                   {/* Botões no topo */}
                   <Odontogram 

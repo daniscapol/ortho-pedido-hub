@@ -313,7 +313,16 @@ const NewOrderForm = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Seleção de Paciente */}
       {!selectedPatient ? (
-        <PatientSearch onPatientSelect={setSelectedPatient} />
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Selecionar Paciente <span className="text-red-500">*</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PatientSearch onPatientSelect={setSelectedPatient} />
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <CardHeader>
@@ -337,12 +346,19 @@ const NewOrderForm = () => {
       {selectedPatient && (
         <>
           {/* Formulário de Produtos */}
-          <OrderItemForm 
-            onAddItem={handleAddOrderItem}
-            onEditItem={handleEditOrderItem}
-            onRemoveItem={handleRemoveOrderItem}
-            items={orderItems}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Produtos do Pedido <span className="text-red-500">*</span></CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OrderItemForm 
+                onAddItem={handleAddOrderItem}
+                onEditItem={handleEditOrderItem}
+                onRemoveItem={handleRemoveOrderItem}
+                items={orderItems}
+              />
+            </CardContent>
+          </Card>
 
           {/* Formulário do Pedido */}
           <Card>
@@ -354,7 +370,9 @@ const NewOrderForm = () => {
                 {/* Seleção de Dentista para admin_master, admin_matriz e admin_clinica */}
                 {canSelectDentist && (
                   <div className="space-y-2">
-                    <Label htmlFor="dentistSelect">Selecionar Dentista</Label>
+                    <Label htmlFor="dentistSelect">
+                      Selecionar Dentista <span className="text-red-500">*</span>
+                    </Label>
                     <Select value={selectedDentist} onValueChange={setSelectedDentist}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o dentista responsável" />
