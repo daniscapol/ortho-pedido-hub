@@ -22,7 +22,7 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useOrdersForAdmin, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { Search, Eye, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2, Key, User, LogOut } from "lucide-react";
+import { Search, Eye, BarChart3, UserPlus, Trash2, Mail, Package, Layers, Palette, Settings, Link, Users, Building2, Key, User, LogOut, Zap } from "lucide-react";
 import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 import { TiposProteseManager } from "@/components/admin/TiposProteseManager";
@@ -437,6 +437,32 @@ const Admin = () => {
     },
   })
 
+  // Mutation para teste de estresse
+  const stressTest = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('create-stress-test-data');
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Teste de estresse iniciado",
+        description: "O sistema está criando os dados de teste. Verifique os logs para acompanhar o progresso.",
+      });
+      // Invalidate queries para atualizar os dados
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['matrizes'] });
+      queryClient.invalidateQueries({ queryKey: ['clinicas'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro no teste de estresse",
+        description: error?.message || "Não foi possível iniciar o teste de estresse.",
+        variant: "destructive",
+      });
+    },
+  })
+
   // Verificar se o usuário é admin
   if (profileLoading || authLoading) {
     return (
@@ -707,6 +733,14 @@ const Admin = () => {
           >
             <Building2 className="h-4 w-4" />
             Matrizes
+          </Button>
+          <Button 
+            variant={activeTab === "stress-test" ? "default" : "outline"}
+            onClick={() => setActiveTab("stress-test")}
+            className="flex items-center gap-2"
+          >
+            <Zap className="h-4 w-4" />
+            Teste de Estresse
           </Button>
         </div>
 
@@ -1270,6 +1304,48 @@ const Admin = () => {
           <CompatibilidadeManager />
         ) : activeTab === "matrizes" ? (
           <FiliaisSection />
+        ) : activeTab === "stress-test" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Teste de Estresse do Sistema</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-yellow-800 mb-2">⚠️ Atenção</h4>
+                  <p className="text-yellow-700 text-sm">
+                    Este teste criará uma grande quantidade de dados para testar a performance do sistema:
+                  </p>
+                  <ul className="text-yellow-700 text-sm mt-2 ml-4 list-disc">
+                    <li>5 matrizes novas</li>
+                    <li>25 clínicas novas (5 por matriz)</li>
+                    <li>125 dentistas novos (5 por clínica)</li>
+                    <li>3.750 pacientes novos (30 por dentista)</li>
+                    <li>3.750 pedidos novos (1 por paciente)</li>
+                  </ul>
+                  <p className="text-yellow-700 text-sm mt-2">
+                    <strong>Este processo pode demorar alguns minutos para completar.</strong>
+                  </p>
+                </div>
+                
+                <div className="flex flex-col gap-4">
+                  <Button 
+                    onClick={() => stressTest.mutate()}
+                    disabled={stressTest.isPending}
+                    className="w-full max-w-md mx-auto"
+                    size="lg"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    {stressTest.isPending ? "Criando dados de teste..." : "Iniciar Teste de Estresse"}
+                  </Button>
+                  
+                  <div className="text-center text-sm text-muted-foreground">
+                    O progresso pode ser acompanhado nos logs da função edge.
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ) : null}
         </div>
         </main>
