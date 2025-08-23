@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -793,19 +795,43 @@ const Admin = () => {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={dentistFilter} onValueChange={setDentistFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Dentista" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos Dentistas</SelectItem>
-                      {(uniqueDentists || []).map((dentist) => (
-                        <SelectItem key={dentist} value={dentist}>
-                          {dentist}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="justify-between"
+                      >
+                        {dentistFilter === "all" ? "Todos Dentistas" : dentistFilter}
+                        <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0 bg-background border shadow-lg z-50">
+                      <Command>
+                        <CommandInput placeholder="Buscar dentista..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum dentista encontrado.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem
+                              value="all"
+                              onSelect={() => setDentistFilter("all")}
+                            >
+                              Todos Dentistas
+                            </CommandItem>
+                            {(uniqueDentists || []).map((dentist) => (
+                              <CommandItem
+                                key={dentist}
+                                value={dentist}
+                                onSelect={() => setDentistFilter(dentist)}
+                              >
+                                {dentist}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   
                   <Select value={dateFilter} onValueChange={setDateFilter}>
                     <SelectTrigger>
