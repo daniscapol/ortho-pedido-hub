@@ -142,7 +142,8 @@ const Patients = () => {
       
       <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-slate-800 border-b border-slate-700 h-16 flex">          
+        <header className="fixed top-0 left-0 right-0 z-40 bg-slate-800 border-b border-slate-700 h-16 flex">          
+          <div className="w-64"></div> {/* Espaço para a sidebar */}
           <div className="flex-1 flex items-center justify-end px-6">
             
             <div className="flex items-center gap-4">
@@ -176,7 +177,7 @@ const Patients = () => {
           </div>
         </header>
         
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 mt-16">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <div>
