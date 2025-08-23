@@ -747,6 +747,7 @@ const Admin = () => {
                       <SelectItem value="projeto_modelo_realizado">Projeto do Modelo Realizado</SelectItem>
                       <SelectItem value="aguardando_entrega">Aguardando Entrega</SelectItem>
                       <SelectItem value="entregue">Entregue</SelectItem>
+                      <SelectItem value="cancelado">Cancelado</SelectItem>
                     </SelectContent>
                   </Select>
                   
@@ -915,6 +916,7 @@ const Admin = () => {
                                 <SelectItem value="projeto_modelo_realizado">Projeto do modelo Realizado</SelectItem>
                                 <SelectItem value="aguardando_entrega">Aguardando entrega</SelectItem>
                                 <SelectItem value="entregue">Entregue</SelectItem>
+                                <SelectItem value="cancelado">Cancelado</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>

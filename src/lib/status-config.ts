@@ -10,7 +10,8 @@ export const MASTER_STATUS_OPTIONS: StatusOption[] = [
   { value: 'projeto_realizado', label: 'Projeto Realizado', color: 'bg-purple-100 text-purple-800' },
   { value: 'projeto_modelo_realizado', label: 'Projeto do modelo Realizado', color: 'bg-indigo-100 text-indigo-800' },
   { value: 'aguardando_entrega', label: 'Aguardando entrega', color: 'bg-orange-100 text-orange-800' },
-  { value: 'entregue', label: 'Entregue', color: 'bg-gray-100 text-gray-800' }
+  { value: 'entregue', label: 'Entregue', color: 'bg-gray-100 text-gray-800' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-100 text-red-800' }
 ];
 
 export const DENTIST_STATUS_OPTIONS: StatusOption[] = [

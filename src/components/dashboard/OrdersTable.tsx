@@ -63,7 +63,7 @@ const OrderRow = ({ order }: { order: any }) => {
       </td>
       <td className="py-3 px-2">
         <div className="flex gap-2">
-          {canChangeStatus(isAdminMaster) && order.status !== 'entregue' && (
+          {canChangeStatus(isAdminMaster) && order.status !== 'entregue' && order.status !== 'cancelado' && (
             <Button 
               variant="outline" 
               size="sm"
