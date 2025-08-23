@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1170,35 +1170,35 @@ export type Database = {
       }
       create_notification: {
         Args: {
-          p_user_id: string
-          p_title: string
           p_message: string
-          p_type: string
           p_related_order_id?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
         }
         Returns: string
       }
       get_clinicas_with_counts: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          nome_completo: string
-          cnpj: string
-          endereco: string
-          telefone: string
-          email: string
+          ativo: boolean
           cep: string
           cidade: string
-          estado: string
-          numero: string
+          cnpj: string
           complemento: string
-          ativo: boolean
-          filial_id: string
           created_at: string
-          updated_at: string
+          email: string
+          endereco: string
+          estado: string
+          filial_id: string
           filial_nome: string
+          id: string
+          nome_completo: string
+          numero: string
           qntd_dentistas: number
           qntd_pacientes: number
+          telefone: string
+          updated_at: string
         }[]
       }
       get_current_user_role: {
@@ -1208,43 +1208,43 @@ export type Database = {
       get_filiais_with_counts: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          nome_completo: string
-          endereco: string
-          telefone: string
-          email: string
           ativo: boolean
-          created_at: string
-          updated_at: string
           cep: string
           cidade: string
-          estado: string
-          numero: string
-          complemento: string
           cnpj: string
+          complemento: string
+          created_at: string
+          email: string
+          endereco: string
+          estado: string
+          id: string
+          nome_completo: string
+          numero: string
           qntd_clinicas: number
           qntd_pacientes: number
+          telefone: string
+          updated_at: string
         }[]
       }
       get_matrizes_with_counts: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          nome_completo: string
-          endereco: string
-          telefone: string
-          email: string
           ativo: boolean
-          created_at: string
-          updated_at: string
           cep: string
           cidade: string
-          estado: string
-          numero: string
-          complemento: string
           cnpj: string
+          complemento: string
+          created_at: string
+          email: string
+          endereco: string
+          estado: string
+          id: string
+          nome_completo: string
+          numero: string
           qntd_clinicas: number
           qntd_pacientes: number
+          telefone: string
+          updated_at: string
         }[]
       }
       get_or_create_conversation: {
@@ -1254,12 +1254,12 @@ export type Database = {
       get_order_analytics: {
         Args: Record<PropertyKey, never>
         Returns: {
-          date: string
-          total_orders: number
+          avg_completion_hours: number
           completed_orders: number
+          date: string
           in_production: number
           pending_orders: number
-          avg_completion_hours: number
+          total_orders: number
         }[]
       }
       get_user_clinica_id: {
@@ -1293,10 +1293,10 @@ export type Database = {
       log_audit_event: {
         Args: {
           p_action: string
-          p_entity_type: string
           p_entity_id: string
-          p_old_values?: Json
+          p_entity_type: string
           p_new_values?: Json
+          p_old_values?: Json
         }
         Returns: undefined
       }
