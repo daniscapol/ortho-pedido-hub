@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Search, Filter, Download, Plus, Eye, Edit, User, LogOut, Settings, MoreHorizontal, Calendar as CalendarIcon, Grid3X3, List, Kanban, Clock, CheckSquare, ArrowUpDown, X, TrendingUp, AlertTriangle, Package, CheckCircle } from "lucide-react";
@@ -59,6 +60,9 @@ const Pedidos = () => {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<{key: string; direction: "asc" | "desc"}>({key: "created_at", direction: "desc"});
   
+  // Estados de paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   // Enable real-time notifications
   useRealtimeNotifications();
@@ -210,6 +214,33 @@ const Pedidos = () => {
       ...statusCounts
     };
   }, [filteredOrders, isAdminMaster]);
+
+  // Calcular paginação
+  const paginationInfo = useMemo(() => {
+    const totalItems = filteredOrders.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    
+    return {
+      totalItems,
+      totalPages,
+      startIndex,
+      endIndex,
+      hasNextPage: currentPage < totalPages,
+      hasPrevPage: currentPage > 1
+    };
+  }, [filteredOrders.length, currentPage, itemsPerPage]);
+
+  // Pedidos paginados
+  const paginatedOrders = useMemo(() => {
+    return filteredOrders.slice(paginationInfo.startIndex, paginationInfo.endIndex);
+  }, [filteredOrders, paginationInfo.startIndex, paginationInfo.endIndex]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, priorityFilter, dentistFilter, prosthesisTypeFilter, materialFilter, dateRange]);
 
   const exportToExcel = async () => {
     if (!filteredOrders.length) return;
@@ -615,6 +646,11 @@ const Pedidos = () => {
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <span>Pedidos ({filteredOrders.length})</span>
+                    {filteredOrders.length > itemsPerPage && (
+                      <span className="text-sm text-muted-foreground">
+                        Mostrando {paginationInfo.startIndex + 1}-{paginationInfo.endIndex} de {filteredOrders.length}
+                      </span>
+                    )}
                     {selectedOrders.length > 0 && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>{selectedOrders.length} selecionados</span>
@@ -713,7 +749,7 @@ const Pedidos = () => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {filteredOrders.map((order) => (
+                            {paginatedOrders.map((order) => (
                               <TableRow key={order.id} className="hover:bg-muted/50">
                                 <TableCell>
                                   <Checkbox
@@ -820,7 +856,7 @@ const Pedidos = () => {
                     {/* Grid View */}
                     {viewMode === "grid" && (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredOrders.map((order) => (
+                        {paginatedOrders.map((order) => (
                           <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/pedido/${order.id}`)}>
                             <CardHeader className="pb-3">
                               <div className="flex items-center justify-between">
@@ -845,6 +881,63 @@ const Pedidos = () => {
                             </CardContent>
                           </Card>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Paginação */}
+                    {paginationInfo.totalPages > 1 && (
+                      <div className="mt-6 flex justify-center">
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious 
+                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                className={cn(
+                                  "cursor-pointer",
+                                  !paginationInfo.hasPrevPage && "pointer-events-none opacity-50"
+                                )}
+                              />
+                            </PaginationItem>
+                            
+                            {/* Páginas */}
+                            {Array.from({ length: Math.min(5, paginationInfo.totalPages) }, (_, i) => {
+                              const pageNum = Math.max(1, Math.min(
+                                paginationInfo.totalPages - 4,
+                                currentPage - 2
+                              )) + i;
+                              
+                              if (pageNum > paginationInfo.totalPages) return null;
+                              
+                              return (
+                                <PaginationItem key={pageNum}>
+                                  <PaginationLink
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    isActive={currentPage === pageNum}
+                                    className="cursor-pointer"
+                                  >
+                                    {pageNum}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            })}
+                            
+                            {paginationInfo.totalPages > 5 && currentPage < paginationInfo.totalPages - 3 && (
+                              <PaginationItem>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            )}
+                            
+                            <PaginationItem>
+                              <PaginationNext 
+                                onClick={() => setCurrentPage(Math.min(paginationInfo.totalPages, currentPage + 1))}
+                                className={cn(
+                                  "cursor-pointer",
+                                  !paginationInfo.hasNextPage && "pointer-events-none opacity-50"
+                                )}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
                       </div>
                     )}
 
