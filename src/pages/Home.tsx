@@ -136,13 +136,26 @@ const Home = () => {
       const ordersWorksheet = XLSX.utils.json_to_sheet(ordersData);
       XLSX.utils.book_append_sheet(workbook, ordersWorksheet, "Resumo dos Pedidos");
 
-      // Baixar arquivo
-      console.log("💾 Iniciando download do arquivo...");
+      // Baixar arquivo usando blob
+      console.log("💾 Criando blob para download...");
       const fileName = `pedidos_simples_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
       console.log("📁 Nome do arquivo:", fileName);
       
-      XLSX.writeFile(workbook, fileName);
-      console.log("✅ Download iniciado com sucesso!");
+      // Criar blob do workbook
+      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
+      
+      // Criar URL e forçar download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log("✅ Download forçado com sucesso!");
 
       toast({
         title: "Exportação concluída", 
