@@ -56,7 +56,7 @@ export const NotificationDropdown = () => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80 z-50 bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between p-2">
           <DropdownMenuLabel className="p-0">Notificações</DropdownMenuLabel>
           {unreadCount > 0 && (
