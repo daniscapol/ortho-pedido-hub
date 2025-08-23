@@ -250,10 +250,10 @@ export const useDentistOrders = (dentistId: string) => {
         .select(`
           *,
           patients (
-            name,
+            nome_completo,
             cpf,
-            phone,
-            email
+            telefone_contato,
+            email_contato
           ),
           order_images (
             id,

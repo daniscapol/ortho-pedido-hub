@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { Search, Bell, User, LogOut, Settings, UserCheck, Calendar, Mail, Phone, ArrowLeft, BarChart3 } from "lucide-react";
 import { useDentistOrders } from "@/hooks/useDentists";
 import { useProfile } from "@/hooks/useProfile";
@@ -92,16 +93,25 @@ const DentistDetails = () => {
     return orders;
   }, [orders, searchQuery]);
 
-  // Separar pedidos por status
-  const ordersPending = filteredOrders.filter(order => order.status === "pending");
-  const ordersInProduction = filteredOrders.filter(order => order.status === "producao");
-  const ordersCompleted = filteredOrders.filter(order => 
-    order.status === "pronto" || order.status === "entregue"
+  // Separar pedidos por status (seguindo o padrão do sistema)
+  const ordersSolicitados = filteredOrders.filter(order => 
+    order.status === "pedido_solicitado"
+  );
+  
+  const ordersEmAndamento = filteredOrders.filter(order => 
+    order.status === "baixado_verificado" || 
+    order.status === "projeto_realizado" || 
+    order.status === "projeto_modelo_realizado"
+  );
+  
+  const ordersFinalizando = filteredOrders.filter(order => 
+    order.status === "aguardando_entrega" || 
+    order.status === "entregue"
   );
 
   // Estatísticas
   const totalOrders = filteredOrders.length;
-  const completedOrdersCount = ordersCompleted.length;
+  const completedOrdersCount = ordersFinalizando.length;
   const completionRate = totalOrders > 0 ? Math.round((completedOrdersCount / totalOrders) * 100) : 0;
 
   if (!dentistInfo) {
@@ -116,18 +126,17 @@ const DentistDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Sidebar />
+    <div className="h-screen bg-background flex overflow-hidden">
+      <div className="sticky top-0 h-screen">
+        <Sidebar />
+      </div>
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 h-16 flex">          
+        <header className="bg-slate-800 border-b border-slate-700 h-16 flex sticky top-0 z-10">          
           <div className="flex-1 flex items-center justify-end px-6">
-            
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700">
-                <Bell className="w-5 h-5" />
-              </Button>
+              <NotificationDropdown />
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -136,7 +145,7 @@ const DentistDetails = () => {
                     <div className="text-left">
                       <div className="text-sm font-medium">Olá, {profile?.name || 'Usuário'}!</div>
                       <div className="text-xs text-slate-300">
-                        SB Prótese Odontológica - {profile?.role === 'admin' ? 'Matriz Zone Sul' : 'Dentista'}
+                        SB Prótese Odontológica - {profile?.role_extended === 'admin_master' ? 'Admin Master' : 'Usuário'}
                       </div>
                     </div>
                   </Button>
@@ -158,166 +167,181 @@ const DentistDetails = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
-          {/* Breadcrumb and dentist info */}
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/dentistas')}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Voltar
-            </Button>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                <UserCheck className="w-4 h-4 text-primary-foreground" />
+        <div className="flex-1 flex overflow-hidden">
+          <main className="flex-1 p-6 overflow-y-auto">
+            {/* Breadcrumb and dentist info */}
+            <div className="flex items-center gap-4 mb-6">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/dentistas')}
+                className="gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Voltar
+              </Button>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
+                  <UserCheck className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <h1 className="text-xl font-semibold text-foreground">
+                  {dentistInfo.name || 'Dentista'}
+                </h1>
               </div>
-              <h1 className="text-xl font-semibold text-foreground">
-                {dentistInfo.name || 'Dentista'}
-              </h1>
             </div>
-          </div>
 
-          {/* Dentist Info Card */}
-          <Card className="mb-6">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                    <UserCheck className="w-8 h-8 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl">{dentistInfo.name || 'Dentista'}</CardTitle>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        {dentistInfo.email}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        Cadastrado em {format(new Date(dentistInfo.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+            {/* Dentist Info Card */}
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                      <UserCheck className="w-8 h-8 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">{dentistInfo.name || 'Dentista'}</CardTitle>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          {dentistInfo.email}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          Cadastrado em {format(new Date(dentistInfo.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <div className="flex gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary">{totalOrders}</div>
+                      <div className="text-xs text-muted-foreground">Total de Pedidos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-success">{completionRate}%</div>
+                      <div className="text-xs text-muted-foreground">Taxa de Conclusão</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{totalOrders}</div>
-                    <div className="text-xs text-muted-foreground">Total de Pedidos</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-success">{completionRate}%</div>
-                    <div className="text-xs text-muted-foreground">Taxa de Conclusão</div>
-                  </div>
+              </CardHeader>
+            </Card>
+
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Buscar pedidos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            {/* Orders columns */}
+            <div className="grid grid-cols-3 gap-6">
+              {/* Solicitados */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-1 w-8 bg-yellow-500 rounded-full"></div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Solicitados
+                  </h2>
+                  <Badge variant="secondary" className="ml-2">
+                    {ordersSolicitados.length}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {isLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Carregando...
+                    </div>
+                  ) : ordersSolicitados.length > 0 ? (
+                    ordersSolicitados.map((order) => (
+                      <OrderCard 
+                        key={order.id} 
+                        order={order} 
+                        onClick={() => handleOrderClick(order)}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Nenhum pedido solicitado
+                    </div>
+                  )}
                 </div>
               </div>
-            </CardHeader>
-          </Card>
 
-          {/* Orders columns */}
-          <div className="grid grid-cols-3 gap-6">
-            {/* Pendente */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-1 w-8 bg-yellow-500 rounded-full"></div>
-                <h2 className="text-lg font-semibold text-foreground">
-                  Pendente
-                </h2>
-                <Badge variant="secondary" className="ml-2">
-                  {ordersPending.length}
-                </Badge>
+              {/* Em Andamento */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-1 w-8 bg-blue-500 rounded-full"></div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Em Andamento
+                  </h2>
+                  <Badge variant="secondary" className="ml-2">
+                    {ordersEmAndamento.length}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {isLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Carregando...
+                    </div>
+                  ) : ordersEmAndamento.length > 0 ? (
+                    ordersEmAndamento.map((order) => (
+                      <OrderCard 
+                        key={order.id} 
+                        order={order} 
+                        onClick={() => handleOrderClick(order)}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Nenhum pedido em andamento
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              <div className="space-y-3">
-                {isLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Carregando...
-                  </div>
-                ) : ordersPending.length > 0 ? (
-                  ordersPending.map((order) => (
-                    <OrderCard 
-                      key={order.id} 
-                      order={order} 
-                      onClick={() => handleOrderClick(order)}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum pedido pendente
-                  </div>
-                )}
+
+              {/* Finalizando */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-1 w-8 bg-green-500 rounded-full"></div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Finalizando
+                  </h2>
+                  <Badge variant="secondary" className="ml-2">
+                    {ordersFinalizando.length}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {isLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Carregando...
+                    </div>
+                  ) : ordersFinalizando.length > 0 ? (
+                    ordersFinalizando.map((order) => (
+                      <OrderCard 
+                        key={order.id} 
+                        order={order} 
+                        onClick={() => handleOrderClick(order)}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Nenhum pedido finalizando
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-
-            {/* Em Produção */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-1 w-8 bg-blue-500 rounded-full"></div>
-                <h2 className="text-lg font-semibold text-foreground">
-                  Em Produção
-                </h2>
-                <Badge variant="secondary" className="ml-2">
-                  {ordersInProduction.length}
-                </Badge>
-              </div>
-              
-              <div className="space-y-3">
-                {isLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Carregando...
-                  </div>
-                ) : ordersInProduction.length > 0 ? (
-                  ordersInProduction.map((order) => (
-                    <OrderCard 
-                      key={order.id} 
-                      order={order} 
-                      onClick={() => handleOrderClick(order)}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum pedido em produção
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Concluído */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-1 w-8 bg-green-500 rounded-full"></div>
-                <h2 className="text-lg font-semibold text-foreground">
-                  Concluído
-                </h2>
-                <Badge variant="secondary" className="ml-2">
-                  {ordersCompleted.length}
-                </Badge>
-              </div>
-              
-              <div className="space-y-3">
-                {isLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Carregando...
-                  </div>
-                ) : ordersCompleted.length > 0 ? (
-                  ordersCompleted.map((order) => (
-                    <OrderCard 
-                      key={order.id} 
-                      order={order} 
-                      onClick={() => handleOrderClick(order)}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum pedido concluído
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </main>
+          </main>
+        </div>
 
         {/* Order Details Modal */}
         <OrderDetailsModal
