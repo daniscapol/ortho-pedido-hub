@@ -27,6 +27,8 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { DateRange } from "react-day-picker";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getStatusColor, getStatusLabel, getStatusOptions } from "@/lib/status-config";
 
 const Pedidos = () => {
   const { data: orders, isLoading } = useOrders();
@@ -34,6 +36,9 @@ const Pedidos = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isSuperAdmin } = usePermissions();
+  
+  const isAdminMaster = isSuperAdmin();
   
   // Estados de filtros básicos
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,18 +66,9 @@ const Pedidos = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusMap = {
-      'pending': { label: 'Pendente', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-      'producao': { label: 'Produção', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-      'pronto': { label: 'Pronto', className: 'bg-green-100 text-green-800 border-green-200' },
-      'entregue': { label: 'Entregue', className: 'bg-gray-100 text-gray-800 border-gray-200' }
-    };
-    
-    const statusInfo = statusMap[status as keyof typeof statusMap] || { label: status, className: 'bg-gray-100 text-gray-800' };
-    
     return (
-      <Badge variant="outline" className={statusInfo.className}>
-        {statusInfo.label}
+      <Badge className={getStatusColor(status)}>
+        {getStatusLabel(status, isAdminMaster)}
       </Badge>
     );
   };
@@ -200,16 +196,18 @@ const Pedidos = () => {
 
   // KPIs
   const kpis = useMemo(() => {
-    if (!filteredOrders) return { total: 0, pending: 0, production: 0, ready: 0, delivered: 0 };
+    if (!filteredOrders) return { total: 0, pedido_solicitado: 0, baixado_verificado: 0, projeto_realizado: 0, projeto_modelo_realizado: 0, aguardando_entrega: 0, entregue: 0 };
+    
+    const statusCounts = getStatusOptions(isAdminMaster).reduce((acc, status) => {
+      acc[status.value] = filteredOrders.filter(o => o.status === status.value).length;
+      return acc;
+    }, {} as Record<string, number>);
     
     return {
       total: filteredOrders.length,
-      pending: filteredOrders.filter(o => o.status === 'pending').length,
-      production: filteredOrders.filter(o => o.status === 'producao').length,
-      ready: filteredOrders.filter(o => o.status === 'pronto').length,
-      delivered: filteredOrders.filter(o => o.status === 'entregue').length
+      ...statusCounts
     };
-  }, [filteredOrders]);
+  }, [filteredOrders, isAdminMaster]);
 
   const exportToExcel = () => {
     if (!filteredOrders.length) return;
@@ -329,61 +327,28 @@ const Pedidos = () => {
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-yellow-100 rounded-lg">
-                      <Clock className="h-6 w-6 text-yellow-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
-                      <p className="text-2xl font-bold">{kpis.pending}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <TrendingUp className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Produção</p>
-                      <p className="text-2xl font-bold">{kpis.production}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <CheckCircle className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Prontos</p>
-                      <p className="text-2xl font-bold">{kpis.ready}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="flex items-center p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <CheckSquare className="h-6 w-6 text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Entregues</p>
-                      <p className="text-2xl font-bold">{kpis.delivered}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {getStatusOptions(isAdminMaster).slice(0, 4).map((statusOption, index) => {
+                const icons = [Clock, TrendingUp, CheckCircle, CheckSquare];
+                const colors = ['yellow', 'blue', 'green', 'gray'];
+                const Icon = icons[index] || Clock;
+                const color = colors[index] || 'gray';
+                
+                return (
+                  <Card key={statusOption.value}>
+                    <CardContent className="flex items-center p-6">
+                      <div className="flex items-center space-x-4">
+                        <div className={`p-2 bg-${color}-100 rounded-lg`}>
+                          <Icon className={`h-6 w-6 text-${color}-600`} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">{statusOption.label}</p>
+                          <p className="text-2xl font-bold">{kpis[statusOption.value] || 0}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Filtros Avançados */}
@@ -484,10 +449,11 @@ const Pedidos = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todos os Status</SelectItem>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="producao">Em Produção</SelectItem>
-                        <SelectItem value="pronto">Pronto</SelectItem>
-                        <SelectItem value="entregue">Entregue</SelectItem>
+                        {getStatusOptions(isAdminMaster).map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
 
@@ -749,19 +715,13 @@ const Pedidos = () => {
                     {/* Kanban View */}
                     {viewMode === "kanban" && (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {["pending", "producao", "pronto", "entregue"].map((status) => {
-                          const statusOrders = filteredOrders.filter(order => order.status === status);
-                          const statusLabels = {
-                            pending: "Pendentes",
-                            producao: "Em Produção", 
-                            pronto: "Prontos",
-                            entregue: "Entregues"
-                          };
+                        {getStatusOptions(isAdminMaster).map((statusOption) => {
+                          const statusOrders = filteredOrders.filter(order => order.status === statusOption.value);
                           
                           return (
-                            <div key={status} className="space-y-3">
+                            <div key={statusOption.value} className="space-y-3">
                               <div className="flex items-center justify-between">
-                                <h3 className="font-medium">{statusLabels[status as keyof typeof statusLabels]}</h3>
+                                <h3 className="font-medium">{statusOption.label}</h3>
                                 <Badge variant="secondary">{statusOrders.length}</Badge>
                               </div>
                               <div className="space-y-2 min-h-[400px]">
