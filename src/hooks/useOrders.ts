@@ -271,6 +271,15 @@ export const useOrdersForAdmin = (page: number = 1, limit: number = 50, filters?
       let totalCount = count || 0
 
       console.log('🔍 Primeira busca (diretos):', orders.length, 'pedidos encontrados')
+      
+      // Debug: mostrar alguns pedidos para entender a estrutura
+      if (orders.length > 0) {
+        console.log('🔍 Exemplo de pedido encontrado:', {
+          id: orders[0].id,
+          patients: orders[0].patients,
+          patient_name: orders[0].patients?.nome_completo
+        });
+      }
 
       // Se há termo de busca, SEMPRE fazer busca por paciente também
       if (filters?.searchTerm) {
